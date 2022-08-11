@@ -1,2 +1,52 @@
 # ytScripts
 Collection of Python scripts that use "The yt Project" for data manipulation and visualization
+
+To install dependencies, with a working `conda` distribution, type:
+
+`conda env create --file environment.yml`
+
+to update an existing conda environment:
+
+`conda env update --name ytScripts --file environment.yml --prune`
+
+
+after environment is created:
+
+`conda activate ytScripts`
+
+All formatting must pass through `black`, `isort`, and `flake8`
+
+The proper order should be `black`, then `isort`, finally `flake8` to catch any issues. If there are further changes, repeat the formatting sequence
+
+
+# Scripts for Data Extractions
+Scripts for data extraction and maniupulation are located under `data_extraction/`
+
+
+## extract_slices.py
+For now, this only extracts along the x direction.
+
+`python extract_slices.py -p DIR/ --field "Y(NC12H26)" --LM --xmin 0.005 --xmax 0.1 --num_slices 16`
+
+This will extract all plot files contained in directory `DIR/` for the field `Y(NC12H26)` consistent with the low Mach units (not really necessary here), making 16 slices starting from x = 0.005 to x = 0.1
+
+These slices will be saved in `outdata` with the following variables: `time`, `fcoords`, `resolution`, `dimensions`, `left_edge`, `right_edge`, `max_level`, `xloc`, `field`, `var_slice`
+
+
+
+
+## plot_slices.py
+This will load in the numpy data structures contained in the input path and make plots
+
+`python plot_slices.py -p outdata/`
+
+where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`
+
+
+# Scripts for Visualization
+Scripts for in-place quick visualization are located under `quick_vis`
+
+These scripts are currently provided as examples and will need manual modification. Future updates will make them more automated.
+
+
+## 

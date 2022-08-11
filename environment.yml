@@ -1,0 +1,14 @@
+name: ytScripts
+channels:
+  - defaults
+
+dependencies:
+  - python
+  - numpy
+  - matplotlib
+  - pip
+  - pip:
+    - black
+    - isort
+    - flake8
+    - yt
