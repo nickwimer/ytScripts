@@ -29,7 +29,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--fbounds",
-        type=list,
+        nargs="+",
+        type=float,
         required=False,
         default=None,
         help="Bounds to plot the field",

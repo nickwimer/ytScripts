@@ -49,4 +49,10 @@ Scripts for in-place quick visualization are located under `quick_vis`
 These scripts are currently provided as examples and will need manual modification. Future updates will make them more automated.
 
 
-## 
+## slice_plot.py
+This will take all `plt` files in the input directory and create images down the middle of the domain subject to inputs
+
+`python quick_vis/slice_plot.py -p DIR/ --field "Y(NC12H26)" --normal x --LM --fbounds 0 0.1`
+
+This will create a 2D slice plot with x as the normal irection and bounds on field set to 0 - 0.1 in field units
+
