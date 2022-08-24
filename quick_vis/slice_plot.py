@@ -4,6 +4,7 @@ import fnmatch
 import os
 
 import yt
+from yt.units.yt_array import YTArray
 
 if __name__ == "__main__":
 
@@ -47,7 +48,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "-c",
         "--center",
-        type=list,
+        nargs="+",
+        type=float,
         required=False,
         help="Coordinate list for center of slice plot",
     )
@@ -77,6 +79,13 @@ if __name__ == "__main__":
         action="store_false",
         default=True,
         help="flag to turn off grid annotation",
+    )
+    parser.add_argument(
+        "--grid_offset",
+        type=float,
+        default=0.0,
+        required=False,
+        help="Amount to offset center to avoid grid alignment vis issues",
     )
     args = parser.parse_args()
 
@@ -127,10 +136,12 @@ if __name__ == "__main__":
 
     # Set the center of the plot
     if args.center is not None:
-        pass
+        slc_center = args.center
     else:
         # Set the center based on the plt data
         slc_center = (right_edge + left_edge) / 2.0
+        # provide slight offset to avoid grid alignment vis issues
+        slc_center += YTArray(args.grid_offset, length_unit)
 
     # Loop over all datasets in the time series
     idx = 0
