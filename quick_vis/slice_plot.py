@@ -45,6 +45,13 @@ if __name__ == "__main__":
         help="Normal direction for the slice plot",
     )
     parser.add_argument(
+        "-c",
+        "--center",
+        type=list,
+        required=False,
+        help="Coordinate list for center of slice plot",
+    )
+    parser.add_argument(
         "--fbounds",
         nargs="+",
         type=float,
@@ -113,7 +120,17 @@ if __name__ == "__main__":
 
     ds0 = ts[0]
     length_unit = ds0.length_unit
+    left_edge = ds0.domain_left_edge
+    right_edge = ds0.domain_right_edge
+
     print(f"The fields in this dataset are: {ds0.field_list}")
+
+    # Set the center of the plot
+    if args.center is not None:
+        pass
+    else:
+        # Set the center based on the plt data
+        slc_center = (right_edge + left_edge) / 2.0
 
     # Loop over all datasets in the time series
     idx = 0
@@ -125,7 +142,7 @@ if __name__ == "__main__":
             index = idx
 
         # Plot the field
-        slc = yt.SlicePlot(ds, args.normal, args.field)
+        slc = yt.SlicePlot(ds, args.normal, args.field, center=slc_center)
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
