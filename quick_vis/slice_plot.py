@@ -66,7 +66,10 @@ if __name__ == "__main__":
     )
     parser.add_argument("--plot_log", action="store_true", help="plot in log values")
     parser.add_argument(
-        "--no_grids", action="store_false", help="flag to turn off grid annotation"
+        "--no_grids",
+        action="store_false",
+        default=True,
+        help="flag to turn off grid annotation",
     )
     args = parser.parse_args()
 
@@ -96,11 +99,12 @@ if __name__ == "__main__":
         load_list = [os.path.join(args.datapath, x) for x in args.pname]
         ts = yt.DatasetSeries(load_list, units_override=units_override)
         # Find the index based on location of the selected plot files
-        all_files = fnmatch.filter(os.listdir(args.datapath), "plt?????")
+        all_files = fnmatch.filter(sorted(os.listdir(args.datapath)), "plt?????")
 
         index_list = []
         for plt in args.pname:
             index_list.append(all_files.index(plt))
+
     else:
         ts = yt.load(
             os.path.join(args.datapath, "plt?????"),
@@ -126,7 +130,7 @@ if __name__ == "__main__":
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
-        if not args.no_grids:
+        if args.no_grids:
             slc.annotate_grids()
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
