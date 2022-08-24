@@ -1,5 +1,6 @@
 """2D slice down the middle of the domain."""
 import argparse
+import fnmatch
 import os
 
 import yt
@@ -94,6 +95,12 @@ if __name__ == "__main__":
     if args.pname is not None:
         load_list = [os.path.join(args.datapath, x) for x in args.pname]
         ts = yt.DatasetSeries(load_list, units_override=units_override)
+        # Find the index based on location of the selected plot files
+        all_files = fnmatch.filter(os.listdir(args.datapath), "plt?????")
+
+        index_list = []
+        for plt in args.pname:
+            index_list.append(all_files.index(plt))
     else:
         ts = yt.load(
             os.path.join(args.datapath, "plt?????"),
@@ -104,8 +111,14 @@ if __name__ == "__main__":
     length_unit = ds0.length_unit
     print(f"The fields in this dataset are: {ds0.field_list}")
 
-    index = 0
+    # Loop over all datasets in the time series
+    idx = 0
     for ds in ts:
+        # Set index according to load method
+        if args.pname is not None:
+            index = index_list[idx]
+        else:
+            index = idx
 
         # Plot the field
         slc = yt.SlicePlot(ds, args.normal, args.field)
@@ -125,4 +138,5 @@ if __name__ == "__main__":
             )
         )
 
-        index += 1
+        # increment the loop idx
+        idx += 1
