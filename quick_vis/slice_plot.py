@@ -16,6 +16,22 @@ if __name__ == "__main__":
         help="Path to the plt files for visualization",
     )
     parser.add_argument(
+        "-o",
+        "--outpath",
+        type=str,
+        required=False,
+        default=None,
+        help="Path to the output image directory (defualt to datapath/images)",
+    )
+    parser.add_argument(
+        "--pname",
+        type=str,
+        required=False,
+        default=None,
+        help="Name of plt files to plot (if empty, do all)",
+        nargs="+",
+    )
+    parser.add_argument(
         "--field",
         type=str,
         required=True,
@@ -48,13 +64,16 @@ if __name__ == "__main__":
         help="flag to identify if this is a low Mach simulation",
     )
     parser.add_argument("--plot_log", action="store_true", help="plot in log values")
+    parser.add_argument(
+        "--no_grids", action="store_false", help="flag to turn off grid annotation"
+    )
     args = parser.parse_args()
 
     # Get the current directory
     cwd = os.getcwd()
 
     # Make the output directory for images
-    imgpath = os.path.join(cwd, "images/")
+    imgpath = os.path.join(args.datapath, "images/")
     if not os.path.exists(imgpath):
         os.makedirs(imgpath)
 
@@ -72,10 +91,14 @@ if __name__ == "__main__":
         axes_unit = "cm"
 
     # Load the plt files
-    ts = yt.load(
-        os.path.join(args.datapath, "plt?????"),
-        units_override=units_override,
-    )
+    if args.pname is not None:
+        load_list = [os.path.join(args.datapath, x) for x in args.pname]
+        ts = yt.DatasetSeries(load_list, units_override=units_override)
+    else:
+        ts = yt.load(
+            os.path.join(args.datapath, "plt?????"),
+            units_override=units_override,
+        )
 
     ds0 = ts[0]
     length_unit = ds0.length_unit
@@ -89,11 +112,17 @@ if __name__ == "__main__":
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
-        slc.annotate_timestamp()
+        slc.annotate_timestamp(draw_inset_box=True)
+        if not args.no_grids:
+            slc.annotate_grids()
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
         # Save the image
-        slc.save(os.path.join(imgpath, f"""{args.field}_{str(index).zfill(5)}.png"""))
+        slc.save(
+            os.path.join(
+                imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
+            )
+        )
 
         index += 1
