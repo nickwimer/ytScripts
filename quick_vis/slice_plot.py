@@ -75,10 +75,9 @@ if __name__ == "__main__":
     )
     parser.add_argument("--plot_log", action="store_true", help="plot in log values")
     parser.add_argument(
-        "--no_grids",
-        action="store_false",
-        default=True,
-        help="flag to turn off grid annotation",
+        "--grids",
+        action="store_true",
+        help="flag to turn on grid annotation",
     )
     parser.add_argument(
         "--grid_offset",
@@ -158,7 +157,7 @@ if __name__ == "__main__":
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
-        if args.no_grids:
+        if args.grids:
             slc.annotate_grids()
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
