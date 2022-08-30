@@ -1,20 +1,31 @@
 """Extracts slices from plot files and saves."""
 import argparse
 import os
+import sys
 
 import numpy as np
-import yt
 
-if __name__ == "__main__":
+sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
+import ytscripts.utilities as utils  # noqa: E402
 
-    # Parse the input arguments
+
+def get_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p",
         "--datapath",
         type=str,
         required=True,
-        help="path to the plot files",
+        help="path to the plt files",
+    )
+    parser.add_argument(
+        "--pname",
+        type=str,
+        required=False,
+        default=None,
+        help="Name of plt files to plot (if empty, do all)",
+        nargs="+",
     )
     parser.add_argument(
         "-r",
@@ -52,7 +63,13 @@ if __name__ == "__main__":
         action="store_true",
         help="flag to identify if this is a low Mach simulation",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
+
+
+def main():
+
+    # Parse the input arguments
+    args = get_args()
 
     # Get the current directory
     cwd = os.getcwd()
@@ -74,9 +91,8 @@ if __name__ == "__main__":
         units_override = None
 
     # Load the plt files
-    ts = yt.load(
-        os.path.join(args.datapath, "plt?????"),
-        units_override=units_override,
+    ts, _ = utils.load_dataseries(
+        datapath=args.datapath, pname=args.pname, units_override=units_override
     )
 
     # Load a sample plt file for simulation geometry information
@@ -126,3 +142,7 @@ if __name__ == "__main__":
             )
 
         index += 1
+
+
+if __name__ == "__main__":
+    main()

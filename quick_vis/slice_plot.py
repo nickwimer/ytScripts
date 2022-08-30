@@ -1,14 +1,17 @@
 """2D slice down the middle of the domain."""
 import argparse
-import fnmatch
 import os
+import sys
 
 import yt
 from yt.units.yt_array import YTArray
 
-if __name__ == "__main__":
+sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
+import ytscipts.utilities as utils  # noqa: E402
 
-    # Parse the input arguments
+
+def get_args():
+    """Parse command line arguments."""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-p",
@@ -86,10 +89,13 @@ if __name__ == "__main__":
         required=False,
         help="Amount to offset center to avoid grid alignment vis issues",
     )
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    # Get the current directory
-    cwd = os.getcwd()
+
+def main():
+
+    # Parse the input arguments
+    args = get_args()
 
     # Make the output directory for images
     imgpath = os.path.join(args.datapath, "images/")
@@ -109,22 +115,10 @@ if __name__ == "__main__":
         units_override = None
         axes_unit = "cm"
 
-    # Load the plt files
-    if args.pname is not None:
-        load_list = [os.path.join(args.datapath, x) for x in args.pname]
-        ts = yt.DatasetSeries(load_list, units_override=units_override)
-        # Find the index based on location of the selected plot files
-        all_files = fnmatch.filter(sorted(os.listdir(args.datapath)), "plt?????")
-
-        index_list = []
-        for plt in args.pname:
-            index_list.append(all_files.index(plt))
-
-    else:
-        ts = yt.load(
-            os.path.join(args.datapath, "plt?????"),
-            units_override=units_override,
-        )
+    # Load data files into dataset series
+    ts, index_list = utils.load_dataseries(
+        datapath=args.datapath, pname=args.pname, units_override=units_override
+    )
 
     ds0 = ts[0]
     length_unit = ds0.length_unit
@@ -171,3 +165,7 @@ if __name__ == "__main__":
 
         # increment the loop idx
         idx += 1
+
+
+if __name__ == "__main__":
+    main()

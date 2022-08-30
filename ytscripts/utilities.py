@@ -23,4 +23,4 @@ def load_dataseries(datapath, pname=None, units_override=None):
             units_override=units_override,
         )
 
-    return ts
+    return ts, index_list
