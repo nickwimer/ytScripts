@@ -18,6 +18,7 @@ def load_dataseries(datapath, pname=None, units_override=None):
             index_list.append(all_files.index(plt))
 
     else:
+        index_list = None
         ts = yt.load(
             os.path.join(datapath, "plt?????"),
             units_override=units_override,
