@@ -24,3 +24,31 @@ def load_dataseries(datapath, pname=None, units_override=None):
         )
 
     return ts, index_list
+
+
+def get_attributes(ds):
+    """Gets commonly used attributes from the dataset and stores in dict."""
+    # Get base attributes
+    ds_dict = {
+        "field_list": ds.field_list,
+        "time": ds.current_time,
+        "dimensions": ds.domain_dimensions,
+        "left_edge": ds.domain_left_edge,
+        "right_edge": ds.domain_right_edge,
+        "max_level": ds.max_level,
+    }
+
+    # Make commonly used attributes
+    (dx, dy, dz) = (ds_dict["right_edge"] - ds_dict["left_edge"]) / ds_dict[
+        "dimensions"
+    ]
+    (x_res, y_res, z_res) = ds_dict["dimensions"] * 2 ** ds_dict["max_level"]
+
+    # Update dictionary values
+    ds_dict.update(
+        {
+            "dxyz": (dx, dy, dz),
+            "resolution": (x_res, y_res, z_res),
+        }
+    )
+    return ds_dict

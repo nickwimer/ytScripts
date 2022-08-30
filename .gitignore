@@ -130,3 +130,6 @@ dmypy.json
 
 # DS Store
 .DS_Store
+
+# Output data
+outdata
