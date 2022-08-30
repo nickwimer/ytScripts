@@ -71,13 +71,9 @@ def main():
     # Parse the input arguments
     args = get_args()
 
-    # Get the current directory
-    cwd = os.getcwd()
-
     # Create the output directory
-    outpath = os.path.join(cwd, "outdata")
-    if not os.path.exists(outpath):
-        os.makedirs(outpath)
+    outpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "slices"))
+    os.makedirs(outpath, exist_ok=True)
 
     # Override the units if needed
     if args.LM:
