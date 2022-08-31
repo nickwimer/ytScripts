@@ -88,7 +88,12 @@ def main():
         time.append(float(ds.current_time))
 
         # Get all the data with no modifications
-        data = ds.r
+        # data = ds.r
+        data = ds.covering_grid(
+            base_attributes["max_level"],
+            left_edge=base_attributes["left_edge"],
+            dims=base_attributes["resolution"],
+        )
 
         # Loop over the specified variables
         tmp_data = {}
@@ -103,8 +108,11 @@ def main():
     # Convert into a pandas dataframe for storage
     df = pd.DataFrame(data={"time": time}, columns=["time"])
 
-    for key, value in tmp_data.items():
-        df[key] = value
+    # Loop over the dataframe and add the data
+    for idx, cell in df.iterrows():
+        for key, value in avg_data[idx].items():
+            print(key, value)
+            df.loc[idx, key] = value
 
     # Save the data for later
     df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
