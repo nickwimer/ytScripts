@@ -1,6 +1,7 @@
 """Load slices from npz and plot."""
 import argparse
 import os
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -21,9 +22,8 @@ if __name__ == "__main__":
     cwd = os.getcwd()
 
     # Create the output directory
-    imgpath = os.path.join(cwd, "images")
-    if not os.path.exists(imgpath):
-        os.makedirs(imgpath)
+    imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "images"))
+    os.makedirs(imgpath, exist_ok=True)
 
     # Get list of files in the data directory
     files = np.sort(os.listdir(args.path))

@@ -7,12 +7,12 @@ To install dependencies, with a working `conda` distribution, type:
 
 to update an existing conda environment:
 
-`conda env update --name ytScripts --file environment.yml --prune`
+`conda env update --name ytscripts --file environment.yml --prune`
 
 
 after environment is created:
 
-`conda activate ytScripts`
+`conda activate ytscripts`
 
 All formatting must pass through `black`, `isort`, and `flake8`
 
@@ -26,11 +26,22 @@ Scripts for data extraction and maniupulation are located under `data_extraction
 ## extract_slices.py
 For now, this only extracts along the x direction.
 
-`python extract_slices.py -p DIR/ --field "Y(NC12H26)" --LM --xmin 0.005 --xmax 0.1 --num_slices 16`
+`python data_extraction/extract_slices.py -p DIR/ --field "Y(NC12H26)" --LM --xmin 0.005 --xmax 0.1 --num_slices 16`
 
 This will extract all plot files contained in directory `DIR/` for the field `Y(NC12H26)` consistent with the low Mach units (not really necessary here), making 16 slices starting from x = 0.005 to x = 0.1
 
-These slices will be saved in `outdata` with the following variables: `time`, `fcoords`, `resolution`, `dimensions`, `left_edge`, `right_edge`, `max_level`, `xloc`, `field`, `var_slice`
+These slices will be saved in `outdata/slices/` with the following variables: `time`, `fcoords`, `resolution`, `dimensions`, `left_edge`, `right_edge`, `max_level`, `xloc`, `field`, `var_slice`
+
+## extract_averages.py
+Extracts domain averaged quantities and saves in a pickled pandas dataframe
+
+`python data_extraction/extract_averages.py -p DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
+
+Data will be saved under `outdata/averages`
+
+
+# Scripts for plotting extracted data
+Scripts for plotting data that was previously extracted using files under `data_extraction/`
 
 
 ## plot_slices.py
@@ -39,6 +50,14 @@ This will load in the numpy data structures contained in the input path and make
 `python plot_slices.py -p outdata/`
 
 where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`
+
+
+## plot_averages.py
+This will load in the pandas dataframe and make time series plots
+
+`python plot_data/plot_averages.py -p outdata/averages/ -f NAME --field mag_vort`
+
+Plots will be saved under `outdata/images/`
 
 
 

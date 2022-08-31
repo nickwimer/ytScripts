@@ -1,10 +1,11 @@
-name: ytScripts
+name: ytscripts
 channels:
   - defaults
 
 dependencies:
   - python
   - numpy
+  - pandas
   - matplotlib
   - pip
   - pip:
