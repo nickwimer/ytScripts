@@ -111,7 +111,6 @@ def main():
     # Loop over the dataframe and add the data
     for idx, cell in df.iterrows():
         for key, value in avg_data[idx].items():
-            print(key, value)
             df.loc[idx, key] = value
 
     # Save the data for later
