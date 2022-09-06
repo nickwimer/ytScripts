@@ -7,7 +7,7 @@ import yt
 from yt.units.yt_array import YTArray
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
-import ytscipts.utilities as utils  # noqa: E402
+import ytscripts.utilities as utils  # noqa: E402
 
 
 def get_args():
