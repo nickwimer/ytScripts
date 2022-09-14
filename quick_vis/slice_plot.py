@@ -146,7 +146,9 @@ def main():
             index = idx
 
         # Plot the field
-        slc = yt.SlicePlot(ds, args.normal, args.field, center=slc_center)
+        slc = yt.SlicePlot(
+            ds, args.normal, args.field, center=slc_center, buff_size=(1024, 1024)
+        )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
