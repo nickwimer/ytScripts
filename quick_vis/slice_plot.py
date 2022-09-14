@@ -148,9 +148,18 @@ def main():
 
     print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
-    # Compute the plot width and center based on plot box if available
+    # Set the center of the plot for loading the data
+    if args.center is not None:
+        slc_center = args.center
+    else:
+        # Set the center based on the plt data
+        slc_center = (
+            base_attributes["right_edge"] + base_attributes["left_edge"]
+        ) / 2.0
+        # provide slight offset to avoid grid alignment vis issues
+        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
 
-    # Set the center of the plot
+    # Compute the center of the image for plotting
     if args.pbox:
         # Set the center based on the pbox
         pbox_center = [
@@ -162,16 +171,6 @@ def main():
             (args.pbox[2] - args.pbox[0], "cm"),
             (args.pbox[3] - args.pbox[1], "cm"),
         )
-
-    if args.center is not None:
-        slc_center = args.center
-    else:
-        # Set the center based on the plt data
-        slc_center = (
-            base_attributes["right_edge"] + base_attributes["left_edge"]
-        ) / 2.0
-        # provide slight offset to avoid grid alignment vis issues
-        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
 
     # Loop over all datasets in the time series
     idx = 0
