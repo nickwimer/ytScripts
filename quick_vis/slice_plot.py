@@ -138,7 +138,6 @@ def main():
 
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
-    res_dict = {"x": [1, 2], "y": [0, 2], "z": [0, 1]}
 
     print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
@@ -161,7 +160,11 @@ def main():
         ds_attributes = utils.get_attributes(ds=ds)
 
         # Get the image slice resolution
-        slc_res = ds_attributes["resolution"][res_dict[args.normal]]
+        slc_res = {
+            "x": (ds_attributes["resolution"][1], ds_attributes["resolution"][2]),
+            "y": (ds_attributes["resolution"][0], ds_attributes["resolution"][2]),
+            "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
+        }
 
         # Set index according to load method
         if args.pname is not None:
@@ -175,7 +178,9 @@ def main():
             args.normal,
             args.field,
             center=slc_center,
-            buff_size=tuple(args.buff) if args.buff is not None else tuple(slc_res),
+            buff_size=tuple(args.buff)
+            if args.buff is not None
+            else slc_res[args.normal],
         )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
