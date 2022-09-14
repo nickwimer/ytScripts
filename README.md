@@ -103,3 +103,5 @@ Helpful options:
 `--buff`: Buffer resolution for the sliceplot image for plotting.
 
 `--dpi`: dpi of the output image (default = 300).
+
+`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
