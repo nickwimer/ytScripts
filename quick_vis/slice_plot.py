@@ -138,6 +138,7 @@ def main():
 
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
+    res_dict = {"x": [1, 2], "y": [0, 2], "z": [0, 1]}
 
     print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
@@ -159,6 +160,9 @@ def main():
         # Get updated attributes for each plt file
         ds_attributes = utils.get_attributes(ds=ds)
 
+        # Get the image slice resolution
+        slc_res = ds_attributes["resolution"][res_dict[args.normal]]
+
         # Set index according to load method
         if args.pname is not None:
             index = index_list[idx]
@@ -171,9 +175,7 @@ def main():
             args.normal,
             args.field,
             center=slc_center,
-            buff_size=tuple(args.buff)
-            if args.buff is not None
-            else ds_attributes["resolution"],
+            buff_size=tuple(args.buff) if args.buff is not None else tuple(slc_res),
         )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
