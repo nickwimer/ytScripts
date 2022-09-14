@@ -89,6 +89,22 @@ def get_args():
         required=False,
         help="Amount to offset center to avoid grid alignment vis issues",
     )
+    parser.add_argument(
+        "--buff",
+        type=int,
+        # default=[1024, 1024],
+        default=None,
+        nargs="+",
+        required=False,
+        help="buffer for the sliceplot image for plotting",
+    )
+    parser.add_argument(
+        "--dpi",
+        type=int,
+        default=300,
+        required=False,
+        help="dpi of the output image",
+    )
     return parser.parse_args()
 
 
@@ -120,25 +136,36 @@ def main():
         datapath=args.datapath, pname=args.pname, units_override=units_override
     )
 
-    ds0 = ts[0]
-    length_unit = ds0.length_unit
-    left_edge = ds0.domain_left_edge
-    right_edge = ds0.domain_right_edge
+    # Get base attributes
+    base_attributes = utils.get_attributes(ds=ts[0])
 
-    print(f"The fields in this dataset are: {ds0.field_list}")
+    print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     # Set the center of the plot
     if args.center is not None:
         slc_center = args.center
     else:
         # Set the center based on the plt data
-        slc_center = (right_edge + left_edge) / 2.0
+        slc_center = (
+            base_attributes["right_edge"] + base_attributes["left_edge"]
+        ) / 2.0
         # provide slight offset to avoid grid alignment vis issues
-        slc_center += YTArray(args.grid_offset, length_unit)
+        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
 
     # Loop over all datasets in the time series
     idx = 0
     for ds in ts:
+
+        # Get updated attributes for each plt file
+        ds_attributes = utils.get_attributes(ds=ds)
+
+        # Get the image slice resolution
+        slc_res = {
+            "x": (ds_attributes["resolution"][1], ds_attributes["resolution"][2]),
+            "y": (ds_attributes["resolution"][0], ds_attributes["resolution"][2]),
+            "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
+        }
+
         # Set index according to load method
         if args.pname is not None:
             index = index_list[idx]
@@ -146,7 +173,15 @@ def main():
             index = idx
 
         # Plot the field
-        slc = yt.SlicePlot(ds, args.normal, args.field, center=slc_center)
+        slc = yt.SlicePlot(
+            ds,
+            args.normal,
+            args.field,
+            center=slc_center,
+            buff_size=tuple(args.buff)
+            if args.buff is not None
+            else slc_res[args.normal],
+        )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
@@ -160,7 +195,8 @@ def main():
         slc.save(
             os.path.join(
                 imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-            )
+            ),
+            mpl_kwargs=dict(dpi=args.dpi),
         )
 
         # increment the loop idx
