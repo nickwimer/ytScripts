@@ -159,8 +159,8 @@ def main():
         ]
         # Set the width based on the pbox
         pbox_width = (
-            (args.pbox[2] - args.pbox[0], "cm"),
-            (args.pbox[3] - args.pbox[1], "cm"),
+            (args.pbox[2] - args.pbox[0], axes_unit),
+            (args.pbox[3] - args.pbox[1], axes_unit),
         )
 
     if args.center is not None:
