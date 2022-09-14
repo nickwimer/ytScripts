@@ -89,6 +89,13 @@ def get_args():
         required=False,
         help="Amount to offset center to avoid grid alignment vis issues",
     )
+    parser.add_argument(
+        "--res",
+        type=list,
+        default=(1024, 1024),
+        required=False,
+        help="resolution for the sliceplot image for saving",
+    )
     return parser.parse_args()
 
 
@@ -147,7 +154,11 @@ def main():
 
         # Plot the field
         slc = yt.SlicePlot(
-            ds, args.normal, args.field, center=slc_center, buff_size=(1024, 1024)
+            ds,
+            args.normal,
+            args.field,
+            center=slc_center,
+            buff_size=args.res,
         )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
