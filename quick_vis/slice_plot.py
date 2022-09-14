@@ -139,7 +139,7 @@ def main():
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    print(f"The fields in this dataset are: {ds0.field_list}")
+    print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     # Set the center of the plot
     if args.center is not None:
