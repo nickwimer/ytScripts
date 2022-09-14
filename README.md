@@ -78,7 +78,11 @@ Helpful options:
 
 `--datapath`: Path to the plot files.
 
+`--outpath`: Path to the output image directory (defualt to datapath/images).
+
 `--pname`: Used to specify individual plot file names instead of doing all files in the datapath.
+
+`--field`: Name of the field for visualization.
 
 `--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain.
 
@@ -96,3 +100,6 @@ Helpful options:
 
 `--grid_offset`: Float value to offset the center value to avoid grid alignment visualization issues (defualts to no offset).
 
+`--buff`: Buffer resolution for the sliceplot image for plotting.
+
+`--dpi`: dpi of the output image (default = 300).
