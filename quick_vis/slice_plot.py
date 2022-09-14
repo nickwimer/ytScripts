@@ -204,6 +204,7 @@ def main():
             else slc_res[args.normal],
         )
         slc.set_axes_unit(axes_unit)
+        slc.set_origin("native")
         if args.pbox is not None:
             slc.set_width(pbox_width)
             slc.set_center(pbox_center)
