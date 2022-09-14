@@ -92,7 +92,6 @@ def get_args():
     parser.add_argument(
         "--buff",
         type=int,
-        # default=[1024, 1024],
         default=None,
         nargs="+",
         required=False,
@@ -104,6 +103,14 @@ def get_args():
         default=300,
         required=False,
         help="dpi of the output image",
+    )
+    parser.add_argument(
+        "--pbox",
+        type=float,
+        nargs="+",
+        default=None,
+        required=False,
+        help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1)",
     )
     return parser.parse_args()
 
@@ -141,16 +148,31 @@ def main():
 
     print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
+    # Compute the plot width and center based on plot box if available
+
     # Set the center of the plot
-    if args.center is not None:
-        slc_center = args.center
+    if args.pbox:
+        # Set the center based on the pbox
+        slc_center = [
+            (args.pbox[2] - args.pbox[0]) / 2.0,
+            (args.pbox[3] - args.pbox[1]) / 2.0,
+        ]
+
+        # Set the width based on the pbox
+        slc_width = (
+            (args.pbox[2] - args.pbox[0], base_attributes["length_unit"]),
+            (args.pbox[3] - args.pbox[1], base_attributes["length_unit"]),
+        )
     else:
-        # Set the center based on the plt data
-        slc_center = (
-            base_attributes["right_edge"] + base_attributes["left_edge"]
-        ) / 2.0
-        # provide slight offset to avoid grid alignment vis issues
-        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
+        if args.center is not None:
+            slc_center = args.center
+        else:
+            # Set the center based on the plt data
+            slc_center = (
+                base_attributes["right_edge"] + base_attributes["left_edge"]
+            ) / 2.0
+            # provide slight offset to avoid grid alignment vis issues
+            slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
 
     # Loop over all datasets in the time series
     idx = 0
@@ -178,6 +200,7 @@ def main():
             args.normal,
             args.field,
             center=slc_center,
+            width=slc_width if args.pbox else None,
             buff_size=tuple(args.buff)
             if args.buff is not None
             else slc_res[args.normal],
