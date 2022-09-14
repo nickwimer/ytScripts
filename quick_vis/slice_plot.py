@@ -91,8 +91,9 @@ def get_args():
     )
     parser.add_argument(
         "--res",
-        type=list,
-        default=(1024, 1024),
+        type=int,
+        default=[1024, 1024],
+        nargs="+",
         required=False,
         help="resolution for the sliceplot image for saving",
     )
@@ -158,7 +159,7 @@ def main():
             args.normal,
             args.field,
             center=slc_center,
-            buff_size=args.res,
+            buff_size=tuple(args.res),
         )
         slc.set_axes_unit(axes_unit)
         if args.fbounds is not None:
