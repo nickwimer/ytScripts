@@ -153,26 +153,25 @@ def main():
     # Set the center of the plot
     if args.pbox:
         # Set the center based on the pbox
-        slc_center = [
-            (args.pbox[2] - args.pbox[0]) / 2.0,
-            (args.pbox[3] - args.pbox[1]) / 2.0,
+        pbox_center = [
+            (args.pbox[2] + args.pbox[0]) / 2.0,
+            (args.pbox[3] + args.pbox[1]) / 2.0,
         ]
-
         # Set the width based on the pbox
-        slc_width = (
-            (args.pbox[2] - args.pbox[0], base_attributes["length_unit"]),
-            (args.pbox[3] - args.pbox[1], base_attributes["length_unit"]),
+        pbox_width = (
+            (args.pbox[2] - args.pbox[0], "cm"),
+            (args.pbox[3] - args.pbox[1], "cm"),
         )
+
+    if args.center is not None:
+        slc_center = args.center
     else:
-        if args.center is not None:
-            slc_center = args.center
-        else:
-            # Set the center based on the plt data
-            slc_center = (
-                base_attributes["right_edge"] + base_attributes["left_edge"]
-            ) / 2.0
-            # provide slight offset to avoid grid alignment vis issues
-            slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
+        # Set the center based on the plt data
+        slc_center = (
+            base_attributes["right_edge"] + base_attributes["left_edge"]
+        ) / 2.0
+        # provide slight offset to avoid grid alignment vis issues
+        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
 
     # Loop over all datasets in the time series
     idx = 0
@@ -200,12 +199,14 @@ def main():
             args.normal,
             args.field,
             center=slc_center,
-            width=slc_width if args.pbox else None,
             buff_size=tuple(args.buff)
             if args.buff is not None
             else slc_res[args.normal],
         )
         slc.set_axes_unit(axes_unit)
+        if args.pbox is not None:
+            slc.set_width(pbox_width)
+            slc.set_center(pbox_center)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
