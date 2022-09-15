@@ -92,7 +92,6 @@ def get_args():
     parser.add_argument(
         "--buff",
         type=int,
-        # default=[1024, 1024],
         default=None,
         nargs="+",
         required=False,
@@ -104,6 +103,14 @@ def get_args():
         default=300,
         required=False,
         help="dpi of the output image",
+    )
+    parser.add_argument(
+        "--pbox",
+        type=float,
+        nargs="+",
+        default=None,
+        required=False,
+        help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1)",
     )
     return parser.parse_args()
 
@@ -141,7 +148,7 @@ def main():
 
     print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
-    # Set the center of the plot
+    # Set the center of the plot for loading the data
     if args.center is not None:
         slc_center = args.center
     else:
@@ -151,6 +158,19 @@ def main():
         ) / 2.0
         # provide slight offset to avoid grid alignment vis issues
         slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
+
+    # Compute the center of the image for plotting
+    if args.pbox:
+        # Set the center based on the pbox
+        pbox_center = [
+            (args.pbox[2] + args.pbox[0]) / 2.0,
+            (args.pbox[3] + args.pbox[1]) / 2.0,
+        ]
+        # Set the width based on the pbox
+        pbox_width = (
+            (args.pbox[2] - args.pbox[0], axes_unit),
+            (args.pbox[3] - args.pbox[1], axes_unit),
+        )
 
     # Loop over all datasets in the time series
     idx = 0
@@ -183,6 +203,10 @@ def main():
             else slc_res[args.normal],
         )
         slc.set_axes_unit(axes_unit)
+        slc.set_origin("native")
+        if args.pbox is not None:
+            slc.set_width(pbox_width)
+            slc.set_center(pbox_center)
         if args.fbounds is not None:
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
