@@ -44,50 +44,65 @@ def main():
         datapath=args.datapath, pname=args.pname, units_override=units_override
     )
 
-    # Load a sample plt file for simulation geometry information
-    ds0 = ts[0]
-    time = ds0.current_time
-    dimensions = ds0.domain_dimensions
-    left_edge = ds0.domain_left_edge
-    right_edge = ds0.domain_right_edge
-    max_level = ds0.max_level
-
-    # Compute dx, dy, dz
-    (dx, dy, dz) = (right_edge - left_edge) / dimensions
-
     # Create the slice array and find indices closest to value
-    xslice = np.linspace(args.xmin, args.xmax, args.num_slices)
+    islice = np.linspace(args.min, args.max, args.num_slices)
 
     index = 0
     # Loop over the plt files in the data directory
     for ds in ts:
-        # Get the simulation time
-        time = ds.current_time
-
-        resolution = dimensions[1] * 2**max_level
+        # Get updated attributes for current plt file
+        ds_attributes = utils.get_attributes(ds=ds)
 
         # for xind in xindices:
-        for xloc in xslice:
+        for iloc in islice:
             # Create slice and fixed resolution close to the location
-            slc = ds.r[xloc, :, :]
-            frb = slc.to_frb(width=ds.domain_width[1], resolution=resolution)
+            if args.normal == "x":
+                slc = ds.r[iloc, :, :]
+                frb = slc.to_frb(
+                    width=ds_attributes["width"][1],
+                    height=ds_attributes["width"][2],
+                    resolution=(
+                        ds_attributes["resolution"][1],
+                        ds_attributes["resolution"][2],
+                    ),
+                )
+            elif args.normal == "y":
+                slc = ds.r[:, iloc, :]
+                frb = slc.to_frb(
+                    width=ds_attributes["width"][0],
+                    height=ds_attributes["width"][2],
+                    resolution=(
+                        ds_attributes["resolution"][0],
+                        ds_attributes["resolution"][2],
+                    ),
+                )
+            elif args.normal == "z":
+                slc = ds.r[:, :, iloc]
+                frb = slc.to_frb(
+                    width=ds_attributes["width"][0],
+                    height=ds_attributes["width"][1],
+                    resolution=(
+                        ds_attributes["resolution"][0],
+                        ds_attributes["resolution"][1],
+                    ),
+                )
+            else:
+                sys.exit(f"Normal {args.normal} not in: [x, y, z]")
 
             # Extract the variable requested
             var_slice = frb[args.field]
 
             # Save the slice to the output directory
             np.savez(
-                os.path.join(outpath, f"{args.field}_x{xloc:.4f}_{index}.npz"),
-                time=time,
+                os.path.join(
+                    outpath, f"{args.field}_{args.normal}{iloc:.4f}_{index}.npz"
+                ),
                 fcoords=slc.fcoords,
-                resolution=resolution,
-                dimensions=dimensions,
-                left_edge=left_edge,
-                right_edge=right_edge,
-                max_level=max_level,
-                xloc=xloc,
+                normal=args.normal,
+                iloc=iloc,
                 field=args.field,
                 var_slice=var_slice,
+                ds_attributes=ds_attributes,
             )
 
         index += 1

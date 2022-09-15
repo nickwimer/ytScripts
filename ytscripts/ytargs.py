@@ -143,20 +143,26 @@ class ytExtractArgs(ytArgs):
     def slice_args(self):
         """Add arguments for extract slices routine."""
         self.parser.add_argument(
-            "--xmin",
-            type=float,
+            "--normal",
+            type=str,
             required=True,
-            help="Index of the first slice to extract in the x direction.",
+            help="Direction to perform the slices.",
         )
         self.parser.add_argument(
-            "--xmax",
+            "--min",
             type=float,
             required=True,
-            help="Index of the last slice to extract in the x direction.",
+            help="Index of the first slice to extract in the normal direction.",
+        )
+        self.parser.add_argument(
+            "--max",
+            type=float,
+            required=True,
+            help="Index of the last slice to extract in the normal direction.",
         )
         self.parser.add_argument(
             "--num_slices",
             type=int,
             required=True,
-            help="Number of slices to extract in x direction.",
+            help="Number of slices to extract in normal direction.",
         )

@@ -38,6 +38,7 @@ def get_attributes(ds):
         "right_edge": ds.domain_right_edge,
         "max_level": ds.max_level,
         "length_unit": ds.length_unit,
+        "width": ds.domain_width,
     }
 
     # Make commonly used attributes
