@@ -27,8 +27,7 @@ def main():
 
     # Make the output directory for images
     imgpath = os.path.join(args.datapath, "images/")
-    if not os.path.exists(imgpath):
-        os.makedirs(imgpath)
+    os.makedirs(imgpath, exists_ok=True)
 
     # Override the units if needed
     if args.SI:
