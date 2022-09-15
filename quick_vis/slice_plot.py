@@ -1,5 +1,4 @@
 """2D slice down the middle of the domain."""
-import argparse
 import os
 import sys
 
@@ -8,111 +7,17 @@ from yt.units.yt_array import YTArray
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
+import ytscripts.ytargs as ytargs  # noqa: E402
 
 
 def get_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-p",
-        "--datapath",
-        type=str,
-        required=True,
-        help="Path to the plt files for visualization",
-    )
-    parser.add_argument(
-        "-o",
-        "--outpath",
-        type=str,
-        required=False,
-        default=None,
-        help="Path to the output image directory (defualt to datapath/images)",
-    )
-    parser.add_argument(
-        "--pname",
-        type=str,
-        required=False,
-        default=None,
-        help="Name of plt files to plot (if empty, do all)",
-        nargs="+",
-    )
-    parser.add_argument(
-        "--field",
-        type=str,
-        required=True,
-        help="Name of the field for visualization",
-    )
-    parser.add_argument(
-        "--normal",
-        type=str,
-        required=True,
-        help="Normal direction for the slice plot",
-    )
-    parser.add_argument(
-        "-c",
-        "--center",
-        nargs="+",
-        type=float,
-        required=False,
-        help="Coordinate list for center of slice plot",
-    )
-    parser.add_argument(
-        "--fbounds",
-        nargs="+",
-        type=float,
-        required=False,
-        default=None,
-        help="Bounds to plot the field",
-    )
-    parser.add_argument(
-        "--cmap",
-        type=str,
-        required=False,
-        default="dusk",
-        help="Colormap for the SlicePlot",
-    )
-    parser.add_argument(
-        "--LM",
-        action="store_true",
-        help="flag to identify if this is a low Mach simulation",
-    )
-    parser.add_argument("--plot_log", action="store_true", help="plot in log values")
-    parser.add_argument(
-        "--grids",
-        action="store_true",
-        help="flag to turn on grid annotation",
-    )
-    parser.add_argument(
-        "--grid_offset",
-        type=float,
-        default=0.0,
-        required=False,
-        help="Amount to offset center to avoid grid alignment vis issues",
-    )
-    parser.add_argument(
-        "--buff",
-        type=int,
-        default=None,
-        nargs="+",
-        required=False,
-        help="buffer for the sliceplot image for plotting",
-    )
-    parser.add_argument(
-        "--dpi",
-        type=int,
-        default=300,
-        required=False,
-        help="dpi of the output image",
-    )
-    parser.add_argument(
-        "--pbox",
-        type=float,
-        nargs="+",
-        default=None,
-        required=False,
-        help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1)",
-    )
-    return parser.parse_args()
+    # Initialize the class for yt visualization arguments
+    ytparse = ytargs.ytVisArgs()
+    # Add in the arguments for slice plots
+    ytparse.slice_args()
+    # Return the parsed arguments
+    return ytparse.parse_args()
 
 
 def main():
@@ -126,7 +31,7 @@ def main():
         os.makedirs(imgpath)
 
     # Override the units if needed
-    if args.LM:
+    if args.SI:
         units_override = {
             "length_unit": (1.0, "m"),
             "time_unit": (1.0, "s"),
