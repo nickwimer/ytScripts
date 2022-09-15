@@ -1,5 +1,4 @@
 """Extracts slices from plot files and saves."""
-import argparse
 import os
 import sys
 
@@ -7,63 +6,17 @@ import numpy as np
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
+import ytscripts.ytargs as ytargs  # noqa: E402
 
 
 def get_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-p",
-        "--datapath",
-        type=str,
-        required=True,
-        help="path to the plt files",
-    )
-    parser.add_argument(
-        "--pname",
-        type=str,
-        required=False,
-        default=None,
-        help="Name of plt files to plot (if empty, do all)",
-        nargs="+",
-    )
-    parser.add_argument(
-        "-r",
-        "--res",
-        type=int,
-        required=False,
-        help="resolution at which we extract the data slices",
-    )
-    parser.add_argument(
-        "--field",
-        type=str,
-        required=True,
-        help="variable name to extract",
-    )
-    parser.add_argument(
-        "--xmin",
-        type=float,
-        required=True,
-        help="index of the first slice to extract in the x direction",
-    )
-    parser.add_argument(
-        "--xmax",
-        type=float,
-        required=True,
-        help="index of the last slice to extract in the x direction",
-    )
-    parser.add_argument(
-        "--num_slices",
-        type=int,
-        required=True,
-        help="number of slices to extract in x direction",
-    )
-    parser.add_argument(
-        "--LM",
-        action="store_true",
-        help="flag to identify if this is a low Mach simulation",
-    )
-    return parser.parse_args()
+    # Initialize the class for data extraction
+    ytparse = ytargs.ytExtractArgs()
+    # Add in the arguments for the extract slices
+    ytparse.slice_args()
+    # Return the parsed arguments
+    return ytparse.parse_args()
 
 
 def main():
@@ -76,7 +29,7 @@ def main():
     os.makedirs(outpath, exist_ok=True)
 
     # Override the units if needed
-    if args.LM:
+    if args.SI:
         units_override = {
             "length_unit": (1.0, "m"),
             "time_unit": (1.0, "s"),

@@ -131,3 +131,32 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1).",
         )
+
+
+class ytExtractArgs(ytArgs):
+    """Class to interface with custom data extraction functions."""
+
+    def __init__(self, **kwargs):
+        """Initialize ytExtractArgs."""
+        super(ytExtractArgs, self).__init__(**kwargs)
+
+    def slice_args(self):
+        """Add arguments for extract slices routine."""
+        self.parser.add_argument(
+            "--xmin",
+            type=float,
+            required=True,
+            help="Index of the first slice to extract in the x direction.",
+        )
+        self.parser.add_argument(
+            "--xmax",
+            type=float,
+            required=True,
+            help="Index of the last slice to extract in the x direction.",
+        )
+        self.parser.add_argument(
+            "--num_slices",
+            type=int,
+            required=True,
+            help="Number of slices to extract in x direction.",
+        )
