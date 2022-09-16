@@ -45,10 +45,7 @@ def main():
         ds_attributes = data["ds_attributes"][()]
         slices = data["slices"][()]
         # fields = data["fields"][()]
-
-        # Inputs for plotting
-        ylen, xlen = slices[args.field].shape
-        fx, fy = utils.get_fig_aspect_ratio(xlen, ylen, base=3)
+        dxyz = ds_attributes["dxyz"]
 
         # Get some variables
         normal = data["normal"]
@@ -59,8 +56,34 @@ def main():
         if args.field not in data["fields"]:
             sys.exit(f"""{args.field} not in {data["fields"]}""")
 
-        fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
+        # Inputs for plotting
+        ylen, xlen = slices[args.field].shape
 
+        if args.pbox is None:
+            fx, fy = utils.get_fig_aspect_ratio(xlen, ylen, base=5)
+        else:
+            if normal == "x":
+                fx, fy = utils.get_fig_aspect_ratio(
+                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[1],
+                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[2],
+                    base=3,
+                )
+            elif normal == "y":
+                fx, fy = utils.get_fig_aspect_ratio(
+                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[0],
+                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[2],
+                    base=3,
+                )
+            elif normal == "z":
+                fx, fy = utils.get_fig_aspect_ratio(
+                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[0],
+                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[1],
+                    base=3,
+                )
+            else:
+                sys.exit(f"Normal {normal} not in: [x, y, z]")
+
+        fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
         if normal == "x":
             y = np.linspace(
                 ds_attributes["left_edge"][1], ds_attributes["right_edge"][1], xlen
@@ -100,7 +123,13 @@ def main():
         ax.set_title(
             f"""{normal} = {iloc:.4f}, time = {float(time.in_units("ms")):.2f} ms"""
         )
-        ax.set_aspect("equal")
+        if args.pbox:
+            ax.set_xlim(args.pbox[0], args.pbox[2])
+            ax.set_ylim(args.pbox[1], args.pbox[3])
+        else:
+            ax.set_aspect("equal")
+
+        fig.tight_layout()
         fig.colorbar(im, ax=ax)
 
         fig.savefig(

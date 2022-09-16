@@ -62,9 +62,8 @@ def get_attributes(ds):
 def get_fig_aspect_ratio(xlen, ylen, base=5):
     """Get the aspect ratio to fit the data."""
 
-    aspect_ratio = np.ceil(ylen / xlen) + base
-
-    fx = base * aspect_ratio
+    aspect_ratio = np.ceil(ylen / xlen)
+    fx = base * (1 + aspect_ratio)
     fy = base
 
     return fx, fy
