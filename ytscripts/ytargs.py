@@ -91,6 +91,14 @@ class ytArgs:
             default=None,
             help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1).",
         )
+        self.parser.add_argument(
+            "--fbounds",
+            type=float,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Bounds for the colorbar.",
+        )
 
 
 class ytVisArgs(ytArgs):
@@ -127,14 +135,6 @@ class ytVisArgs(ytArgs):
             required=False,
             default=None,
             help="Buffer for the SlicePlot image for plotting.",
-        )
-        self.parser.add_argument(
-            "--fbounds",
-            type=float,
-            nargs="+",
-            required=False,
-            default=None,
-            help="Bounds for the colorbar.",
         )
 
 

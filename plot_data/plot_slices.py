@@ -83,7 +83,11 @@ def main():
             else:
                 sys.exit(f"Normal {normal} not in: [x, y, z]")
 
+        # Set the figure and axes
         fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
+        # Set the colormap
+        cmap = plt.cm.get_cmap(args.cmap)
+
         if normal == "x":
             y = np.linspace(
                 ds_attributes["left_edge"][1], ds_attributes["right_edge"][1], xlen
@@ -92,7 +96,14 @@ def main():
                 ds_attributes["left_edge"][2], ds_attributes["right_edge"][2], ylen
             )
             Y, Z = np.meshgrid(y, z, indexing="xy")
-            im = ax.pcolormesh(Y, Z, slices[args.field])
+            im = ax.pcolormesh(
+                Y,
+                Z,
+                slices[args.field],
+                cmap=cmap,
+                vmin=args.fbounds[0],
+                vmax=args.fbounds[1],
+            )
             ax.set_xlabel(f"y ({length_unit.units})")
             ax.set_ylabel(f"z ({length_unit.units})")
         elif normal == "y":
@@ -102,8 +113,15 @@ def main():
             z = np.linspace(
                 ds_attributes["left_edge"][2], ds_attributes["right_edge"][2], ylen
             )
-            X, Z = np.meshgrid(x, z, indexing="ij")
-            im = ax.pcolormesh(X, Z, slices[args.field])
+            X, Z = np.meshgrid(x, z, indexing="xy")
+            im = ax.pcolormesh(
+                X,
+                Z,
+                slices[args.field],
+                cmap=cmap,
+                vmin=args.fbounds[0],
+                vmax=args.fbounds[1],
+            )
             ax.set_xlabel(f"x ({length_unit.units})")
             ax.set_ylabel(f"z ({length_unit.units})")
         elif normal == "z":
@@ -113,15 +131,23 @@ def main():
             y = np.linspace(
                 ds_attributes["left_edge"][1], ds_attributes["right_edge"][1], ylen
             )
-            X, Y = np.meshgrid(x, y, indexing="ij")
-            im = ax.pcolormesh(X, Y, slices[args.field])
+            X, Y = np.meshgrid(x, y, indexing="xy")
+            im = ax.pcolormesh(
+                X,
+                Y,
+                slices[args.field],
+                cmap=cmap,
+                vmin=args.fbounds[0],
+                vmax=args.fbounds[1],
+            )
             ax.set_xlabel(f"x ({length_unit.units})")
             ax.set_ylabel(f"y ({length_unit.units})")
         else:
             sys.exit(f"Normal {normal} not in: [x, y, z]")
 
         ax.set_title(
-            f"""{normal} = {iloc:.4f}, time = {float(time.in_units("ms")):.2f} ms"""
+            f"""{normal} = {iloc:.4f} {length_unit.units}, """
+            f"""time = {float(time.in_units("ms")):.2f} ms"""
         )
         if args.pbox:
             ax.set_xlim(args.pbox[0], args.pbox[2])
