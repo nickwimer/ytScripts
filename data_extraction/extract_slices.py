@@ -14,6 +14,7 @@ def get_args():
     # Initialize the class for data extraction
     ytparse = ytargs.ytExtractArgs()
     # Add in the arguments for the extract slices
+    ytparse.orientation_args()
     ytparse.slice_args()
     # Return the parsed arguments
     return ytparse.parse_args()
@@ -55,6 +56,8 @@ def main():
 
         # for xind in xindices:
         for iloc in islice:
+            # Do a grid offset if requested
+            iloc += args.grid_offset
             # Create slice and fixed resolution close to the location
             if args.normal == "x":
                 slc = ds.r[iloc, :, :]
@@ -90,7 +93,9 @@ def main():
                 sys.exit(f"Normal {args.normal} not in: [x, y, z]")
 
             # Extract the variable requested
-            var_slice = frb[args.field]
+            slices = {}
+            slices[args.field] = frb[args.field]
+            fields = args.field
 
             # Save the slice to the output directory
             np.savez(
@@ -100,8 +105,8 @@ def main():
                 fcoords=slc.fcoords,
                 normal=args.normal,
                 iloc=iloc,
-                field=args.field,
-                var_slice=var_slice,
+                fields=fields,
+                slices=slices,
                 ds_attributes=ds_attributes,
             )
 
