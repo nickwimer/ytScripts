@@ -24,20 +24,24 @@ Scripts for data extraction and maniupulation are located under `data_extraction
 
 
 ## extract_slices.py
-For now, this only extracts along the x direction.
+Extracts 2D slices along specified normal and saves to a npz for later analysis.
 
-`python data_extraction/extract_slices.py -p DIR/ --field "Y(NC12H26)" --LM --xmin 0.005 --xmax 0.1 --num_slices 16`
+`python data_extraction/extract_slices.py -p DATA_DIR/ --field "Y(NC12H26)" --normal x --min 0.005 --max 0.1 --num_slices 16`
 
-This will extract all plot files contained in directory `DIR/` for the field `Y(NC12H26)` consistent with the low Mach units (not really necessary here), making 16 slices starting from x = 0.005 to x = 0.1
+This will extract all plot files contained in directory `DATA_DIR/` for the field `Y(NC12H26)`, making 16 slices starting from x = 0.005 to x = 0.1
 
-These slices will be saved in `outdata/slices/` with the following variables: `time`, `fcoords`, `resolution`, `dimensions`, `left_edge`, `right_edge`, `max_level`, `xloc`, `field`, `var_slice`
+These slices will be saved in `outdata/slices/` with the following variables: `fcoords`, `normal`, `iloc`, `fields`, `slices`, and `ds_attributes` which contains all attributes specified in `utilities.py/get_attributes()`.
+
+`python data_extraction/extract_slices.py --help` for full list of arguments.
 
 ## extract_averages.py
 Extracts domain averaged quantities and saves in a pickled pandas dataframe
 
 `python data_extraction/extract_averages.py -p DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
 
-Data will be saved under `outdata/averages`
+Data will be saved under `outdata/averages`.
+
+`python data_extraction/extract_averages.py --help` for full list of arguments.
 
 
 # Scripts for plotting extracted data
@@ -45,11 +49,13 @@ Scripts for plotting data that was previously extracted using files under `data_
 
 
 ## plot_slices.py
-This will load in the numpy data structures contained in the input path and make plots
+This will load in the numpy data structures contained in the input path and make plots.
 
-`python plot_slices.py -p outdata/`
+`python plot_data/plot_slices.py -p outdata/ --field magvort`
 
-where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`
+where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`.
+
+`python plot_data/plot_slices.py --help` for full list of arguments.
 
 
 ## plot_averages.py
@@ -58,6 +64,8 @@ This will load in the pandas dataframe and make time series plots
 `python plot_data/plot_averages.py -p outdata/averages/ -f NAME --field mag_vort`
 
 Plots will be saved under `outdata/images/`
+
+`python plot_data/plot_averages.py --help` for full list of arguments.
 
 
 
@@ -68,13 +76,15 @@ These scripts are currently provided as examples and will need manual modificati
 
 
 ## slice_plot.py
-This will take all `plt` files in the input directory and create images down the middle of the domain subject to inputs
+This will take all `plt` files in the input directory and create 2D images subject to inputs
 
-`python quick_vis/slice_plot.py -p DIR/ --field "Y(NC12H26)" --normal x --LM --fbounds 0 0.1`
+`python quick_vis/slice_plot.py -p DATA_DIR/ --field "Y(NC12H26)" --normal x --fbounds 0 0.1`
 
 This will create a 2D slice plot with x as the normal irection and bounds on field set to 0 - 0.1 in field units
 
-Helpful options:
+`python quick_vis/slice_plot.py --help` for full list of options.
+
+Some helpful options:
 
 `--datapath`: Path to the plot files.
 
@@ -92,7 +102,7 @@ Helpful options:
 
 `--cmap`: Name of the colormap for the slice plot (defualts to "dusk").
 
-`--LM`: Flag to specify that the data is in SI units (defualts to cgs).
+`--SI`: Flag to specify that the data is in SI units (defualts to cgs).
 
 `--plot_log`: Flag to plot the data using log values.
 
