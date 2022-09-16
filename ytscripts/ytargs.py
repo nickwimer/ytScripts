@@ -11,6 +11,10 @@ class ytArgs:
 
         self.io_args()
 
+    def parse_args(self):
+        """Return the parsed args."""
+        return self.parser.parse_args()
+
     def io_args(self):
         """Add I/O arguments."""
         self.parser.add_argument(
@@ -48,9 +52,45 @@ class ytArgs:
             help="Flag to set the units to SI (default is cgs).",
         )
 
-    def parse_args(self):
-        """Return the parsed args."""
-        return self.parser.parse_args()
+    def orientation_args(self):
+        """Add 2D slicing arguments."""
+        self.parser.add_argument(
+            "--normal",
+            type=str,
+            required=True,
+            help="Normal direction for the slice plot.",
+        )
+        self.parser.add_argument(
+            "--grid_offset",
+            type=float,
+            required=False,
+            default=0.0,
+            help="Amount to offset center to avoid grid alignment vis issues.",
+        )
+
+    def vis_2d_args(self):
+        self.parser.add_argument(
+            "--cmap",
+            type=str,
+            required=False,
+            default="dusk",
+            help="Colormap for the 2D plot.",
+        )
+        self.parser.add_argument(
+            "--dpi",
+            type=int,
+            required=False,
+            default=300,
+            help="dpi of the output image (default = 300).",
+        )
+        self.parser.add_argument(
+            "--pbox",
+            type=float,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1).",
+        )
 
 
 class ytVisArgs(ytArgs):
@@ -61,13 +101,7 @@ class ytVisArgs(ytArgs):
         super(ytVisArgs, self).__init__(**kwargs)
 
     def slice_args(self):
-        """Add arguments for slice plots."""
-        self.parser.add_argument(
-            "--normal",
-            type=str,
-            required=True,
-            help="Normal direction for the slice plot.",
-        )
+        """Add arguments for SlicePlot."""
         self.parser.add_argument(
             "-c",
             "--center",
@@ -75,13 +109,6 @@ class ytVisArgs(ytArgs):
             type=float,
             required=False,
             help="Coordinate list for center of slice plot.",
-        )
-        self.parser.add_argument(
-            "--cmap",
-            type=str,
-            required=False,
-            default="dusk",
-            help="Colormap for the 2D plot.",
         )
         self.parser.add_argument(
             "--plot_log",
@@ -94,26 +121,12 @@ class ytVisArgs(ytArgs):
             help="Flag to turn on grid annotation.",
         )
         self.parser.add_argument(
-            "--grid_offset",
-            type=float,
-            required=False,
-            default=0.0,
-            help="Amount to offset center to avoid grid alignment vis issues.",
-        )
-        self.parser.add_argument(
             "--buff",
             type=int,
             nargs="+",
             required=False,
             default=None,
-            help="Buffer for the sliceplot image for plotting.",
-        )
-        self.parser.add_argument(
-            "--dpi",
-            type=int,
-            required=False,
-            default=300,
-            help="dpi of the output image (default = 300).",
+            help="Buffer for the SlicePlot image for plotting.",
         )
         self.parser.add_argument(
             "--fbounds",
@@ -122,14 +135,6 @@ class ytVisArgs(ytArgs):
             required=False,
             default=None,
             help="Bounds for the colorbar.",
-        )
-        self.parser.add_argument(
-            "--pbox",
-            type=float,
-            nargs="+",
-            required=False,
-            default=None,
-            help="Bounding box of the plot specified by the two corners (x0 y0 x1 y1).",
         )
 
 
@@ -142,12 +147,6 @@ class ytExtractArgs(ytArgs):
 
     def slice_args(self):
         """Add arguments for extract slices routine."""
-        self.parser.add_argument(
-            "--normal",
-            type=str,
-            required=True,
-            help="Direction to perform the slices.",
-        )
         self.parser.add_argument(
             "--min",
             type=float,
