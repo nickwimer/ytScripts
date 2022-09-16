@@ -14,7 +14,9 @@ def get_args():
     """Parse command line arguments."""
     # Initialize the class for yt visualization arguments
     ytparse = ytargs.ytVisArgs()
-    # Add in the arguments for slice plots
+    # Add in the arguments needed for SlicePlot
+    ytparse.orientation_args()
+    ytparse.vis_2d_args()
     ytparse.slice_args()
     # Return the parsed arguments
     return ytparse.parse_args()
