@@ -174,3 +174,10 @@ class ytExtractArgs(ytArgs):
             required=True,
             help="Value of the iso surface to extract.",
         )
+        self.parser.add_argument(
+            "--format",
+            type=str,
+            required=False,
+            default="ply",
+            help="Output format of the iso-surface.",
+        )

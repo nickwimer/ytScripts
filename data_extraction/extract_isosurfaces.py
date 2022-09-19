@@ -47,15 +47,32 @@ def main():
 
         # Create iso-surface
         surf = ds.surface(
-            data_source=dregion, surface_field=args.field, field_value=args.value
+            data_source=dregion,
+            surface_field=args.field,
+            field_value=args.value,
         )
 
-        # Export the isosurfaces in ply format
-        surf.export_ply(
-            os.path.join(outpath, f"isosurface_{args.field}_{args.value}.ply"),
-            bounds=[(-1.0, 1.0), (-1.0, 1.0), (-1.0, 1.0)],
-            no_ghost=True,
-        )
+        # Export the isosurfaces in specified format
+        fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+        if args.format == "ply":
+            surf.export_ply(
+                os.path.join(outpath, f"{fname}.ply"),
+                bounds=[(-1.0, 1.0), (-1.0, 1.0), (-1.0, 1.0)],
+                no_ghost=True,
+            )
+        elif args.format == "obj":
+            verts, samples = dregion.extract_isocontours(
+                # verts = dregion.extract_isocontours(
+                field=args.field,
+                value=args.value,
+                # filename=os.path.join(outpath, f"{fname}.obj"),
+                rescale=False,
+                sample_values=args.field,
+            )
+            print(verts)
+            print(samples)
+        else:
+            sys.exit(f"Format {args.format} not in [ply, obj]")
 
 
 if __name__ == "__main__":
