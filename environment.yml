@@ -13,3 +13,4 @@ dependencies:
     - isort
     - flake8
     - yt
+    - lxml

@@ -165,3 +165,12 @@ class ytExtractArgs(ytArgs):
             required=True,
             help="Number of slices to extract in normal direction.",
         )
+
+    def isosurface_args(self):
+        """Add arguments for extracting iso-surfaces."""
+        self.parser.add_argument(
+            "--value",
+            type=float,
+            required=True,
+            help="Value of the iso surface to extract.",
+        )

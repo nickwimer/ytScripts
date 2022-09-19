@@ -41,6 +41,7 @@ def get_attributes(ds):
         "length_unit": ds.length_unit,
         "time_unit": ds.time_unit,
         "width": ds.domain_width,
+        "center": ds.domain_center,
     }
 
     # Make commonly used attributes
