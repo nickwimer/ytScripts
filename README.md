@@ -47,7 +47,9 @@ Data will be saved under `outdata/averages`.
 ## extract_isosurfaces.ppy
 Extracts an isosurface of specified field and value and saves to file for visualization in external program (such as ParaView or Blender).
 
-Ex: `python data_extraction/extract_isosurfaces.py -p DATADIR/ --pname plt00001 --field magvort --value 50000.0`
+Ex: `python data_extraction/extract_isosurfaces.py -p DATADIR/ --pname plt00001 --field magvort --value 50000.0 --format xdmf`
+
+Output formats are `ply`, `obj`, `hdf5`/`xdmf`.
 
 Isosurface file will be saved under `outdata/isosurfaces`.
 
