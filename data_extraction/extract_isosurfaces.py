@@ -1,13 +1,17 @@
 """Extracts iso-surfaces from plot files and saves."""
 import os
 import sys
+import time
 
 import h5py
 import numpy as np
+import yt
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
+
+# from yt import enable_parallelism, is_root
 
 
 def get_args():
@@ -109,8 +113,11 @@ def main():
     args = get_args()
 
     # Create the output directory
-    outpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "isosurfaces"))
-    os.makedirs(outpath, exist_ok=True)
+    if yt.is_root():
+        outpath = os.path.abspath(
+            os.path.join(sys.argv[0], "../../outdata", "isosurfaces")
+        )
+        os.makedirs(outpath, exist_ok=True)
 
     # Load the plt files
     ts, _ = utils.load_dataseries(
@@ -118,8 +125,11 @@ def main():
         pname=args.pname,
     )
 
+    if yt.is_root():
+        start_time = time.time()
     # Loop over the plt files in the data directory
     for ds in ts:
+
         # Force periodicity for the yt surface extraction routines...
         ds.force_periodicity()
         # Get the updated attributes for the current plt file
@@ -140,6 +150,7 @@ def main():
 
         # Export the isosurfaces in specified format
         fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+
         if args.format == "ply":
             surf.export_ply(
                 os.path.join(outpath, f"{fname}.ply"),
@@ -155,6 +166,7 @@ def main():
             )
         elif args.format in ["hdf5", "xdmf"]:
             # xdmf or hdf5 will write the hdf5 file and the xdmf wrapper file
+            # yt.enable_parallelism()
             verts, samples = dregion.extract_isocontours(
                 field=args.field,
                 value=args.value,
@@ -162,27 +174,33 @@ def main():
                 sample_values=args.field,
             )
 
-            conn_shape, coord_shape, field_shape = write_hdf5(
-                verts=verts,
-                samples=np.array(samples),
-                field=args.field,
-                fname=os.path.join(outpath, f"{fname}.hdf5"),
-            )
+            if yt.is_root():
+                conn_shape, coord_shape, field_shape = write_hdf5(
+                    verts=verts,
+                    samples=np.array(samples),
+                    field=args.field,
+                    fname=os.path.join(outpath, f"{fname}.hdf5"),
+                )
 
-            write_xdmf(
-                fbase=os.path.join(outpath, fname),
-                field=args.field,
-                ftype="Scalar",
-                value=args.value,
-                time=ds_attributes["time"],
-                conn_shape=conn_shape,
-                coord_shape=coord_shape,
-                field_shape=field_shape,
-            )
+                write_xdmf(
+                    fbase=os.path.join(outpath, fname),
+                    field=args.field,
+                    ftype="Scalar",
+                    value=args.value,
+                    time=ds_attributes["time"],
+                    conn_shape=conn_shape,
+                    coord_shape=coord_shape,
+                    field_shape=field_shape,
+                )
 
         else:
             sys.exit(f"Format {args.format} not in [ply, obj, hdf5, xdmf]")
 
+    if yt.is_root():
+        print(f"Elapsed time = {time.time() - start_time} seconds.")
+
 
 if __name__ == "__main__":
+    # enable yt parallelism
+    yt.enable_parallelism()
     main()

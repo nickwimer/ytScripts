@@ -15,3 +15,4 @@ dependencies:
     - flake8
     - yt
     - lxml
+    - mpi4py
