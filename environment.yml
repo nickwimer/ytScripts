@@ -4,10 +4,11 @@ channels:
 
 dependencies:
   - python
-  - numpy
+  - numpy<1.23.0
   - pandas
   - matplotlib
   - h5py
+  - scikit-image
   - pip
   - pip:
     - black
