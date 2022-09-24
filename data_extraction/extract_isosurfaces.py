@@ -207,9 +207,12 @@ def main():
 
     # Create the output directory
     if rank == 0:
-        outpath = os.path.abspath(
-            os.path.join(sys.argv[0], "../../outdata", "isosurfaces")
-        )
+        if args.outpath:
+            outpath = args.outpath
+        else:
+            outpath = os.path.abspath(
+                os.path.join(sys.argv[0], "../../outdata", "isosurfaces")
+            )
         os.makedirs(outpath, exist_ok=True)
 
     # # Load the plt files
@@ -273,14 +276,14 @@ def main():
                     sample_values=args.field,
                 )
 
-                verts_np = np.array(verts)
+                all_verts_np = np.array(verts)
                 # Get the shape of the vertices for the connection array
                 len_verts, dep_verts = np.shape(verts)
 
                 # Make faces connection array taking the vertices in groups of three
                 faces_np = np.arange(0, len_verts, 1)
-                faces_np = faces_np.reshape((-1, dep_verts))
-                samples_np = np.array(samples)
+                all_faces_np = faces_np.reshape((-1, dep_verts))
+                all_samples_np = np.array(samples)
 
             else:
 
