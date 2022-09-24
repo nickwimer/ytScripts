@@ -53,6 +53,10 @@ Output formats are `ply`, `obj`, `hdf5`/`xdmf`.
 
 Isosurface file will be saved under `outdata/isosurfaces`.
 
+Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are holes in the iso-surfaces.
+
+Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
+
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
 
 
