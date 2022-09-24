@@ -189,3 +189,8 @@ class ytExtractArgs(ytArgs):
                 "hdf5/xdmf format only (default to faster, custom routine)."
             ),
         )
+        self.parser.add_argument(
+            "--do_ghost",
+            action="store_true",
+            help="Flag to get ghost cells before the iso-surface extraction.",
+        )

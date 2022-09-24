@@ -5,15 +5,12 @@ import time
 
 import h5py
 import numpy as np
-import yt
+from mpi4py import MPI
 from skimage import measure
-from yt.utilities.parallel_tools.parallel_analysis_interface import communication_system
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
-
-# from yt import enable_parallelism, is_root
 
 
 def get_args():
@@ -97,7 +94,6 @@ def write_xdmf(
 def write_hdf5(verts, samples, faces, field, fname):
     """Write the HDF5 file based on the extracted isosurface."""
     with h5py.File(fname, "w") as f:
-        # f.create_dataset("Conn", data=tri_array, dtype=np.int32)
         f.create_dataset("Conn", data=faces.astype(np.int32), dtype=np.int32)
         f.create_dataset("Coord", data=verts, dtype=np.float64)
         f.create_dataset(field, data=samples, dtype=np.float64)
@@ -105,15 +101,112 @@ def write_hdf5(verts, samples, faces, field, fname):
     return np.shape(faces), np.shape(verts), np.shape(samples)
 
 
+def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
+
+    # Get the cube index information
+    start_idx = cube.get_global_startindex()
+    act_dims = cube.ActiveDimensions
+
+    child_mask = cube.child_mask
+
+    # Define the left and right physical edges we are trying to access
+    left_phys = ds_left_edge + (start_idx - n_zones) * cube.dds
+    right_phys = left_phys + (act_dims + 2 * n_zones) * cube.dds
+
+    # Get the conditional array to determine which boundary we might cross
+    left_cond = left_phys <= ds_left_edge
+    right_cond = right_phys >= ds_right_edge
+
+    # Define the new left edge and new dimensions of the box we want
+    nl = start_idx - n_zones * np.invert(left_cond)
+    new_left_edge = nl * cube.dds + ds_left_edge
+    new_dims = (
+        act_dims + n_zones * np.invert(left_cond) + n_zones * np.invert(right_cond)
+    )
+
+    # Append values to the child mask
+    add_left_side = start_idx - nl
+    add_right_side = (new_dims - act_dims) - add_left_side
+
+    child_mask = np.append(
+        np.full(
+            (add_left_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
+            True,
+            dtype=bool,
+        ),
+        child_mask,
+        axis=0,
+    )
+    child_mask = np.append(
+        np.full(
+            (np.shape(child_mask)[0], add_left_side[1], np.shape(child_mask)[2]),
+            True,
+            dtype=bool,
+        ),
+        child_mask,
+        axis=1,
+    )
+    child_mask = np.append(
+        np.full(
+            (np.shape(child_mask)[0], np.shape(child_mask)[1], add_left_side[2]),
+            True,
+            dtype=bool,
+        ),
+        child_mask,
+        axis=2,
+    )
+
+    child_mask = np.append(
+        child_mask,
+        np.full(
+            (add_right_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
+            True,
+            dtype=bool,
+        ),
+        axis=0,
+    )
+    child_mask = np.append(
+        child_mask,
+        np.full(
+            (np.shape(child_mask)[0], add_right_side[1], np.shape(child_mask)[2]),
+            True,
+            dtype=bool,
+        ),
+        axis=1,
+    )
+    child_mask = np.append(
+        child_mask,
+        np.full(
+            (np.shape(child_mask)[0], np.shape(child_mask)[1], add_right_side[2]),
+            True,
+            dtype=bool,
+        ),
+        axis=2,
+    )
+
+    # Get the new cube that defined by the new covering grid
+    cube = cube.ds.covering_grid(
+        # cube.Level,
+        cube.index.max_level,
+        new_left_edge,
+        dims=new_dims,
+    )
+
+    return cube, child_mask
+
+
 def main():
     """Main function for extracting isosurfaces."""
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    size = comm.Get_size()
     # Parse the input arguments
     args = get_args()
 
-    comm = communication_system.communicators[-1]
+    # comm = communication_system.communicators[-1]
 
     # Create the output directory
-    if comm.rank == 0:
+    if rank == 0:
         outpath = os.path.abspath(
             os.path.join(sys.argv[0], "../../outdata", "isosurfaces")
         )
@@ -124,33 +217,25 @@ def main():
         datapath=args.datapath,
         pname=args.pname,
     )
-    # ds = yt.load(os.path.join(args.datapath, "plt10000"), parallel=False)
 
-    if comm.rank == 0:
+    comm.Barrier()
+    if rank == 0:
         start_time = time.time()
 
     # Loop over the plt files in the data directory
-    for ds in ts.piter():
+    for ds in ts:
+        # Barrier at the start of each ds iteration
+        comm.Barrier()
 
         # Force periodicity for the yt surface extraction routines...
-        ds.force_periodicity()
+        if args.format in ["ply", "obj"] or args.yt:
+            ds.force_periodicity()
 
         # Get the updated attributes for the current plt file
         ds_attributes = utils.get_attributes(ds=ds)
 
         # Create box region the encompasses the domain
-        # dregion = ds.box(
-        # #     # left_edge=ds_attributes["left_edge"],
-        # #     # right_edge=ds_attributes["right_edge"],
-        #     left_edge=ds.domain_left_edge,
-        #     right_edge=ds.domain_right_edge,
-        # )
         dregion = ds.all_data()
-        # dregion = ds.smoothed_covering_grid(
-        #     level=ds_attributes["max_level"],
-        #     left_edge=ds_attributes["left_edge"],
-        #     dims=ds_attributes["resolution"],
-        # )
 
         # Export the isosurfaces in specified format
         fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
@@ -199,26 +284,27 @@ def main():
 
             else:
 
-                # dregion = dregion.retrieve_ghost_zones(
-                #     n_zones=4,
-                #     fields=args.field,
-                #     all_levels=True,
-                #     smoothed=False,
-                # )
-
                 verts_np = np.empty((0, 3))
                 faces_np = np.empty((0, 3))
                 samples_np = np.empty((0))
 
-                for g in dregion.index.grids:
+                num_grids = len(dregion.index.grids)
 
-                    # g = g.retrieve_ghost_zones(
-                    #     n_zones=1, fields=args.field, all_levels=False, smoothed=False
-                    # )
+                comm.barrier()
+                for g in dregion.index.grids[rank:num_grids:size]:
+
+                    if args.do_ghost:
+                        g, child_mask = retrieve_ghost_zones(
+                            cube=g,
+                            n_zones=1,
+                            fields=args.field,
+                            ds_left_edge=ds_attributes["left_edge"],
+                            ds_right_edge=ds_attributes["right_edge"],
+                        )
+                    else:
+                        child_mask = g.child_mask
                     # Get the physical cell spacing of the grid
-                    dx = np.array(g[("boxlib", "dx")][0, 0, 0])
-                    dy = np.array(g[("boxlib", "dy")][0, 0, 0])
-                    dz = np.array(g[("boxlib", "dz")][0, 0, 0])
+                    dx, dy, dz = np.array(g.dds)
 
                     try:
                         verts, faces, normals, values = measure.marching_cubes(
@@ -230,7 +316,7 @@ def main():
                             gradient_direction="ascent",
                             spacing=(dx, dy, dz),
                             method="lewiner",
-                            # mask=g.child_mask,
+                            mask=child_mask,
                         )
 
                         # offset the physical location
@@ -248,9 +334,9 @@ def main():
                         # Skip the regions that do not have values for the isosurface
                         pass
 
-                    # except RuntimeError:
-                    # Skip the regions that
-                    # pass
+                    except RuntimeError:
+                        # Skip the regions that are fully masked
+                        pass
 
                     # clear the data to reduce memory constraints
                     g.clear_data()
@@ -260,12 +346,36 @@ def main():
                 faces_np = faces_np.astype(np.int32)
                 samples_np = samples_np.astype(np.float64)
 
+                comm.barrier()
+                # gather and combine
+                all_verts = comm.gather(verts_np, root=0)
+                all_faces = comm.gather(faces_np, root=0)
+                all_samples = comm.gather(samples_np, root=0)
+
+            # Barrier before writing
+            comm.barrier()
+            if rank == 0:
+                print(f"Time to do the grids = {time.time() - start_time} seconds.")
+
+                all_verts_np = np.empty((0, 3), dtype=np.float64)
+                all_faces_np = np.empty((0, 3), dtype=np.int32)
+                all_samples_np = np.empty((0), dtype=np.float64)
+
+                for i in range(size):
+                    # offset the face indices by the current length of the array
+                    len_verts, _ = np.shape(all_verts_np)
+                    all_faces[i] += len_verts
+
+                    all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
+                    all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
+                    all_samples_np = np.append(all_samples_np, all_samples[i], axis=0)
+
             # Write out the hdf5 and the xdmf file
-            if comm.rank == 0:
+            if rank == 0:
                 conn_shape, coord_shape, field_shape = write_hdf5(
-                    verts=verts_np,
-                    samples=samples_np,
-                    faces=faces_np,
+                    verts=all_verts_np,
+                    samples=all_samples_np,
+                    faces=all_faces_np,
                     field=args.field,
                     fname=os.path.join(outpath, f"{fname}.hdf5"),
                 )
@@ -285,7 +395,7 @@ def main():
         else:
             sys.exit(f"Format {args.format} not in [ply, obj, hdf5, xdmf]")
 
-    if yt.is_root():
+    if rank == 0:
         print(f"Elapsed time = {time.time() - start_time} seconds.")
 
 
