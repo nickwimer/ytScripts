@@ -384,7 +384,7 @@ def main():
                 )
 
                 write_xdmf(
-                    fbase=os.path.join(outpath, fname),
+                    fbase=fname,
                     field=args.field,
                     ftype="Scalar",
                     ctype="Node" if not args.yt else "Cell",
