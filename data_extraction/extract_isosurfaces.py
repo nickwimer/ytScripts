@@ -24,7 +24,7 @@ def get_args():
 
 
 def write_xdmf(
-    fbase, field, ftype, ctype, value, time, conn_shape, coord_shape, field_shape
+    fbase, fhdf5, field, ftype, ctype, value, time, conn_shape, coord_shape, field_shape
 ):
     """Write the XDMF wrapper based on the hdf5 data."""
     # Create the XDMF file for writing
@@ -52,7 +52,7 @@ def write_xdmf(
         f""""{conn_shape[0]} {conn_shape[1]}">\n"""
         f"""\t\t\t\t<DataItem Name="Conn" Format="HDF" DataType="Int" """
         f"""Precision="4" Dimensions="{conn_shape[0]} {conn_shape[1]}">\n"""
-        f"""\t\t\t\t\t{fbase}.hdf5:/Conn\n"""
+        f"""\t\t\t\t\t{fhdf5}.hdf5:/Conn\n"""
         f"""\t\t\t\t</DataItem>\n"""
         f"""\t\t\t</Topology>\n"""
     )
@@ -63,7 +63,7 @@ def write_xdmf(
         f""""{coord_shape[0]} {coord_shape[1]}">\n"""
         f"""\t\t\t\t<DataItem Name="Coord" Format="HDF" DataType="Float" """
         f"""Precision="8" Dimensions="{coord_shape[0]} {coord_shape[1]}">\n"""
-        f"""\t\t\t\t\t{fbase}.hdf5:/Coord\n"""
+        f"""\t\t\t\t\t{fhdf5}.hdf5:/Coord\n"""
         f"""\t\t\t\t</DataItem>\n"""
         f"""\t\t\t</Geometry>\n"""
     )
@@ -74,7 +74,7 @@ def write_xdmf(
         f"""Center="{ctype}">\n"""
         f"""\t\t\t\t<DataItem Format="HDF" DataType="Float" Precision="8" """
         f"""Dimensions="{field_shape[0]}">\n"""
-        f"""\t\t\t\t\t{fbase}.hdf5:/{field}\n"""
+        f"""\t\t\t\t\t{fhdf5}.hdf5:/{field}\n"""
         f"""\t\t\t\t</DataItem>\n"""
         f"""\t\t\t</Attribute>\n"""
     )
@@ -384,7 +384,8 @@ def main():
                 )
 
                 write_xdmf(
-                    fbase=fname,
+                    fbase=os.path.join(outpath, fname),
+                    fhdf5=fname,
                     field=args.field,
                     ftype="Scalar",
                     ctype="Node" if not args.yt else "Cell",
