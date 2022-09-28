@@ -45,7 +45,7 @@ def main():
         axes_unit = "cm"
 
     # Load data files into dataset series
-    ts, index_list = utils.load_dataseries(
+    ts, index_dict = utils.load_dataseries(
         datapath=args.datapath, pname=args.pname, units_override=units_override
     )
 
@@ -79,8 +79,8 @@ def main():
         )
 
     # Loop over all datasets in the time series
-    idx = 0
-    for ds in ts:
+    yt.enable_parallelism()
+    for ds in ts.piter(dynamic=True):
 
         # Get updated attributes for each plt file
         ds_attributes = utils.get_attributes(ds=ds)
@@ -92,11 +92,8 @@ def main():
             "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
         }
 
-        # Set index according to load method
-        if args.pname is not None:
-            index = index_list[idx]
-        else:
-            index = idx
+        # Set index according to dict
+        index = index_dict[str(ds)]
 
         # Plot the field
         slc = yt.SlicePlot(
@@ -128,9 +125,6 @@ def main():
             ),
             mpl_kwargs=dict(dpi=args.dpi),
         )
-
-        # increment the loop idx
-        idx += 1
 
 
 if __name__ == "__main__":
