@@ -133,3 +133,5 @@ Some helpful options:
 `--dpi`: dpi of the output image (default = 300).
 
 `--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
+
+`--contour`: Plot a contour line of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE`.
