@@ -2,7 +2,9 @@
 import os
 import sys
 
+import numpy as np
 import yt
+from skimage.measure import find_contours
 from yt.units.yt_array import YTArray
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
@@ -52,7 +54,8 @@ def main():
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+    if args.verbose:
+        print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     # Set the center of the plot for loading the data
     if args.center is not None:
@@ -97,9 +100,9 @@ def main():
 
         # Plot the field
         slc = yt.SlicePlot(
-            ds,
-            args.normal,
-            args.field,
+            ds=ds,
+            normal=args.normal,
+            fields=args.field,
             center=slc_center,
             buff_size=tuple(args.buff)
             if args.buff is not None
@@ -118,13 +121,47 @@ def main():
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
-        # Save the image
-        slc.save(
-            os.path.join(
-                imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-            ),
-            mpl_kwargs=dict(dpi=args.dpi),
-        )
+        if args.contour is not None:
+            contour = np.squeeze(
+                find_contours(image=slc.frb[args.contour[0]], level=args.contour[1])
+            )
+
+            fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+            xres, yres, zres = np.array(ds_attributes["resolution"])
+
+            lx, ly, lz = np.array(ds_attributes["left_edge"])
+            rx, ry, rz = np.array(ds_attributes["right_edge"])
+            dx = (rx - lx) / xres
+            dy = (ry - ly) / yres
+            dz = (rz - lz) / zres
+
+            ax = fig.axes[0]
+            if args.normal == "x":
+                ax.plot(
+                    contour[:, 1] * dy + ly,
+                    contour[:, 0] * dz + lz,
+                    alpha=1.0,
+                    color=args.contour[2],
+                    zorder=10,
+                )
+            else:
+                sys.exit(f"Normal {args.normal} not yet implemented!")
+
+            fig.tight_layout()
+            fig.savefig(
+                os.path.join(
+                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
+                ),
+                dpi=args.dpi,
+            )
+        else:
+            # Save the image
+            slc.save(
+                os.path.join(
+                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
+                ),
+                mpl_kwargs=dict(dpi=args.dpi),
+            )
 
 
 if __name__ == "__main__":
