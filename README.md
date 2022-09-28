@@ -100,6 +100,8 @@ This will create a 2D slice plot with x as the normal irection and bounds on fie
 
 `python quick_vis/slice_plot.py --help` for full list of options.
 
+Can now make full use of parallel processing over multiple datasets in a timeseries. Just submit using `mpirun -np X` or equivalent and images will be processed in an embarassingly parallel manner.
+
 Some helpful options:
 
 `--datapath`: Path to the plot files.

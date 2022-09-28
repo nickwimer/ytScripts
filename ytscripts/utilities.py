@@ -14,18 +14,24 @@ def load_dataseries(datapath, pname=None, units_override=None):
         # Find the index based on location of the selected plot files
         all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
 
-        index_list = []
+        index_dict = {}
         for plt in pname:
-            index_list.append(all_files.index(plt))
+            index_dict.update({plt: all_files.index(plt)})
 
     else:
-        index_list = None
         ts = yt.load(
             os.path.join(datapath, "plt?????"),
             units_override=units_override,
         )
 
-    return ts, index_list
+        # Find the index based on location of the plot files
+        all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+
+        index_dict = {}
+        for plt in all_files:
+            index_dict.update({plt: all_files.index(plt)})
+
+    return ts, index_dict
 
 
 def get_attributes(ds):
