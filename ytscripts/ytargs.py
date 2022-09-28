@@ -147,7 +147,7 @@ class ytVisArgs(ytArgs):
             nargs="+",
             required=False,
             default=None,
-            help="Name of contour field an value to plot on top of slice.",
+            help="Name of contour field and value to plot on top of slice.",
         )
 
 

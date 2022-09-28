@@ -141,7 +141,7 @@ def main():
                     contour[:, 1] * dy + ly,
                     contour[:, 0] * dz + lz,
                     alpha=1.0,
-                    color="white",
+                    color=args.contour[2],
                     zorder=10,
                 )
             else:

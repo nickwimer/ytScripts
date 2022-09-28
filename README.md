@@ -134,4 +134,4 @@ Some helpful options:
 
 `--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
 
-`--contour`: Plot a contour line of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE`.
+`--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
