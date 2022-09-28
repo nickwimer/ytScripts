@@ -136,6 +136,14 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Buffer for the SlicePlot image for plotting.",
         )
+        self.parser.add_argument(
+            "--contour",
+            type=str,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Name of contour field an value to plot on top of slice.",
+        )
 
 
 class ytExtractArgs(ytArgs):
