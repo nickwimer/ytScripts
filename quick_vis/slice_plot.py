@@ -54,7 +54,8 @@ def main():
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+    if args.verbose:
+        print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     # Set the center of the plot for loading the data
     if args.center is not None:

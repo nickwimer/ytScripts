@@ -51,6 +51,11 @@ class ytArgs:
             action="store_true",
             help="Flag to set the units to SI (default is cgs).",
         )
+        self.parser.add_argument(
+            "--verbose",
+            action="store_true",
+            help="Flag to turn on various statements.",
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""
