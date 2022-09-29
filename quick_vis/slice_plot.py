@@ -24,6 +24,51 @@ def get_args():
     return ytparse.parse_args()
 
 
+def plot_contours(contour, fig, ds_attributes, normal, color):
+    """Add contours to plot axes."""
+
+    xres, yres, zres = np.array(ds_attributes["resolution"])
+
+    lx, ly, lz = np.array(ds_attributes["left_edge"])
+    rx, ry, rz = np.array(ds_attributes["right_edge"])
+    dx = (rx - lx) / xres
+    dy = (ry - ly) / yres
+    dz = (rz - lz) / zres
+
+    ax = fig.axes[0]
+    if normal == "x":
+        for icnt in contour:
+            ax.plot(
+                icnt[:, 1] * dy + ly,
+                icnt[:, 0] * dz + lz,
+                alpha=1.0,
+                color=color,
+                zorder=10,
+            )
+    elif normal == "y":
+        for icnt in contour:
+            ax.plot(
+                icnt[:, 1] * dz + lz,
+                icnt[:, 0] * dx + lx,
+                alpha=1.0,
+                color=color,
+                zorder=10,
+            )
+    elif normal == "z":
+        for icnt in contour:
+            ax.plot(
+                icnt[:, 1] * dx + lx,
+                icnt[:, 0] * dy + ly,
+                alpha=1.0,
+                color=color,
+                zorder=10,
+            )
+    else:
+        sys.exit(f"Normal {normal} is not in [x, y, z]!")
+
+    return fig
+
+
 def main():
 
     # Parse the input arguments
@@ -123,49 +168,29 @@ def main():
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
         if args.contour is not None:
-            contour = find_contours(
-                image=slc.frb[args.contour[0]], level=args.contour[1]
-            )
+            # contour must be a multiple of three arguments
+            if not len(args.contour) % 3 == 0:
+                sys.exit(
+                    "Contour argument must be a multiple of 3! [FIELD, VALUE, COLOR]"
+                )
+            else:
+                num_contours = len(args.contour) // 3
 
             fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
-            xres, yres, zres = np.array(ds_attributes["resolution"])
 
-            lx, ly, lz = np.array(ds_attributes["left_edge"])
-            rx, ry, rz = np.array(ds_attributes["right_edge"])
-            dx = (rx - lx) / xres
-            dy = (ry - ly) / yres
-            dz = (rz - lz) / zres
+            for icnt in range(num_contours):
+                idx = icnt * 3
+                contour = find_contours(
+                    image=slc.frb[args.contour[idx]], level=args.contour[idx + 1]
+                )
 
-            ax = fig.axes[0]
-            if args.normal == "x":
-                for icnt in contour:
-                    ax.plot(
-                        icnt[:, 1] * dy + ly,
-                        icnt[:, 0] * dz + lz,
-                        alpha=1.0,
-                        color=args.contour[2],
-                        zorder=10,
-                    )
-            elif args.normal == "y":
-                for icnt in contour:
-                    ax.plot(
-                        icnt[:, 1] * dz + lz,
-                        icnt[:, 0] * dx + lx,
-                        alpha=1.0,
-                        color=args.contour[2],
-                        zorder=10,
-                    )
-            elif args.normal == "z":
-                for icnt in contour:
-                    ax.plot(
-                        icnt[:, 1] * dx + lx,
-                        icnt[:, 0] * dy + ly,
-                        alpha=1.0,
-                        color=args.contour[2],
-                        zorder=10,
-                    )
-            else:
-                sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
+                fig = plot_contours(
+                    contour=contour,
+                    fig=fig,
+                    ds_attributes=ds_attributes,
+                    normal=args.normal,
+                    color=args.contour[idx + 2],
+                )
 
             fig.tight_layout()
             fig.savefig(
