@@ -1,55 +1,22 @@
 """Extracts domain averaged quantities and saves for plotting."""
-import argparse
 import os
 import sys
 
-import numpy as np
 import pandas as pd
-from yt.units.yt_array import YTArray
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
+import ytscripts.ytargs as ytargs  # noqa: E402
 
 
 def get_args():
     """Parse command line arguments."""
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-p",
-        "--datapath",
-        type=str,
-        required=True,
-        help="path to the plt files",
-    )
-    parser.add_argument(
-        "--pname",
-        type=str,
-        required=False,
-        default=None,
-        help="Name of plt files to plot (if empty, do all)",
-        nargs="+",
-    )
-    parser.add_argument(
-        "--fields",
-        type=str,
-        nargs="+",
-        required=True,
-        default=None,
-        help="Name of the data fields to extract",
-    )
-    parser.add_argument(
-        "--SI",
-        action="store_true",
-        help="flag to identify if this simulation is in SI units (defaults to CGS)",
-    )
-    parser.add_argument(
-        "--name",
-        type=str,
-        required=False,
-        default="test",
-        help="name of the output data",
-    )
-    return parser.parse_args()
+    # Initialize the class for data extraction
+    ytparse = ytargs.ytExtractArgs()
+    # Add in the arguments for the extract averages
+    ytparse.average_args()
+    # Return the parsed arguments
+    return ytparse.parse_args()
 
 
 def main():
@@ -94,19 +61,14 @@ def main():
         time.append(float(ds.current_time))
 
         # Get all the data with no modifications
-        yt.enable_parallelism()
-        data = ds.covering_grid(
-            base_attributes["max_level"],
-            left_edge=base_attributes["left_edge"],
-            dims=base_attributes["resolution"],
-        )
+        data = ds.all_data()
 
         # Loop over the specified variables
         tmp_data = {}
         for field in args.fields:
-            # Extract data and remove units
-            tmp_data[field] = np.mean(
-                np.mean(np.mean(YTArray(data[("boxlib", field)], "")))
+            # Extract data
+            tmp_data[field] = data.mean(
+                ("boxlib", field), weight=("boxlib", "cell_volume")
             )
 
         avg_data.append(tmp_data)

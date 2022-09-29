@@ -15,6 +15,19 @@ class ytArgs:
         """Return the parsed args."""
         return self.parser.parse_args()
 
+    def remove_arg(self, arg):
+        for action in self.parser._actions:
+            opts = action.option_strings
+            if (opts and opts[0] == arg) or action.dest == arg:
+                self.parser._remove_action(action)
+                break
+
+        for action in self.parser._action_groups:
+            for group_action in action._group_actions:
+                if group_action.dest == arg:
+                    action._group_actions.remove(group_action)
+                    return
+
     def io_args(self):
         """Add I/O arguments."""
         self.parser.add_argument(
@@ -215,3 +228,24 @@ class ytExtractArgs(ytArgs):
             action="store_true",
             help="Flag to get ghost cells before the iso-surface extraction.",
         )
+
+    def average_args(self):
+        """Add arguments for extracting averages."""
+        self.parser.add_argument(
+            "--fields",
+            type=str,
+            nargs="+",
+            required=True,
+            default=None,
+            help="Names of the data fields to extract.",
+        )
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="average_data",
+            help="Name of the output data file (.pkl).",
+        )
+
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
