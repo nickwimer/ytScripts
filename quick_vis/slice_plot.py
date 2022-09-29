@@ -91,7 +91,7 @@ def main():
         # Get the image slice resolution
         slc_res = {
             "x": (ds_attributes["resolution"][1], ds_attributes["resolution"][2]),
-            "y": (ds_attributes["resolution"][0], ds_attributes["resolution"][2]),
+            "y": (ds_attributes["resolution"][2], ds_attributes["resolution"][0]),
             "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
         }
 
@@ -110,6 +110,7 @@ def main():
         )
         slc.set_axes_unit(axes_unit)
         slc.set_origin("native")
+
         if args.pbox is not None:
             slc.set_width(pbox_width)
             slc.set_center(pbox_center)
@@ -122,8 +123,8 @@ def main():
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
         if args.contour is not None:
-            contour = np.squeeze(
-                find_contours(image=slc.frb[args.contour[0]], level=args.contour[1])
+            contour = find_contours(
+                image=slc.frb[args.contour[0]], level=args.contour[1]
             )
 
             fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
@@ -137,15 +138,34 @@ def main():
 
             ax = fig.axes[0]
             if args.normal == "x":
-                ax.plot(
-                    contour[:, 1] * dy + ly,
-                    contour[:, 0] * dz + lz,
-                    alpha=1.0,
-                    color=args.contour[2],
-                    zorder=10,
-                )
+                for icnt in contour:
+                    ax.plot(
+                        icnt[:, 1] * dy + ly,
+                        icnt[:, 0] * dz + lz,
+                        alpha=1.0,
+                        color=args.contour[2],
+                        zorder=10,
+                    )
+            elif args.normal == "y":
+                for icnt in contour:
+                    ax.plot(
+                        icnt[:, 1] * dz + lz,
+                        icnt[:, 0] * dx + lx,
+                        alpha=1.0,
+                        color=args.contour[2],
+                        zorder=10,
+                    )
+            elif args.normal == "z":
+                for icnt in contour:
+                    ax.plot(
+                        icnt[:, 1] * dx + lx,
+                        icnt[:, 0] * dy + ly,
+                        alpha=1.0,
+                        color=args.contour[2],
+                        zorder=10,
+                    )
             else:
-                sys.exit(f"Normal {args.normal} not yet implemented!")
+                sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
 
             fig.tight_layout()
             fig.savefig(
