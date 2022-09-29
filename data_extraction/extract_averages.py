@@ -58,7 +58,12 @@ def main():
     args = get_args()
 
     # Create the output directory
-    outpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "averages"))
+    if args.outpath:
+        outpath = args.outpath
+    else:
+        outpath = os.path.abspath(
+            os.path.join(sys.argv[0], "../../outdata", "averages")
+        )
     os.makedirs(outpath, exist_ok=True)
 
     # Override the units if needed
@@ -79,7 +84,8 @@ def main():
 
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+    if args.verbose:
+        print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     avg_data = []
     time = []
@@ -88,7 +94,7 @@ def main():
         time.append(float(ds.current_time))
 
         # Get all the data with no modifications
-        # data = ds.r
+        yt.enable_parallelism()
         data = ds.covering_grid(
             base_attributes["max_level"],
             left_edge=base_attributes["left_edge"],
