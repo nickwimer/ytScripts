@@ -24,7 +24,7 @@ def get_args():
     return ytparse.parse_args()
 
 
-def plot_contours(contour, fig, ds_attributes, normal, color):
+def plot_contours(contour, fig, ds_attributes, normal, color, linewidth):
     """Add contours to plot axes."""
 
     xres, yres, zres = np.array(ds_attributes["resolution"])
@@ -44,6 +44,7 @@ def plot_contours(contour, fig, ds_attributes, normal, color):
                 alpha=1.0,
                 color=color,
                 zorder=10,
+                linewidth=linewidth,
             )
     elif normal == "y":
         for icnt in contour:
@@ -53,6 +54,7 @@ def plot_contours(contour, fig, ds_attributes, normal, color):
                 alpha=1.0,
                 color=color,
                 zorder=10,
+                linewidth=linewidth,
             )
     elif normal == "z":
         for icnt in contour:
@@ -62,6 +64,7 @@ def plot_contours(contour, fig, ds_attributes, normal, color):
                 alpha=1.0,
                 color=color,
                 zorder=10,
+                linewidth=linewidth,
             )
     else:
         sys.exit(f"Normal {normal} is not in [x, y, z]!")
@@ -179,6 +182,11 @@ def main():
             fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
 
             for icnt in range(num_contours):
+                if args.clw is None:
+                    linewidth = 1.0
+                else:
+                    linewidth = args.clw[icnt]
+
                 idx = icnt * 3
                 contour = find_contours(
                     image=slc.frb[args.contour[idx]], level=args.contour[idx + 1]
@@ -190,6 +198,7 @@ def main():
                     ds_attributes=ds_attributes,
                     normal=args.normal,
                     color=args.contour[idx + 2],
+                    linewidth=linewidth,
                 )
 
             fig.tight_layout()
