@@ -24,52 +24,18 @@ def get_args():
     return ytparse.parse_args()
 
 
-def plot_contours(contour, fig, ds_attributes, normal, color, linewidth):
+def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
     """Add contours to plot axes."""
 
-    xres, yres, zres = np.array(ds_attributes["resolution"])
-
-    lx, ly, lz = np.array(ds_attributes["left_edge"])
-    rx, ry, rz = np.array(ds_attributes["right_edge"])
-    dx = (rx - lx) / xres
-    dy = (ry - ly) / yres
-    dz = (rz - lz) / zres
-
-    ax = fig.axes[0]
-    if normal == "x":
-        for icnt in contour:
-            ax.plot(
-                icnt[:, 1] * dy + ly,
-                icnt[:, 0] * dz + lz,
-                alpha=1.0,
-                color=color,
-                zorder=10,
-                linewidth=linewidth,
-            )
-    elif normal == "y":
-        for icnt in contour:
-            ax.plot(
-                icnt[:, 1] * dz + lz,
-                icnt[:, 0] * dx + lx,
-                alpha=1.0,
-                color=color,
-                zorder=10,
-                linewidth=linewidth,
-            )
-    elif normal == "z":
-        for icnt in contour:
-            ax.plot(
-                icnt[:, 1] * dx + lx,
-                icnt[:, 0] * dy + ly,
-                alpha=1.0,
-                color=color,
-                zorder=10,
-                linewidth=linewidth,
-            )
-    else:
-        sys.exit(f"Normal {normal} is not in [x, y, z]!")
-
-    return fig
+    for icnt in contour:
+        ax.plot(
+            icnt[:, 1] * dxy[0] + left_edge[0],
+            icnt[:, 0] * dxy[1] + left_edge[1],
+            alpha=1.0,
+            color=color,
+            zorder=10,
+            linewidth=linewidth,
+        )
 
 
 def main():
@@ -128,6 +94,11 @@ def main():
             (args.pbox[2] - args.pbox[0], axes_unit),
             (args.pbox[3] - args.pbox[1], axes_unit),
         )
+        # Set the left edge base on the pbox
+        # pbox_left_edge = [args.pbox[0], args.pbox[1]]
+
+        if args.contour:
+            sys.exit("joint pbox and contour options are currently broken...")
 
     # Loop over all datasets in the time series
     yt.enable_parallelism()
@@ -171,6 +142,14 @@ def main():
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
         if args.contour is not None:
+            xres, yres, zres = np.array(ds_attributes["resolution"])
+
+            lx, ly, lz = np.array(ds_attributes["left_edge"])
+            rx, ry, rz = np.array(ds_attributes["right_edge"])
+            dx = (rx - lx) / xres
+            dy = (ry - ly) / yres
+            dz = (rz - lz) / zres
+
             # contour must be a multiple of three arguments
             if not len(args.contour) % 3 == 0:
                 sys.exit(
@@ -180,6 +159,7 @@ def main():
                 num_contours = len(args.contour) // 3
 
             fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+            ax = fig.axes[0]
 
             for icnt in range(num_contours):
                 if args.clw is None:
@@ -192,14 +172,35 @@ def main():
                     image=slc.frb[args.contour[idx]], level=args.contour[idx + 1]
                 )
 
-                fig = plot_contours(
-                    contour=contour,
-                    fig=fig,
-                    ds_attributes=ds_attributes,
-                    normal=args.normal,
-                    color=args.contour[idx + 2],
-                    linewidth=linewidth,
-                )
+                if args.normal == "x":
+                    plot_contours(
+                        contour=contour,
+                        ax=ax,
+                        left_edge=[ly, lz],
+                        dxy=[dy, dz],
+                        color=args.contour[idx + 2],
+                        linewidth=linewidth,
+                    )
+                elif args.normal == "y":
+                    plot_contours(
+                        contour=contour,
+                        ax=ax,
+                        left_edge=[lz, lx],
+                        dxy=[dz, dx],
+                        color=args.contour[idx + 2],
+                        linewidth=linewidth,
+                    )
+                elif args.normal == "z":
+                    plot_contours(
+                        contour=contour,
+                        ax=ax,
+                        left_edge=[lx, ly],
+                        dxy=[dx, dy],
+                        color=args.contour[idx + 2],
+                        linewidth=linewidth,
+                    )
+                else:
+                    sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
 
             fig.tight_layout()
             fig.savefig(
