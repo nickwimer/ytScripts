@@ -149,6 +149,14 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Name of contour field and value to plot on top of slice.",
         )
+        self.parser.add_argument(
+            "--clw",
+            type=float,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Linewidth for each of the contour lines.",
+        )
 
 
 class ytExtractArgs(ytArgs):
