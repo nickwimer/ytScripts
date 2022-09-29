@@ -44,7 +44,10 @@ def main():
     args = get_args()
 
     # Make the output directory for images
-    imgpath = os.path.join(args.datapath, "images/")
+    if args.outpath:
+        imgpath = args.outpath
+    else:
+        imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata/", "images"))
     os.makedirs(imgpath, exist_ok=True)
 
     # Override the units if needed
