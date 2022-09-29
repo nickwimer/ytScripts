@@ -3,6 +3,7 @@ import os
 import sys
 
 import pandas as pd
+import yt
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -54,35 +55,36 @@ def main():
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
-    avg_data = []
-    time = []
     # Loop over the dataseries
-    for ds in ts:
-        time.append(float(ds.current_time))
+    yt.enable_parallelism()
+    data_dict = {}
+    for sto, ds in ts.piter(storage=data_dict, dynamic=True):
+        sto.result_id = float(ds.current_time)
 
         # Get all the data with no modifications
         data = ds.all_data()
-
         # Loop over the specified variables
         tmp_data = {}
         for field in args.fields:
-            # Extract data
             tmp_data[field] = data.mean(
                 ("boxlib", field), weight=("boxlib", "cell_volume")
             )
 
-        avg_data.append(tmp_data)
+        sto.result = tmp_data
 
-    # Convert into a pandas dataframe for storage
-    df = pd.DataFrame(data={"time": time}, columns=["time"])
+    if yt.is_root():
+        # Convert into a pandas dataframe for storage
+        # df = pd.DataFrame(data={"time": time}, columns=["time"])
+        df = pd.DataFrame(data={"time": data_dict.keys()})
+        # df = pd.DataFrame
 
-    # Loop over the dataframe and add the data
-    for idx, cell in df.iterrows():
-        for key, value in avg_data[idx].items():
-            df.loc[idx, key] = value
+        # Loop over the dataframe and add the data
+        for idx, cell in df.iterrows():
+            for key, value in data_dict[cell["time"]].items():
+                df.loc[idx, key] = value
 
-    # Save the data for later
-    df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
+        # Save the data for later
+        df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
 
 
 if __name__ == "__main__":
