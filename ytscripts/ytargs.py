@@ -15,6 +15,20 @@ class ytArgs:
         """Return the parsed args."""
         return self.parser.parse_args()
 
+    def remove_arg(self, arg):
+        """Remove argument from parser."""
+        for action in self.parser._actions:
+            opts = action.option_strings
+            if (opts and opts[0] == arg) or action.dest == arg:
+                self.parser._remove_action(action)
+                break
+
+        for action in self.parser._action_groups:
+            for group_action in action._group_actions:
+                if group_action.dest == arg:
+                    action._group_actions.remove(group_action)
+                    return
+
     def io_args(self):
         """Add I/O arguments."""
         self.parser.add_argument(
@@ -215,3 +229,65 @@ class ytExtractArgs(ytArgs):
             action="store_true",
             help="Flag to get ghost cells before the iso-surface extraction.",
         )
+
+    def average_args(self):
+        """Add arguments for extracting averages."""
+        self.parser.add_argument(
+            "--fields",
+            type=str,
+            nargs="+",
+            required=True,
+            default=None,
+            help="Names of the data fields to extract.",
+        )
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="average_data",
+            help="Name of the output data file (.pkl).",
+        )
+
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
+
+
+class ytPlotArgs(ytArgs):
+    """Class to interface with custom plot functions."""
+
+    def __init__(self, **kwargs):
+        """Initialize ytPlotArgs."""
+        super(ytPlotArgs, self).__init__(**kwargs)
+
+    def average_args(self):
+        """Add arguments for plotting averages."""
+        self.parser.add_argument(
+            "--fields",
+            type=str,
+            nargs="+",
+            required=True,
+            default=None,
+            help="Names of the data fields to plot.",
+        )
+        self.parser.add_argument(
+            "-f",
+            "--fname",
+            type=str,
+            nargs="+",
+            required=True,
+            default="average_data",
+            help="Name of the data file to load and plot (.pkl).",
+        )
+        self.parser.add_argument(
+            "--dpi",
+            type=int,
+            required=False,
+            default=300,
+            help="dpi of the output image (default = 300).",
+        )
+
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
+        # remove unused arguments from base class
+        self.remove_arg("pname")
+        self.remove_arg("SI")
