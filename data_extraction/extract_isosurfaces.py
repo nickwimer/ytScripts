@@ -6,7 +6,7 @@ import time
 import h5py
 import numpy as np
 from mpi4py import MPI
-from skimage import measure
+from skimage.measure import marching_cubes
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -101,7 +101,9 @@ def write_hdf5(verts, samples, faces, field, fname):
     return np.shape(faces), np.shape(verts), np.shape(samples)
 
 
-def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
+def retrieve_ghost_zones(
+    cube, n_zones, fields, ds_left_edge, ds_right_edge, single_level
+):
 
     # Get the cube index information
     start_idx = cube.get_global_startindex()
@@ -131,7 +133,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
     child_mask = np.append(
         np.full(
             (add_left_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
-            True,
+            False,
             dtype=bool,
         ),
         child_mask,
@@ -140,7 +142,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
     child_mask = np.append(
         np.full(
             (np.shape(child_mask)[0], add_left_side[1], np.shape(child_mask)[2]),
-            True,
+            False,
             dtype=bool,
         ),
         child_mask,
@@ -149,7 +151,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
     child_mask = np.append(
         np.full(
             (np.shape(child_mask)[0], np.shape(child_mask)[1], add_left_side[2]),
-            True,
+            False,
             dtype=bool,
         ),
         child_mask,
@@ -160,7 +162,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
         child_mask,
         np.full(
             (add_right_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
-            True,
+            False,
             dtype=bool,
         ),
         axis=0,
@@ -169,7 +171,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
         child_mask,
         np.full(
             (np.shape(child_mask)[0], add_right_side[1], np.shape(child_mask)[2]),
-            True,
+            False,
             dtype=bool,
         ),
         axis=1,
@@ -178,7 +180,7 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
         child_mask,
         np.full(
             (np.shape(child_mask)[0], np.shape(child_mask)[1], add_right_side[2]),
-            True,
+            False,
             dtype=bool,
         ),
         axis=2,
@@ -186,9 +188,8 @@ def retrieve_ghost_zones(cube, n_zones, fields, ds_left_edge, ds_right_edge):
 
     # Get the new cube that defined by the new covering grid
     cube = cube.ds.covering_grid(
-        # cube.Level,
-        cube.index.max_level,
-        new_left_edge,
+        level=cube.Level if single_level else cube.index.max_level,
+        left_edge=new_left_edge,
         dims=new_dims,
     )
 
@@ -203,8 +204,6 @@ def main():
     # Parse the input arguments
     args = get_args()
 
-    # comm = communication_system.communicators[-1]
-
     # Create the output directory
     if rank == 0:
         if args.outpath:
@@ -215,7 +214,7 @@ def main():
             )
         os.makedirs(outpath, exist_ok=True)
 
-    # # Load the plt files
+    # Load the plt files
     ts, _ = utils.load_dataseries(
         datapath=args.datapath,
         pname=args.pname,
@@ -303,6 +302,7 @@ def main():
                             fields=args.field,
                             ds_left_edge=ds_attributes["left_edge"],
                             ds_right_edge=ds_attributes["right_edge"],
+                            single_level=args.single_level,
                         )
                     else:
                         child_mask = g.child_mask
@@ -310,10 +310,9 @@ def main():
                     dx, dy, dz = np.array(g.dds)
 
                     try:
-                        verts, faces, normals, values = measure.marching_cubes(
+                        verts, faces, normals, values = marching_cubes(
                             volume=g[args.field],
                             level=args.value,
-                            # allow_degenerate=False,
                             allow_degenerate=True,
                             step_size=1,
                             gradient_direction="ascent",
@@ -355,23 +354,25 @@ def main():
                 all_faces = comm.gather(faces_np, root=0)
                 all_samples = comm.gather(samples_np, root=0)
 
-            # Barrier before writing
-            comm.barrier()
-            if rank == 0:
-                print(f"Time to do the grids = {time.time() - start_time} seconds.")
+                # Barrier before writing
+                comm.barrier()
+                if rank == 0:
+                    print(f"Time to do the grids = {time.time() - start_time} seconds.")
 
-                all_verts_np = np.empty((0, 3), dtype=np.float64)
-                all_faces_np = np.empty((0, 3), dtype=np.int32)
-                all_samples_np = np.empty((0), dtype=np.float64)
+                    all_verts_np = np.empty((0, 3), dtype=np.float64)
+                    all_faces_np = np.empty((0, 3), dtype=np.int32)
+                    all_samples_np = np.empty((0), dtype=np.float64)
 
-                for i in range(size):
-                    # offset the face indices by the current length of the array
-                    len_verts, _ = np.shape(all_verts_np)
-                    all_faces[i] += len_verts
+                    for i in range(size):
+                        # offset the face indices by the current length of the array
+                        len_verts, _ = np.shape(all_verts_np)
+                        all_faces[i] += len_verts
 
-                    all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
-                    all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
-                    all_samples_np = np.append(all_samples_np, all_samples[i], axis=0)
+                        all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
+                        all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
+                        all_samples_np = np.append(
+                            all_samples_np, all_samples[i], axis=0
+                        )
 
             # Write out the hdf5 and the xdmf file
             if rank == 0:

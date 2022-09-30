@@ -194,3 +194,8 @@ class ytExtractArgs(ytArgs):
             action="store_true",
             help="Flag to get ghost cells before the iso-surface extraction.",
         )
+        self.parser.add_argument(
+            "--single_level",
+            action="store_true",
+            help="Flag to only get single grid level for isosurface.",
+        )
