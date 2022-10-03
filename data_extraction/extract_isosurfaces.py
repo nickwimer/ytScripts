@@ -102,6 +102,183 @@ def write_hdf5(verts, samples, faces, field, fname):
     return np.shape(faces), np.shape(verts), np.shape(samples)
 
 
+def do_isosurface_extraction(
+    dregion,
+    ds_attributes,
+    outformat,
+    field,
+    value,
+    outpath,
+    fname,
+    comm,
+    rank,
+    size,
+    do_ghost=False,
+    do_yt=False,
+    single_level=False,
+    smooth=None,
+    ds=None,
+):
+    """Do the isosurface extraction according to the input parameters."""
+    if outformat == "ply":
+        # Create iso-surface
+        surf = ds.surface(
+            data_source=dregion,
+            surface_field=field,
+            field_value=value,
+        )
+
+        surf.export_ply(
+            os.path.join(outpath, f"{fname}.ply"),
+            bounds=[(-1.0, 1.0), (-1.0, 1.0), (-1.0, 1.0)],
+            no_ghost=True,
+        )
+    elif outformat == "obj":
+        dregion.extract_isocontours(
+            field=field,
+            value=value,
+            filename=os.path.join(outpath, f"{fname}.obj"),
+            rescale=False,
+        )
+    elif outformat in ["hdf5", "xdmf"]:
+        # xdmf or hdf5 will write the hdf5 file and the xdmf wrapper file
+
+        if do_yt:
+            verts, samples = dregion.extract_isocontours(
+                field=field,
+                value=value,
+                rescale=False,
+                sample_values=field,
+            )
+
+            all_verts_np = np.array(verts)
+            # Get the shape of the vertices for the connection array
+            len_verts, dep_verts = np.shape(verts)
+
+            # Make faces connection array taking the vertices in groups of three
+            faces_np = np.arange(0, len_verts, 1)
+            all_faces_np = faces_np.reshape((-1, dep_verts))
+            all_samples_np = np.array(samples)
+
+        else:
+
+            verts_np = np.empty((0, 3))
+            faces_np = np.empty((0, 3))
+            samples_np = np.empty((0))
+
+            num_grids = len(dregion.index.grids)
+
+            comm.barrier()
+            for g in dregion.index.grids[rank:num_grids:size]:
+
+                if do_ghost:
+                    g, child_mask = retrieve_ghost_zones(
+                        cube=g,
+                        n_zones=1,
+                        fields=field,
+                        ds_left_edge=ds_attributes["left_edge"],
+                        ds_right_edge=ds_attributes["right_edge"],
+                        single_level=single_level,
+                    )
+                else:
+                    child_mask = g.child_mask
+                # Get the physical cell spacing of the grid
+                dx, dy, dz = np.array(g.dds)
+
+                # perform smoothing before marching cubes
+                if smooth:
+                    cube = gaussian_filter(g[field], sigma=smooth)
+                else:
+                    cube = g[field]
+
+                try:
+                    verts, faces, normals, values = marching_cubes(
+                        volume=cube,
+                        level=value,
+                        allow_degenerate=True,
+                        step_size=1,
+                        gradient_direction="ascent",
+                        spacing=(dx, dy, dz),
+                        method="lewiner",
+                        mask=child_mask,
+                    )
+
+                    # offset the physical location
+                    verts += np.array(g.fcoords.min(axis=0))
+
+                    # offset the face indices by the current length of the array
+                    len_verts, _ = np.shape(verts_np)
+                    faces += len_verts
+
+                    verts_np = np.append(verts_np, verts, axis=0)
+                    faces_np = np.append(faces_np, faces, axis=0)
+                    samples_np = np.append(samples_np, values, axis=0)
+
+                except ValueError:
+                    # Skip the regions that do not have values for the isosurface
+                    pass
+
+                except RuntimeError:
+                    # Skip the regions that are fully masked
+                    pass
+
+                # clear the data to reduce memory constraints
+                g.clear_data()
+
+            # Explicitly cast the arrays as necessary types
+            verts_np = verts_np.astype(np.float64)
+            faces_np = faces_np.astype(np.int32)
+            samples_np = samples_np.astype(np.float64)
+
+            comm.barrier()
+            # gather and combine
+            all_verts = comm.gather(verts_np, root=0)
+            all_faces = comm.gather(faces_np, root=0)
+            all_samples = comm.gather(samples_np, root=0)
+
+            # Barrier before writing
+            comm.barrier()
+            if rank == 0:
+                all_verts_np = np.empty((0, 3), dtype=np.float64)
+                all_faces_np = np.empty((0, 3), dtype=np.int32)
+                all_samples_np = np.empty((0), dtype=np.float64)
+
+                for i in range(size):
+                    # offset the face indices by the current length of the array
+                    len_verts, _ = np.shape(all_verts_np)
+                    all_faces[i] += len_verts
+
+                    all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
+                    all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
+                    all_samples_np = np.append(all_samples_np, all_samples[i], axis=0)
+
+        # Write out the hdf5 and the xdmf file
+        if rank == 0:
+            conn_shape, coord_shape, field_shape = write_hdf5(
+                verts=all_verts_np,
+                samples=all_samples_np,
+                faces=all_faces_np,
+                field=field,
+                fname=os.path.join(outpath, f"{fname}.hdf5"),
+            )
+
+            write_xdmf(
+                fbase=os.path.join(outpath, fname),
+                fhdf5=fname,
+                field=field,
+                ftype="Scalar",
+                ctype="Node" if not do_yt else "Cell",
+                value=value,
+                time=ds_attributes["time"],
+                conn_shape=conn_shape,
+                coord_shape=coord_shape,
+                field_shape=field_shape,
+            )
+
+    else:
+        sys.exit(f"Format {outformat} not in [ply, obj, hdf5, xdmf]")
+
+
 def retrieve_ghost_zones(
     cube, n_zones, fields, ds_left_edge, ds_right_edge, single_level
 ):
@@ -241,171 +418,53 @@ def main():
         dregion = ds.all_data()
 
         # Export the isosurfaces in specified format
-        fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+        if args.value:
+            fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+            value = args.value
+        elif args.vfunction:
+            vstime = args.vfunction[0]
+            vetime = args.vfunction[2]
+            vsval = args.vfunction[1]
+            veval = args.vfunction[3]
+            ds_time = float(ds_attributes["time"])
+            if ds_time >= vetime:
+                value = veval
+            elif ds_time <= vstime:
+                value = vsval
+            else:
+                value = vsval + (veval - vsval) * (
+                    (ds_time - vstime) / (vetime - vstime)
+                )
+            fname = f"isosurface_{args.field}_vfunction_{value:.2e}_{ds.basename}"
+            if rank == 0:
+                print(f"""The value at time = {ds_time} is {value}.""")
+        else:
+            sys.exit("must have either value or vfunction defined!")
+
         if args.yt:
             fname += "_yt"
 
-        if args.format == "ply":
-            # Create iso-surface
-            surf = ds.surface(
-                data_source=dregion,
-                surface_field=args.field,
-                field_value=args.value,
+        do_isosurface_extraction(
+            dregion=dregion,
+            ds_attributes=ds_attributes,
+            outformat=args.format,
+            field=args.field,
+            value=value,
+            outpath=outpath if rank == 0 else None,
+            fname=fname,
+            comm=comm,
+            rank=rank,
+            size=size,
+            do_ghost=args.do_ghost,
+            do_yt=args.yt,
+            single_level=args.single_level,
+            smooth=args.smooth,
+            ds=ds if args.format == "ply" else None,
+        )
+        if rank == 0:
+            print(
+                f"Time to do isosurface extract = {time.time() - start_time} seconds."
             )
-
-            surf.export_ply(
-                os.path.join(outpath, f"{fname}.ply"),
-                bounds=[(-1.0, 1.0), (-1.0, 1.0), (-1.0, 1.0)],
-                no_ghost=True,
-            )
-        elif args.format == "obj":
-            dregion.extract_isocontours(
-                field=args.field,
-                value=args.value,
-                filename=os.path.join(outpath, f"{fname}.obj"),
-                rescale=False,
-            )
-        elif args.format in ["hdf5", "xdmf"]:
-            # xdmf or hdf5 will write the hdf5 file and the xdmf wrapper file
-
-            if args.yt:
-                verts, samples = dregion.extract_isocontours(
-                    field=args.field,
-                    value=args.value,
-                    rescale=False,
-                    sample_values=args.field,
-                )
-
-                all_verts_np = np.array(verts)
-                # Get the shape of the vertices for the connection array
-                len_verts, dep_verts = np.shape(verts)
-
-                # Make faces connection array taking the vertices in groups of three
-                faces_np = np.arange(0, len_verts, 1)
-                all_faces_np = faces_np.reshape((-1, dep_verts))
-                all_samples_np = np.array(samples)
-
-            else:
-
-                verts_np = np.empty((0, 3))
-                faces_np = np.empty((0, 3))
-                samples_np = np.empty((0))
-
-                num_grids = len(dregion.index.grids)
-
-                comm.barrier()
-                for g in dregion.index.grids[rank:num_grids:size]:
-
-                    if args.do_ghost:
-                        g, child_mask = retrieve_ghost_zones(
-                            cube=g,
-                            n_zones=1,
-                            fields=args.field,
-                            ds_left_edge=ds_attributes["left_edge"],
-                            ds_right_edge=ds_attributes["right_edge"],
-                            single_level=args.single_level,
-                        )
-                    else:
-                        child_mask = g.child_mask
-                    # Get the physical cell spacing of the grid
-                    dx, dy, dz = np.array(g.dds)
-
-                    # perform smoothing before marching cubes
-                    if args.smooth:
-                        cube = gaussian_filter(g[args.field], sigma=args.smooth)
-                    else:
-                        cube = g[args.field]
-
-                    try:
-                        verts, faces, normals, values = marching_cubes(
-                            volume=cube,
-                            level=args.value,
-                            allow_degenerate=True,
-                            step_size=1,
-                            gradient_direction="ascent",
-                            spacing=(dx, dy, dz),
-                            method="lewiner",
-                            mask=child_mask,
-                        )
-
-                        # offset the physical location
-                        verts += np.array(g.fcoords.min(axis=0))
-
-                        # offset the face indices by the current length of the array
-                        len_verts, _ = np.shape(verts_np)
-                        faces += len_verts
-
-                        verts_np = np.append(verts_np, verts, axis=0)
-                        faces_np = np.append(faces_np, faces, axis=0)
-                        samples_np = np.append(samples_np, values, axis=0)
-
-                    except ValueError:
-                        # Skip the regions that do not have values for the isosurface
-                        pass
-
-                    except RuntimeError:
-                        # Skip the regions that are fully masked
-                        pass
-
-                    # clear the data to reduce memory constraints
-                    g.clear_data()
-
-                # Explicitly cast the arrays as necessary types
-                verts_np = verts_np.astype(np.float64)
-                faces_np = faces_np.astype(np.int32)
-                samples_np = samples_np.astype(np.float64)
-
-                comm.barrier()
-                # gather and combine
-                all_verts = comm.gather(verts_np, root=0)
-                all_faces = comm.gather(faces_np, root=0)
-                all_samples = comm.gather(samples_np, root=0)
-
-                # Barrier before writing
-                comm.barrier()
-                if rank == 0:
-                    print(f"Time to do the grids = {time.time() - start_time} seconds.")
-
-                    all_verts_np = np.empty((0, 3), dtype=np.float64)
-                    all_faces_np = np.empty((0, 3), dtype=np.int32)
-                    all_samples_np = np.empty((0), dtype=np.float64)
-
-                    for i in range(size):
-                        # offset the face indices by the current length of the array
-                        len_verts, _ = np.shape(all_verts_np)
-                        all_faces[i] += len_verts
-
-                        all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
-                        all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
-                        all_samples_np = np.append(
-                            all_samples_np, all_samples[i], axis=0
-                        )
-
-            # Write out the hdf5 and the xdmf file
-            if rank == 0:
-                conn_shape, coord_shape, field_shape = write_hdf5(
-                    verts=all_verts_np,
-                    samples=all_samples_np,
-                    faces=all_faces_np,
-                    field=args.field,
-                    fname=os.path.join(outpath, f"{fname}.hdf5"),
-                )
-
-                write_xdmf(
-                    fbase=os.path.join(outpath, fname),
-                    fhdf5=fname,
-                    field=args.field,
-                    ftype="Scalar",
-                    ctype="Node" if not args.yt else "Cell",
-                    value=args.value,
-                    time=ds_attributes["time"],
-                    conn_shape=conn_shape,
-                    coord_shape=coord_shape,
-                    field_shape=field_shape,
-                )
-
-        else:
-            sys.exit(f"Format {args.format} not in [ply, obj, hdf5, xdmf]")
 
     if rank == 0:
         print(f"Elapsed time = {time.time() - start_time} seconds.")
