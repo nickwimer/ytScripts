@@ -6,6 +6,7 @@ import time
 import h5py
 import numpy as np
 from mpi4py import MPI
+from scipy.ndimage import gaussian_filter
 from skimage.measure import marching_cubes
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
@@ -309,9 +310,15 @@ def main():
                     # Get the physical cell spacing of the grid
                     dx, dy, dz = np.array(g.dds)
 
+                    # perform smoothing before marching cubes
+                    if args.smooth:
+                        cube = gaussian_filter(g[args.field], sigma=args.smooth)
+                    else:
+                        cube = g[args.field]
+
                     try:
                         verts, faces, normals, values = marching_cubes(
-                            volume=g[args.field],
+                            volume=cube,
                             level=args.value,
                             allow_degenerate=True,
                             step_size=1,

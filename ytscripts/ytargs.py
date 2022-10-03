@@ -199,3 +199,10 @@ class ytExtractArgs(ytArgs):
             action="store_true",
             help="Flag to only get single grid level for isosurface.",
         )
+        self.parser.add_argument(
+            "--smooth",
+            type=float,
+            required=False,
+            default=None,
+            help="Smoothing value to apply to field before isosurface extract",
+        )
