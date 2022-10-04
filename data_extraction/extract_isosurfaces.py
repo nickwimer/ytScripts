@@ -435,7 +435,7 @@ def main():
                 value = vsval + (veval - vsval) * (
                     (ds_time - vstime) / (vetime - vstime)
                 )
-            fname = f"isosurface_{args.field}_vfunction_{value:.2e}_{ds.basename}"
+            fname = f"isosurface_{args.field}_{ds.basename}_vfunction_{value:.2e}"
             if rank == 0:
                 print(f"""The value at time = {ds_time} is {value}.""")
         else:
