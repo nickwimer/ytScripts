@@ -419,7 +419,7 @@ def main():
 
         # Export the isosurfaces in specified format
         if args.value:
-            fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+            fname = f"isosurface_{args.field}_{ds.basename}_{args.value}"
             value = args.value
         elif args.vfunction:
             vstime = args.vfunction[0]
