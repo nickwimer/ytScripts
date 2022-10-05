@@ -1,0 +1,14 @@
+name: blender
+channels:
+  - defaults
+
+dependencies:
+  - python=3.10
+  - numpy
+  - matplotlib
+  - h5py
+  - pip
+  - pip:
+    - black
+    - isort
+    - flake8

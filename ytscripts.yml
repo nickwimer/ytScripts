@@ -3,7 +3,7 @@ channels:
   - defaults
 
 dependencies:
-  - python
+  - python=3.8.13
   - numpy<1.23.0
   - pandas
   - matplotlib<3.4.0
