@@ -216,3 +216,11 @@ class ytExtractArgs(ytArgs):
             default=None,
             help="Smoothing value to apply to field before isosurface extract",
         )
+        self.parser.add_argument(
+            "--iso_edge",
+            type=float,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Physical box inside which we extract isosurfaces.",
+        )

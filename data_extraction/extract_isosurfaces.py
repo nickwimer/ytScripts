@@ -118,6 +118,7 @@ def do_isosurface_extraction(
     single_level=False,
     smooth=None,
     ds=None,
+    iso_edge=None,
 ):
     """Do the isosurface extraction according to the input parameters."""
     if outformat == "ply":
@@ -184,6 +185,23 @@ def do_isosurface_extraction(
                     child_mask = g.child_mask
                 # Get the physical cell spacing of the grid
                 dx, dy, dz = np.array(g.dds)
+
+                if iso_edge:
+                    child_mask = (
+                        child_mask
+                        & (np.array(g[("boxlib", "x")]) >= iso_edge[0])
+                        & (np.array(g[("boxlib", "x")]) <= iso_edge[3])
+                    )
+                    child_mask = (
+                        child_mask
+                        & (np.array(g[("boxlib", "y")]) >= iso_edge[1])
+                        & (np.array(g[("boxlib", "y")]) <= iso_edge[4])
+                    )
+                    child_mask = (
+                        child_mask
+                        & (np.array(g[("boxlib", "z")]) >= iso_edge[2])
+                        & (np.array(g[("boxlib", "z")]) <= iso_edge[5])
+                    )
 
                 # perform smoothing before marching cubes
                 if smooth:
@@ -280,7 +298,12 @@ def do_isosurface_extraction(
 
 
 def retrieve_ghost_zones(
-    cube, n_zones, fields, ds_left_edge, ds_right_edge, single_level
+    cube,
+    n_zones,
+    fields,
+    ds_left_edge,
+    ds_right_edge,
+    single_level,
 ):
 
     # Get the cube index information
@@ -460,6 +483,7 @@ def main():
             single_level=args.single_level,
             smooth=args.smooth,
             ds=ds if args.format == "ply" else None,
+            iso_edge=args.iso_edge,
         )
         if rank == 0:
             print(
