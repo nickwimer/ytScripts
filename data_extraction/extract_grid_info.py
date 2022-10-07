@@ -73,6 +73,9 @@ def main():
         # Convert into a pandas dataframe for storage
         df = pd.DataFrame({"time": data_dict.keys(), "grid_data": data_dict.values()})
 
+        # Sort the dataframe by time
+        df.sort_values(by="time", inplace=True, ignore_index=True)
+
         # Add some metadata
         df.attrs["base_attributes"] = base_attributes
 
