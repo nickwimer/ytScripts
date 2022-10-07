@@ -73,6 +73,9 @@ def main():
         # Convert into a pandas dataframe for storage
         df = pd.DataFrame({"time": data_dict.keys(), "grid_data": data_dict.values()})
 
+        # Add some metadata
+        df.attrs["base_attributes"] = base_attributes
+
         # Save the data for later
         df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
 
