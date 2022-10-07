@@ -251,6 +251,19 @@ class ytExtractArgs(ytArgs):
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
 
+    def grid_args(self):
+        """Add arguments for extracting grid info."""
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="average_data",
+            help="Name of the output data file (.pkl).",
+        )
+
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
+
 
 class ytPlotArgs(ytArgs):
     """Class to interface with custom plot functions."""
