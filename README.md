@@ -44,7 +44,7 @@ Data will be saved under `outdata/averages`.
 `python data_extraction/extract_averages.py --help` for full list of arguments.
 
 
-## extract_isosurfaces.ppy
+## extract_isosurfaces.py
 Extracts an isosurface of specified field and value and saves to file for visualization in external program (such as ParaView or Blender).
 
 Ex: `python data_extraction/extract_isosurfaces.py -p DATADIR/ --pname plt00001 --field magvort --value 50000.0 --format xdmf`
@@ -58,6 +58,14 @@ Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
+
+
+## extract_grid_info.py
+Extracts grid information at each level and saves to file.
+
+Ex: `python data_extraction/extract_grid_info.py -p DATADIR/ -o OUTDIR/ --name FILE_NAME`
+
+Will save a pickle file of the pandas dataframe with grid information as a function of time and some stored metadata about the simulation.
 
 
 # Scripts for plotting extracted data
@@ -82,6 +90,11 @@ Ex: `python plot_data/plot_averages.py -p outdata/averages/ -f NAME --field mag_
 Plots will be saved under `outdata/images/`
 
 `python plot_data/plot_averages.py --help` for full list of arguments.
+
+## plot_grid_info.py
+Load grid info data from pickled pandas dataframe and make simple plot as an example.
+
+`python plot_data/plot_grid_info.py -p DATADIR/ -o OUTDIR/ -f FILENAME`
 
 
 
