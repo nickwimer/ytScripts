@@ -304,3 +304,35 @@ class ytPlotArgs(ytArgs):
         # remove unused arguments from base class
         self.remove_arg("pname")
         self.remove_arg("SI")
+
+    def grid_args(self):
+        """Add arguments for plotting grid info."""
+        self.parser.add_argument(
+            "-f",
+            "--fname",
+            type=str,
+            required=True,
+            default="grid_info",
+            help="Name of the data file to load and plot (.pkl).",
+        )
+        self.parser.add_argument(
+            "--dpi",
+            type=int,
+            required=False,
+            default=300,
+            help="dpi of the output image (default = 300).",
+        )
+        self.parser.add_argument(
+            "--ptype",
+            type=str,
+            required=False,
+            choices=["line", "pie", "bar"],
+            default="line",
+            help="type of plot to make.",
+        )
+
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
+        # remove unused arguments from base class
+        self.remove_arg("pname")
+        self.remove_arg("SI")
