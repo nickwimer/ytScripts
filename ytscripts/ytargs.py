@@ -171,6 +171,11 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Linewidth for each of the contour lines.",
         )
+        self.parser.add_argument(
+            "--pickle",
+            action="store_true",
+            help="Flag to store image as pickle for later manipulation.",
+        )
 
 
 class ytExtractArgs(ytArgs):

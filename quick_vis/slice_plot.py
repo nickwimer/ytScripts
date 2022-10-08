@@ -1,5 +1,6 @@
 """2D slice down the middle of the domain."""
 import os
+import pickle as pl
 import sys
 
 import numpy as np
@@ -144,6 +145,9 @@ def main():
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
 
+        # Convert the slice to matplotlib figure
+        fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+
         if args.contour is not None:
             xres, yres, zres = np.array(ds_attributes["resolution"])
 
@@ -161,7 +165,7 @@ def main():
             else:
                 num_contours = len(args.contour) // 3
 
-            fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+            # Get the axes from the figure handle
             ax = fig.axes[0]
 
             for icnt in range(num_contours):
@@ -205,21 +209,18 @@ def main():
                 else:
                     sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
 
-            fig.tight_layout()
-            fig.savefig(
-                os.path.join(
-                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-                ),
-                dpi=args.dpi,
-            )
-        else:
-            # Save the image
-            slc.save(
-                os.path.join(
-                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-                ),
-                mpl_kwargs=dict(dpi=args.dpi),
-            )
+        plt_fname = f"{args.field}_{args.normal}_{str(index).zfill(5)}"
+
+        fig.tight_layout()
+        fig.savefig(
+            os.path.join(imgpath, f"{plt_fname}.png"),
+            dpi=args.dpi,
+        )
+
+        # Dump the figure handle as pickle for later modifications
+        if args.pickle:
+            with open(os.path.join(imgpath, f"{plt_fname}.pickle"), "wb") as f:
+                pl.dump(fig, f)
 
 
 if __name__ == "__main__":
