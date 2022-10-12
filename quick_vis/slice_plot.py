@@ -141,7 +141,15 @@ def main():
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
         if args.grids:
-            slc.annotate_grids()
+            if len(args.grids > 0):
+                slc.annotate_grids(
+                    alpha=args.grids[0],
+                    min_level=args.grids[1],
+                    max_level=args.grids[2],
+                    linewidth=args.grids[3],
+                )
+            else:
+                slc.annotate_grids()
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
 

@@ -144,8 +144,13 @@ class ytVisArgs(ytArgs):
         )
         self.parser.add_argument(
             "--grids",
-            action="store_true",
-            help="Flag to turn on grid annotation.",
+            type=float,
+            nargs="+",
+            # action="store_true",
+            help=(
+                "Options to specify annotate grids (alpha, min_level, max_level, "
+                "linewidth)."
+            ),
         )
         self.parser.add_argument(
             "--buff",
