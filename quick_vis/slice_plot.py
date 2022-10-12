@@ -219,6 +219,41 @@ def main():
 
         plt_fname = f"{args.field}_{args.normal}_{str(index).zfill(5)}"
 
+        if args.grid_info:
+
+            dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
+            left_edge = np.array(ds_attributes["left_edge"])
+            right_edge = np.array(ds_attributes["right_edge"])
+            Dx, Dy, Dz = right_edge - left_edge
+            domain_volume = Dx * Dy * Dz
+
+            level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
+
+            total_cells = 0
+            cell_vol_percents = np.zeros(np.shape(level_data))
+            for ilev, lev in enumerate(level_data):
+                dx = dx0 / (2**ilev)
+                dy = dy0 / (2**ilev)
+                dz = dz0 / (2**ilev)
+                total_cells += lev[1]
+                cell_vol_percents[ilev] = lev[1] * dx * dy * dz / domain_volume * 100
+
+            # Define text with grid info
+            text_string = (
+                f"Level 1 vol: {cell_vol_percents[1]:.0f}%\n"
+                f"Level 2 vol: {cell_vol_percents[2]:.1f}%\n"
+                f"Level 3 vol: {cell_vol_percents[3]:.1f}%\n"
+                f"{total_cells*3/1e6:.0f}M  DOF"
+            )
+            # Add text
+            ax.text(
+                x=args.grid_info[0],
+                y=args.grid_info[1],
+                s=text_string,
+                color="white",
+                bbox=dict(facecolor="black", edgecolor="white", boxstyle="round"),
+            )
+
         fig.tight_layout()
         fig.savefig(
             os.path.join(imgpath, f"{plt_fname}.png"),

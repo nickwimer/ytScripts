@@ -147,6 +147,7 @@ class ytVisArgs(ytArgs):
             type=float,
             nargs="+",
             # action="store_true",
+            default=None,
             help=(
                 "Options to specify annotate grids (alpha, min_level, max_level, "
                 "linewidth)."
@@ -180,6 +181,13 @@ class ytVisArgs(ytArgs):
             "--pickle",
             action="store_true",
             help="Flag to store image as pickle for later manipulation.",
+        )
+        self.parser.add_argument(
+            "--grid_info",
+            type=float,
+            nargs="+",
+            default=None,
+            help="Flag to add text box with grid information (xloc, yloc).",
         )
 
 
