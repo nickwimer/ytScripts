@@ -83,6 +83,10 @@ def main():
         )
         num_cells_0 = float(data["vfrac"].sum())
         domain_volume = dx0 * dy0 * dz0 * num_cells_0
+        # left_edge = np.array(base_attributes["left_edge"])
+        # right_edge = np.array(base_attributes["right_edge"])
+        # Dx, Dy, Dz = right_edge - left_edge
+        # domain_volume = Dx * Dy * Dz
 
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
@@ -260,6 +264,33 @@ def main():
                 s=text_string,
                 color="white",
                 bbox=dict(facecolor="black", edgecolor="white", boxstyle="round"),
+            )
+
+        if args.rm_eb:
+            # plot over the EB surface with white
+            cline = ax.get_children()[11].get_data()
+            ax.fill_between(
+                cline[0], base_attributes["left_edge"][1], cline[1], color="grey"
+            )
+            ax.fill_betweenx(
+                np.linspace(
+                    base_attributes["left_edge"][1],
+                    base_attributes["right_edge"][1],
+                    11,
+                ),
+                base_attributes["left_edge"][0],
+                cline[0][0],
+                color="grey",
+            )
+            ax.fill_betweenx(
+                np.linspace(
+                    base_attributes["left_edge"][1],
+                    base_attributes["right_edge"][1],
+                    11,
+                ),
+                cline[0][-1],
+                base_attributes["right_edge"][0],
+                color="grey",
             )
 
         fig.tight_layout()

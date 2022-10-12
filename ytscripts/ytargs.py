@@ -187,7 +187,12 @@ class ytVisArgs(ytArgs):
             type=float,
             nargs="+",
             default=None,
-            help="Flag to add text box with grid information (xloc, yloc).",
+            help="Add text box with grid information (xloc, yloc).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            action="store_true",
+            help="Fald to remove the EB boundary (WIP).",
         )
 
 
