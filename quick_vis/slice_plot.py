@@ -72,6 +72,18 @@ def main():
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
+    # get number of cells in the level 0 non-EB grid
+    if args.grid_info:
+        dx0, dy0, dz0 = np.array(base_attributes["dxyz"])
+        data = ts[0].covering_grid(
+            level=0,
+            left_edge=base_attributes["left_edge"],
+            dims=base_attributes["dimensions"],
+            ds=ts[0],
+        )
+        num_cells_0 = float(data["vfrac"].sum())
+        domain_volume = dx0 * dy0 * dz0 * num_cells_0
+
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
@@ -222,10 +234,6 @@ def main():
         if args.grid_info:
 
             dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
-            left_edge = np.array(ds_attributes["left_edge"])
-            right_edge = np.array(ds_attributes["right_edge"])
-            Dx, Dy, Dz = right_edge - left_edge
-            domain_volume = Dx * Dy * Dz
 
             level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
 
