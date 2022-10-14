@@ -5,6 +5,7 @@ import sys
 
 import numpy as np
 import yt
+from shapely.geometry import LineString, Point, Polygon
 from skimage.measure import find_contours
 from yt.units.yt_array import YTArray
 
@@ -292,6 +293,86 @@ def main():
                 base_attributes["right_edge"][0],
                 color="grey",
             )
+
+        if args.levels:
+            level_points = {}
+            level_lines = {}
+
+            left_edge = ds_attributes["left_edge"]
+            right_edge = ds_attributes["right_edge"]
+            data_source = ds.box(
+                left_edge=[0, left_edge[1], left_edge[2]],
+                right_edge=[0, right_edge[1], right_edge[2]],
+            )
+
+            for igrid, g in enumerate(data_source.index.grids):
+                level = g.Level
+                if level >= args.levels[0] and level <= args.levels[1]:
+                    g_corn = data_source.index.grid_corners[:, :, igrid]
+
+                    x_mean = np.mean(g_corn[:, 0])
+                    y_min = np.min(g_corn[:, 1])
+                    y_max = np.max(g_corn[:, 1])
+                    z_min = np.min(g_corn[:, 2])
+                    z_max = np.max(g_corn[:, 2])
+
+                    x_mean = round(x_mean, 1)
+
+                    # four points
+                    P1 = Point(y_min, z_min)
+                    P2 = Point(y_min, z_max)
+                    P3 = Point(y_max, z_min)
+                    P4 = Point(y_max, z_max)
+
+                    # four lines
+                    L1 = LineString([P1, P2])
+                    L2 = LineString([P2, P4])
+                    L3 = LineString([P4, P3])
+                    L4 = LineString([P3, P1])
+
+                    if x_mean == 0:
+                        if level in level_points:
+                            level_points[level].append(P1)
+                            level_points[level].append(P2)
+                            level_points[level].append(P3)
+                            level_points[level].append(P4)
+                        else:
+                            level_points[level] = [P1]
+                            level_points[level].append(P2)
+                            level_points[level].append(P3)
+                            level_points[level].append(P4)
+
+                        # determine if we should add a line based on the points
+
+                        if level in level_lines:
+                            level_lines[level].append(L1)
+                            level_lines[level].append(L2)
+                            level_lines[level].append(L3)
+                            level_lines[level].append(L4)
+                        else:
+                            level_lines[level] = [L1]
+                            level_lines[level].append(L2)
+                            level_lines[level].append(L3)
+                            level_lines[level].append(L4)
+
+            alph = np.linspace(
+                0.2, 0.8, (int(args.levels[1]) - int(args.levels[0]) + 1)
+            )
+            for ilev, lev in enumerate(np.arange(args.levels[0], args.levels[1] + 1)):
+                poly = Polygon([(point.x, point.y) for point in level_points[lev]])
+                xx, yy = poly.exterior.coords.xy
+
+                ax.scatter(xx, yy, marker="*")
+
+                # poly2 = Polygon([(line.x, line.y) for line in level_lines[lev]])
+                # ax.plot(*poly2.boundary.coords.xy)
+                # mls = MultiLineString(level_lines[lev])
+
+                # ax.plot(*mls.bounds)
+                # ax.plot(*mls.boundary.coords.xy)
+
+                for line in level_lines[lev]:
+                    ax.plot(*line.xy, color="black", alpha=alph[ilev])
 
         fig.tight_layout()
         fig.savefig(

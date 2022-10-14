@@ -154,6 +154,16 @@ class ytVisArgs(ytArgs):
             ),
         )
         self.parser.add_argument(
+            "--levels",
+            type=float,
+            nargs="+",
+            default=None,
+            help=(
+                "Options to specify level extraction and plotting (min_level, "
+                "max_level)."
+            ),
+        )
+        self.parser.add_argument(
             "--buff",
             type=int,
             nargs="+",
