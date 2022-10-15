@@ -240,6 +240,7 @@ def main():
 
         plt_fname = f"{args.field}_{args.normal}_{str(index).zfill(5)}"
 
+        # Add grid information to the slice plot
         if args.grid_info:
 
             dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
@@ -253,15 +254,18 @@ def main():
                 dy = dy0 / (2**ilev)
                 dz = dz0 / (2**ilev)
                 total_cells += lev[1]
-                cell_vol_percents[ilev] = lev[1] * dx * dy * dz / domain_volume * 100
+                cell_vol_percents[ilev] = np.minimum(
+                    lev[1] * dx * dy * dz / domain_volume * 100, 100
+                )
 
             # Define text with grid info
-            text_string = (
-                f"Level 1 vol: {cell_vol_percents[1]:.0f}%\n"
-                f"Level 2 vol: {cell_vol_percents[2]:.1f}%\n"
-                f"Level 3 vol: {cell_vol_percents[3]:.1f}%\n"
-                f"{total_cells*3/1e6:.0f}M  DOF"
-            )
+            text_string = ""
+            for ilev in np.arange(args.grid_info[2], args.grid_info[3] + 1):
+                text_string += (
+                    f"Level {int(ilev)} vol: {cell_vol_percents[int(ilev)]:.1f}%\n"
+                )
+            text_string += f"{total_cells*3/1e6:.0f}M  DOF"
+
             # Add text
             ax.text(
                 x=args.grid_info[0],

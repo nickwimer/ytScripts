@@ -187,7 +187,7 @@ class ytVisArgs(ytArgs):
             type=float,
             nargs="+",
             default=None,
-            help="Add text box with grid information (xloc, yloc).",
+            help="Add text box with grid information (xloc, yloc, min_lev, max_lev).",
         )
         self.parser.add_argument(
             "--rm_eb",
