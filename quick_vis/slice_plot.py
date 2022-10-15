@@ -90,6 +90,10 @@ def main():
 
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+        print(
+            f"""The derived fields in this dataset are: """
+            f"""{base_attributes["derived_field_list"]}"""
+        )
 
     # Set the center of the plot for loading the data
     if args.center is not None:
@@ -192,6 +196,7 @@ def main():
             # Get the axes from the figure handle
             ax = fig.axes[0]
 
+            # Compute and plot the contours
             for icnt in range(num_contours):
                 if args.clw is None:
                     linewidth = 1.0
@@ -266,31 +271,33 @@ def main():
                 bbox=dict(facecolor="black", edgecolor="white", boxstyle="round"),
             )
 
+        # Remove the EB boundary defined by vfrac < 0.5
         if args.rm_eb:
-            # plot over the EB surface with white
-            cline = ax.get_children()[11].get_data()
-            ax.fill_between(
-                cline[0], base_attributes["left_edge"][1], cline[1], color="grey"
+
+            lx, ly, lz = np.array(ds_attributes["left_edge"])
+            rx, ry, rz = np.array(ds_attributes["right_edge"])
+
+            if args.normal == "x":
+                extent = [ly, ry, lz, rz]
+            elif args.normal == "y":
+                extent = [lz, rz, lx, rx]
+            elif args.normal == "z":
+                extent = [lx, rx, ly, ry]
+
+            vfrac = slc.frb[("boxlib", "vfrac")].to_ndarray()
+            m_vfrac = np.ma.array(
+                args.rm_eb * np.ones(np.shape(vfrac)),
+                mask=(vfrac > 0.5),
+                fill_value=np.nan,
             )
-            ax.fill_betweenx(
-                np.linspace(
-                    base_attributes["left_edge"][1],
-                    base_attributes["right_edge"][1],
-                    11,
-                ),
-                base_attributes["left_edge"][0],
-                cline[0][0],
-                color="grey",
-            )
-            ax.fill_betweenx(
-                np.linspace(
-                    base_attributes["left_edge"][1],
-                    base_attributes["right_edge"][1],
-                    11,
-                ),
-                cline[0][-1],
-                base_attributes["right_edge"][0],
-                color="grey",
+            ax.imshow(
+                m_vfrac,
+                origin="lower",
+                extent=extent,
+                aspect="equal",
+                cmap="binary",
+                vmin=0.0,
+                vmax=1.0,
             )
 
         fig.tight_layout()

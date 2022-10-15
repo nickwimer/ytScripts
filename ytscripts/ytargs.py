@@ -135,7 +135,7 @@ class ytVisArgs(ytArgs):
             nargs="+",
             type=float,
             required=False,
-            help="Coordinate list for center of slice plot.",
+            help="Coordinate list for center of slice plot (x, y, z).",
         )
         self.parser.add_argument(
             "--plot_log",
@@ -191,8 +191,10 @@ class ytVisArgs(ytArgs):
         )
         self.parser.add_argument(
             "--rm_eb",
-            action="store_true",
-            help="Fald to remove the EB boundary (WIP).",
+            type=float,
+            required=False,
+            default=None,
+            help="Float value to plot non-fluid using binary cmap [0, 1].",
         )
 
 
