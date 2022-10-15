@@ -3,6 +3,7 @@ import os
 import sys
 
 import numpy as np
+import yt
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -41,18 +42,21 @@ def main():
         units_override = None
 
     # Load the plt files
-    ts, _ = utils.load_dataseries(
+    ts, index_dict = utils.load_dataseries(
         datapath=args.datapath, pname=args.pname, units_override=units_override
     )
 
     # Create the slice array and find indices closest to value
     islice = np.linspace(args.min, args.max, args.num_slices)
 
-    index = 0
     # Loop over the plt files in the data directory
-    for ds in ts:
+    yt.enable_parallelism()
+    for ds in ts.piter(dynamic=True):
         # Get updated attributes for current plt file
         ds_attributes = utils.get_attributes(ds=ds)
+
+        # Set index according to dict
+        index = index_dict[str(ds)]
 
         # for xind in xindices:
         for iloc in islice:
@@ -109,8 +113,6 @@ def main():
                 slices=slices,
                 ds_attributes=ds_attributes,
             )
-
-        index += 1
 
 
 if __name__ == "__main__":
