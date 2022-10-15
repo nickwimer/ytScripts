@@ -1,5 +1,6 @@
 """2D slice down the middle of the domain."""
 import os
+import pickle as pl
 import sys
 
 import numpy as np
@@ -71,8 +72,28 @@ def main():
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
+    # get number of cells in the level 0 non-EB grid
+    if args.grid_info:
+        dx0, dy0, dz0 = np.array(base_attributes["dxyz"])
+        data = ts[0].covering_grid(
+            level=0,
+            left_edge=base_attributes["left_edge"],
+            dims=base_attributes["dimensions"],
+            ds=ts[0],
+        )
+        num_cells_0 = float(data["vfrac"].sum())
+        domain_volume = dx0 * dy0 * dz0 * num_cells_0
+        # left_edge = np.array(base_attributes["left_edge"])
+        # right_edge = np.array(base_attributes["right_edge"])
+        # Dx, Dy, Dz = right_edge - left_edge
+        # domain_volume = Dx * Dy * Dz
+
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+        print(
+            f"""The derived fields in this dataset are: """
+            f"""{base_attributes["derived_field_list"]}"""
+        )
 
     # Set the center of the plot for loading the data
     if args.center is not None:
@@ -140,9 +161,20 @@ def main():
             slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
         if args.grids:
-            slc.annotate_grids()
+            if len(args.grids) > 0:
+                slc.annotate_grids(
+                    alpha=args.grids[0],
+                    min_level=args.grids[1],
+                    max_level=args.grids[2],
+                    linewidth=args.grids[3],
+                )
+            else:
+                slc.annotate_grids()
         slc.set_log(args.field, args.plot_log)
         slc.set_cmap(field=args.field, cmap=args.cmap)
+
+        # Convert the slice to matplotlib figure
+        fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
 
         if args.contour is not None:
             xres, yres, zres = np.array(ds_attributes["resolution"])
@@ -161,9 +193,10 @@ def main():
             else:
                 num_contours = len(args.contour) // 3
 
-            fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+            # Get the axes from the figure handle
             ax = fig.axes[0]
 
+            # Compute and plot the contours
             for icnt in range(num_contours):
                 if args.clw is None:
                     linewidth = 1.0
@@ -205,21 +238,82 @@ def main():
                 else:
                     sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
 
-            fig.tight_layout()
-            fig.savefig(
-                os.path.join(
-                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-                ),
-                dpi=args.dpi,
+        plt_fname = f"{args.field}_{args.normal}_{str(index).zfill(5)}"
+
+        # Add grid information to the slice plot
+        if args.grid_info:
+
+            dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
+
+            level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
+
+            total_cells = 0
+            cell_vol_percents = np.zeros(np.shape(level_data))
+            for ilev, lev in enumerate(level_data):
+                dx = dx0 / (2**ilev)
+                dy = dy0 / (2**ilev)
+                dz = dz0 / (2**ilev)
+                total_cells += lev[1]
+                cell_vol_percents[ilev] = np.minimum(
+                    lev[1] * dx * dy * dz / domain_volume * 100, 100
+                )
+
+            # Define text with grid info
+            text_string = ""
+            for ilev in np.arange(args.grid_info[2], args.grid_info[3] + 1):
+                text_string += (
+                    f"Level {int(ilev)} vol: {cell_vol_percents[int(ilev)]:.1f}%\n"
+                )
+            text_string += f"{total_cells*3/1e6:.0f}M  DOF"
+
+            # Add text
+            ax.text(
+                x=args.grid_info[0],
+                y=args.grid_info[1],
+                s=text_string,
+                color="white",
+                bbox=dict(facecolor="black", edgecolor="white", boxstyle="round"),
             )
-        else:
-            # Save the image
-            slc.save(
-                os.path.join(
-                    imgpath, f"""{args.field}_{args.normal}_{str(index).zfill(5)}.png"""
-                ),
-                mpl_kwargs=dict(dpi=args.dpi),
+
+        # Remove the EB boundary defined by vfrac < 0.5
+        if args.rm_eb:
+
+            lx, ly, lz = np.array(ds_attributes["left_edge"])
+            rx, ry, rz = np.array(ds_attributes["right_edge"])
+
+            if args.normal == "x":
+                extent = [ly, ry, lz, rz]
+            elif args.normal == "y":
+                extent = [lz, rz, lx, rx]
+            elif args.normal == "z":
+                extent = [lx, rx, ly, ry]
+
+            vfrac = slc.frb[("boxlib", "vfrac")].to_ndarray()
+            m_vfrac = np.ma.array(
+                args.rm_eb * np.ones(np.shape(vfrac)),
+                mask=(vfrac > 0.5),
+                fill_value=np.nan,
             )
+            ax.imshow(
+                m_vfrac,
+                origin="lower",
+                extent=extent,
+                aspect="equal",
+                cmap="binary",
+                vmin=0.0,
+                vmax=1.0,
+            )
+
+        fig.tight_layout()
+        fig.savefig(
+            os.path.join(imgpath, f"{plt_fname}.png"),
+            dpi=args.dpi,
+        )
+
+        # Dump the figure handle as pickle for later modifications
+        if args.pickle:
+            with open(os.path.join(imgpath, f"{plt_fname}.pickle"), "wb") as f:
+                pl.dump(fig, f)
 
 
 if __name__ == "__main__":

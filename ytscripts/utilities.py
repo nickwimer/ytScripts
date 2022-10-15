@@ -39,6 +39,7 @@ def get_attributes(ds):
     # Get base attributes
     ds_dict = {
         "field_list": ds.field_list,
+        "derived_field_list": ds.derived_field_list,
         "time": ds.current_time,
         "dimensions": ds.domain_dimensions,
         "left_edge": ds.domain_left_edge,

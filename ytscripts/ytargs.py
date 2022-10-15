@@ -135,7 +135,7 @@ class ytVisArgs(ytArgs):
             nargs="+",
             type=float,
             required=False,
-            help="Coordinate list for center of slice plot.",
+            help="Coordinate list for center of slice plot (x, y, z).",
         )
         self.parser.add_argument(
             "--plot_log",
@@ -144,8 +144,14 @@ class ytVisArgs(ytArgs):
         )
         self.parser.add_argument(
             "--grids",
-            action="store_true",
-            help="Flag to turn on grid annotation.",
+            type=float,
+            nargs="+",
+            # action="store_true",
+            default=None,
+            help=(
+                "Options to specify annotate grids (alpha, min_level, max_level, "
+                "linewidth)."
+            ),
         )
         self.parser.add_argument(
             "--buff",
@@ -170,6 +176,25 @@ class ytVisArgs(ytArgs):
             required=False,
             default=None,
             help="Linewidth for each of the contour lines.",
+        )
+        self.parser.add_argument(
+            "--pickle",
+            action="store_true",
+            help="Flag to store image as pickle for later manipulation.",
+        )
+        self.parser.add_argument(
+            "--grid_info",
+            type=float,
+            nargs="+",
+            default=None,
+            help="Add text box with grid information (xloc, yloc, min_lev, max_lev).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            type=float,
+            required=False,
+            default=None,
+            help="Float value to plot non-fluid using binary cmap [0, 1].",
         )
 
 

@@ -148,3 +148,11 @@ Some helpful options:
 `--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
 
 `--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
+
+`--clw`: Sets the linewidth of the contour lines. Must be same length as the number of contour lines specified with `--contour`.
+
+`--pickle`: Optional flag to dump the image as a pickle file for later manipulation/customization.
+
+`--grid_info`: Add a text box to the slice plot with information about the grids in the simulation. Inputs are: `xloc`, `yloc`, `min_level`, and `max_level`, where the first two inputs define the location of the text box and the second two inputs define the level range for information in the text box.
+
+`--rm_eb`: Optional flag to remove the EB boundary from the plot as defined by `vfrac` field in the dataset. Takes a float to specify the color between `[0=white, 1=black]`.
