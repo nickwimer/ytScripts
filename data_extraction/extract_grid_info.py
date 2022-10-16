@@ -1,4 +1,4 @@
-"""Extracts domain averaged quantities and saves for plotting."""
+"""Extracts grid information at each level and saves to file."""
 import os
 import sys
 
@@ -14,13 +14,14 @@ def get_args():
     """Parse command line arguments."""
     # Initialize the class for data extraction
     ytparse = ytargs.ytExtractArgs()
-    # Add in the arguments for the extract averages
-    ytparse.average_args()
+    # Add in the arguments for the grid info extraction
+    ytparse.grid_args()
     # Return the parsed arguments
     return ytparse.parse_args()
 
 
 def main():
+    """Main function for grid info extraction."""
 
     # Parse the input arguments
     args = get_args()
@@ -30,7 +31,7 @@ def main():
         outpath = args.outpath
     else:
         outpath = os.path.abspath(
-            os.path.join(sys.argv[0], "../../outdata", "averages")
+            os.path.join(sys.argv[0], "../../outdata", "grid_info")
         )
     os.makedirs(outpath, exist_ok=True)
 
@@ -61,27 +62,22 @@ def main():
     for sto, ds in ts.piter(storage=data_dict, dynamic=True):
         sto.result_id = float(ds.current_time)
 
-        # Get all the data with no modifications
-        data = ds.all_data()
-        # Loop over the specified variables
-        tmp_data = {}
-        for field in args.fields:
-            tmp_data[field] = data.mean(
-                ("boxlib", field), weight=("boxlib", "cell_volume")
-            )
-
-        sto.result = tmp_data
+        level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
+        tmp_df = pd.DataFrame(
+            data=level_data, index=level_data["level"], columns=["numgrids", "numcells"]
+        )
+        sto.result = tmp_df
 
     if yt.is_root():
-        # Convert into a pandas dataframe for storage
-        # df = pd.DataFrame(data={"time": time}, columns=["time"])
-        df = pd.DataFrame(data={"time": data_dict.keys()})
-        # df = pd.DataFrame
 
-        # Loop over the dataframe and add the data
-        for idx, cell in df.iterrows():
-            for key, value in data_dict[cell["time"]].items():
-                df.loc[idx, key] = value
+        # Convert into a pandas dataframe for storage
+        df = pd.DataFrame({"time": data_dict.keys(), "grid_data": data_dict.values()})
+
+        # Sort the dataframe by time
+        df.sort_values(by="time", inplace=True, ignore_index=True)
+
+        # Add some metadata
+        df.attrs["base_attributes"] = base_attributes
 
         # Save the data for later
         df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))

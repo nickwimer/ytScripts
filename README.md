@@ -44,7 +44,7 @@ Data will be saved under `outdata/averages`.
 `python data_extraction/extract_averages.py --help` for full list of arguments.
 
 
-## extract_isosurfaces.ppy
+## extract_isosurfaces.py
 Extracts an isosurface of specified field and value and saves to file for visualization in external program (such as ParaView or Blender).
 
 Ex: `python data_extraction/extract_isosurfaces.py -p DATADIR/ --pname plt00001 --field magvort --value 50000.0 --format xdmf`
@@ -58,6 +58,14 @@ Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
+
+
+## extract_grid_info.py
+Extracts grid information at each level and saves to file.
+
+Ex: `python data_extraction/extract_grid_info.py -p DATADIR/ -o OUTDIR/ --name FILE_NAME`
+
+Will save a pickle file of the pandas dataframe with grid information as a function of time and some stored metadata about the simulation.
 
 
 # Scripts for plotting extracted data
@@ -83,6 +91,11 @@ Plots will be saved under `outdata/images/`
 
 `python plot_data/plot_averages.py --help` for full list of arguments.
 
+## plot_grid_info.py
+Load grid info data from pickled pandas dataframe and make simple plot as an example.
+
+`python plot_data/plot_grid_info.py -p DATADIR/ -o OUTDIR/ -f FILENAME`
+
 
 
 # Scripts for Visualization
@@ -99,6 +112,8 @@ Ex: `python quick_vis/slice_plot.py -p DATA_DIR/ --field "Y(NC12H26)" --normal x
 This will create a 2D slice plot with x as the normal irection and bounds on field set to 0 - 0.1 in field units
 
 `python quick_vis/slice_plot.py --help` for full list of options.
+
+Can now make full use of parallel processing over multiple datasets in a timeseries. Just submit using `mpirun -np X` or equivalent and images will be processed in an embarassingly parallel manner.
 
 Some helpful options:
 
@@ -131,3 +146,13 @@ Some helpful options:
 `--dpi`: dpi of the output image (default = 300).
 
 `--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
+
+`--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
+
+`--clw`: Sets the linewidth of the contour lines. Must be same length as the number of contour lines specified with `--contour`.
+
+`--pickle`: Optional flag to dump the image as a pickle file for later manipulation/customization.
+
+`--grid_info`: Add a text box to the slice plot with information about the grids in the simulation. Inputs are: `xloc`, `yloc`, `min_level`, and `max_level`, where the first two inputs define the location of the text box and the second two inputs define the level range for information in the text box.
+
+`--rm_eb`: Optional flag to remove the EB boundary from the plot as defined by `vfrac` field in the dataset. Takes a float to specify the color between `[0=white, 1=black]`.
