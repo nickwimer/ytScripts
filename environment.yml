@@ -6,7 +6,7 @@ dependencies:
   - python
   - numpy<1.23.0
   - pandas
-  - matplotlib
+  - matplotlib<3.4.0
   - h5py
   - scikit-image
   - pip

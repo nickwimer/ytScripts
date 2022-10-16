@@ -228,12 +228,22 @@ class ytExtractArgs(ytArgs):
 
     def isosurface_args(self):
         """Add arguments for extracting iso-surfaces."""
-        self.parser.add_argument(
+        val_group = self.parser.add_mutually_exclusive_group(required=True)
+        val_group.add_argument(
             "--value",
             type=float,
-            required=True,
             help="Value of the iso surface to extract.",
         )
+        val_group.add_argument(
+            "--vfunction",
+            type=float,
+            nargs="+",
+            help=(
+                "Value of the iso surface to extract as a function "
+                "(start_time; start_value; end_time1; end_value)."
+            ),
+        )
+
         self.parser.add_argument(
             "--format",
             type=str,
@@ -253,6 +263,26 @@ class ytExtractArgs(ytArgs):
             "--do_ghost",
             action="store_true",
             help="Flag to get ghost cells before the iso-surface extraction.",
+        )
+        self.parser.add_argument(
+            "--single_level",
+            action="store_true",
+            help="Flag to only get single grid level for isosurface.",
+        )
+        self.parser.add_argument(
+            "--smooth",
+            type=float,
+            required=False,
+            default=None,
+            help="Smoothing value to apply to field before isosurface extract",
+        )
+        self.parser.add_argument(
+            "--iso_edge",
+            type=float,
+            nargs="+",
+            required=False,
+            default=None,
+            help="Physical box inside which we extract isosurfaces.",
         )
 
     def average_args(self):
