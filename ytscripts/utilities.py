@@ -75,3 +75,11 @@ def get_fig_aspect_ratio(xlen, ylen, base=5):
     fy = base
 
     return fx, fy
+
+
+def get_gradient_field(ds, field, grad_type):
+    """Add the gradient field and return new field name."""
+    ds.force_periodicity()
+    ds.add_gradient_fields(field)
+
+    return f"{field}_gradient_{grad_type}"

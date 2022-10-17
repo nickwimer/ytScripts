@@ -196,6 +196,14 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Float value to plot non-fluid using binary cmap [0, 1].",
         )
+        self.parser.add_argument(
+            "--gradient",
+            type=str,
+            choices=["x", "y", "z", "magnitude"],
+            required=False,
+            default=None,
+            help="Choice to visualize the gradient of the input field.",
+        )
 
 
 class ytExtractArgs(ytArgs):
@@ -224,6 +232,14 @@ class ytExtractArgs(ytArgs):
             type=int,
             required=True,
             help="Number of slices to extract in normal direction.",
+        )
+        self.parser.add_argument(
+            "--gradient",
+            type=str,
+            choices=["x", "y", "z", "magnitude"],
+            required=False,
+            default=None,
+            help="Choice to extract the gradient of the input field.",
         )
 
     def isosurface_args(self):
@@ -284,6 +300,14 @@ class ytExtractArgs(ytArgs):
             default=None,
             help="Physical box inside which we extract isosurfaces.",
         )
+        self.parser.add_argument(
+            "--gradient",
+            type=str,
+            choices=["x", "y", "z", "magnitude"],
+            required=False,
+            default=None,
+            help="Choice to extract the gradient of the input field.",
+        )
 
     def average_args(self):
         """Add arguments for extracting averages."""
@@ -327,6 +351,14 @@ class ytPlotArgs(ytArgs):
         """Initialize ytPlotArgs."""
         super(ytPlotArgs, self).__init__(**kwargs)
 
+        # remove unused arguments from base class
+        self.remove_arg("pname")
+        self.remove_arg("SI")
+
+    def slice_args(self):
+        """Add arguments for plotting slices."""
+        self.vis_2d_args()
+
     def average_args(self):
         """Add arguments for plotting averages."""
         self.parser.add_argument(
@@ -356,9 +388,6 @@ class ytPlotArgs(ytArgs):
 
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
-        # remove unused arguments from base class
-        self.remove_arg("pname")
-        self.remove_arg("SI")
 
     def grid_args(self):
         """Add arguments for plotting grid info."""
@@ -388,6 +417,3 @@ class ytPlotArgs(ytArgs):
 
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
-        # remove unused arguments from base class
-        self.remove_arg("pname")
-        self.remove_arg("SI")
