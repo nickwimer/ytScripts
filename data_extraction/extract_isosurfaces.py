@@ -119,6 +119,7 @@ def do_isosurface_extraction(
     smooth=None,
     ds=None,
     iso_edge=None,
+    do_gradient=False,
 ):
     """Do the isosurface extraction according to the input parameters."""
     if outformat == "ply":
@@ -180,6 +181,7 @@ def do_isosurface_extraction(
                         ds_left_edge=ds_attributes["left_edge"],
                         ds_right_edge=ds_attributes["right_edge"],
                         single_level=single_level,
+                        do_gradient=do_gradient,
                     )
                 else:
                     child_mask = g.child_mask
@@ -304,6 +306,7 @@ def retrieve_ghost_zones(
     ds_left_edge,
     ds_right_edge,
     single_level,
+    do_gradient,
 ):
 
     # Get the cube index information
@@ -392,6 +395,7 @@ def retrieve_ghost_zones(
         level=cube.Level if single_level else cube.index.max_level,
         left_edge=new_left_edge,
         dims=new_dims,
+        num_ghost_zones=n_zones if do_gradient else 0,
     )
 
     return cube, child_mask
@@ -421,6 +425,11 @@ def main():
         pname=args.pname,
     )
 
+    base_attributes = utils.get_attributes(ds=ts[0])
+
+    if args.verbose:
+        print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+
     comm.Barrier()
     if rank == 0:
         start_time = time.time()
@@ -429,6 +438,12 @@ def main():
     for ds in ts:
         # Barrier at the start of each ds iteration
         comm.Barrier()
+
+        # Visualize the gradient field, if requested
+        if args.gradient:
+            vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
+        else:
+            vis_field = args.field
 
         # Force periodicity for the yt surface extraction routines...
         if args.format in ["ply", "obj"] or args.yt:
@@ -442,7 +457,7 @@ def main():
 
         # Export the isosurfaces in specified format
         if args.value:
-            fname = f"isosurface_{args.field}_{args.value}_{ds.basename}"
+            fname = f"isosurface_{vis_field}_{args.value}_{ds.basename}"
             value = args.value
         elif args.vfunction:
             vstime = args.vfunction[0]
@@ -458,7 +473,7 @@ def main():
                 value = vsval + (veval - vsval) * (
                     (ds_time - vstime) / (vetime - vstime)
                 )
-            fname = f"isosurface_{args.field}_{ds.basename}_vfunction_{value:.2e}"
+            fname = f"isosurface_{vis_field}_{ds.basename}_vfunction_{value:.2e}"
             if rank == 0:
                 print(f"""The value at time = {ds_time} is {value}.""")
         else:
@@ -471,7 +486,7 @@ def main():
             dregion=dregion,
             ds_attributes=ds_attributes,
             outformat=args.format,
-            field=args.field,
+            field=vis_field,
             value=value,
             outpath=outpath if rank == 0 else None,
             fname=fname,
@@ -484,6 +499,7 @@ def main():
             smooth=args.smooth,
             ds=ds if args.format == "ply" else None,
             iso_edge=args.iso_edge,
+            do_gradient=True if args.gradient else False,
         )
         if rank == 0:
             print(
