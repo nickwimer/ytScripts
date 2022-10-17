@@ -196,6 +196,14 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Float value to plot non-fluid using binary cmap [0, 1].",
         )
+        self.parser.add_argument(
+            "--gradient",
+            type=str,
+            choices=["x", "y", "z", "magnitude"],
+            required=False,
+            default=None,
+            help="Choice to visualize the gradient of the input field.",
+        )
 
 
 class ytExtractArgs(ytArgs):

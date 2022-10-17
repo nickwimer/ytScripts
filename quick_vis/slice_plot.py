@@ -128,6 +128,14 @@ def main():
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
 
+        # Visualize the gradient field, if requested
+        if args.gradient:
+            ds.force_periodicity()
+            ds.add_gradient_fields(args.field)
+            vis_field = f"{args.field}_gradient_{args.gradient}"
+        else:
+            vis_field = args.field
+
         # Get updated attributes for each plt file
         ds_attributes = utils.get_attributes(ds=ds)
 
@@ -145,7 +153,7 @@ def main():
         slc = yt.SlicePlot(
             ds=ds,
             normal=args.normal,
-            fields=args.field,
+            fields=vis_field,
             center=slc_center,
             buff_size=tuple(args.buff)
             if args.buff is not None
@@ -158,7 +166,7 @@ def main():
             slc.set_width(pbox_width)
             slc.set_center(pbox_center)
         if args.fbounds is not None:
-            slc.set_zlim(args.field, args.fbounds[0], args.fbounds[1])
+            slc.set_zlim(vis_field, args.fbounds[0], args.fbounds[1])
         slc.annotate_timestamp(draw_inset_box=True)
         if args.grids:
             if len(args.grids) > 0:
@@ -170,8 +178,17 @@ def main():
                 )
             else:
                 slc.annotate_grids()
-        slc.set_log(args.field, args.plot_log)
-        slc.set_cmap(field=args.field, cmap=args.cmap)
+        slc.set_log(vis_field, args.plot_log)
+        slc.set_cmap(field=vis_field, cmap=args.cmap)
+
+        # Set the colorbar label for gradient fields (too long)
+        if args.gradient:
+            if args.gradient == "magnitude":
+                new_label = rf"|$\nabla$ {args.field}|"
+            else:
+                new_label = rf"$\nabla_{args.gradient}$ {args.field}"
+
+            slc.set_colorbar_label(field=vis_field, label=new_label)
 
         # Convert the slice to matplotlib figure
         fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
@@ -238,7 +255,7 @@ def main():
                 else:
                     sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
 
-        plt_fname = f"{args.field}_{args.normal}_{str(index).zfill(5)}"
+        plt_fname = f"{vis_field}_{args.normal}_{str(index).zfill(5)}"
 
         # Add grid information to the slice plot
         if args.grid_info:
