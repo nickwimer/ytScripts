@@ -27,7 +27,10 @@ def main():
     args = get_args()
 
     # Create the output directory
-    outpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "slices"))
+    if args.outpath:
+        outpath = args.outpath
+    else:
+        outpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata/", "slices"))
     os.makedirs(outpath, exist_ok=True)
 
     # Override the units if needed
@@ -52,6 +55,13 @@ def main():
     # Loop over the plt files in the data directory
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
+
+        # Visualize the gradient field, if requested
+        if args.gradient:
+            vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
+        else:
+            vis_field = args.field
+
         # Get updated attributes for current plt file
         ds_attributes = utils.get_attributes(ds=ds)
 
@@ -98,13 +108,13 @@ def main():
 
             # Extract the variable requested
             slices = {}
-            slices[args.field] = frb[args.field]
-            fields = args.field
+            slices[vis_field] = frb[vis_field]
+            fields = vis_field
 
             # Save the slice to the output directory
             np.savez(
                 os.path.join(
-                    outpath, f"{args.field}_{args.normal}{iloc:.4f}_{index}.npz"
+                    outpath, f"{vis_field}_{args.normal}{iloc:.4f}_{index}.npz"
                 ),
                 fcoords=slc.fcoords,
                 normal=args.normal,

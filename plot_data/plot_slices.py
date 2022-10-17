@@ -12,10 +12,10 @@ import ytscripts.ytargs as ytargs  # noqa: E402
 
 def get_args():
     """Parse command line arguments."""
-    # Initialize the base yt class
-    ytparse = ytargs.ytArgs()
-    # Add in the arguments for plotting 2D
-    ytparse.vis_2d_args()
+    # Initialize the class for plotting
+    ytparse = ytargs.ytPlotArgs()
+    # Add in the arguments for plotting slices
+    ytparse.slice_args()
     return ytparse.parse_args()
 
 
@@ -25,7 +25,10 @@ def main():
     args = get_args()
 
     # Create the output directory
-    imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "images"))
+    if args.outpath:
+        imgpath = args.outpath
+    else:
+        imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "images"))
     os.makedirs(imgpath, exist_ok=True)
 
     # Get list of files in the data directory
@@ -38,7 +41,7 @@ def main():
         # Load the data
         data = np.load(os.path.join(args.datapath, fname), allow_pickle=True)
         # Print out the variables in the dataset
-        if index == 0:
+        if index == 0 and args.verbose:
             print(f"""The variables contained in this file are: {data.files}""")
 
         # Unpack the dicts
@@ -101,8 +104,8 @@ def main():
                 Z,
                 slices[args.field],
                 cmap=cmap,
-                vmin=args.fbounds[0],
-                vmax=args.fbounds[1],
+                vmin=args.fbounds[0] if args.fbounds else None,
+                vmax=args.fbounds[1] if args.fbounds else None,
             )
             ax.set_xlabel(f"y ({length_unit.units})")
             ax.set_ylabel(f"z ({length_unit.units})")

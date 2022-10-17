@@ -130,9 +130,7 @@ def main():
 
         # Visualize the gradient field, if requested
         if args.gradient:
-            ds.force_periodicity()
-            ds.add_gradient_fields(args.field)
-            vis_field = f"{args.field}_gradient_{args.gradient}"
+            vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
         else:
             vis_field = args.field
 

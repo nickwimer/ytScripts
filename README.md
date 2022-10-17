@@ -81,6 +81,9 @@ where `outdata` is the directory containing the list of `.npz` files. These imag
 
 `python plot_data/plot_slices.py --help` for full list of arguments.
 
+### To Do:
+- [ ] Add in various EB visualization options in quick vis slice plot
+
 
 ## plot_averages.py
 This will load in the pandas dataframe and make time series plots
