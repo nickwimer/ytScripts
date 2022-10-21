@@ -83,3 +83,103 @@ def get_gradient_field(ds, field, grad_type):
     ds.add_gradient_fields(field)
 
     return f"{field}_gradient_{grad_type}"
+
+
+def add_diff_field(ds, name, field):
+    """Compute and return difference between two fields."""
+
+    if field == "dwdz":
+        # ad = ds.all_data()
+        # print(ad["dwdz"].units)
+        # exit()
+        ds.add_field(
+            name=name,
+            function=_diff_dwdz,
+            sampling_type="cell",
+            # units="(dimensionless)",
+            # units="auto",
+            # dimensions=yt.units.dimensions.velocity_gradient,
+        )
+    else:
+        sys.exit("Not supported!")
+
+
+def _diff_field(field, data):
+    return data[("boxlib", "vfrac")]
+
+
+def _diff_dwdz(field, data):
+    diff_field = np.array(data[("gas", "velocity_z_gradient_z")]) - np.array(
+        data[("boxlib", "dwdz")]
+    )
+    diff_field /= np.array(data[("gas", "velocity_z_gradient_z")])
+    return diff_field
+
+
+def add_manual_gradient(ds, name):
+
+    # ds.force_periodicity()
+    ds.add_field(
+        name=name,
+        function=_manual_gradient,
+        sampling_type="local",
+        units="1/s",
+        validators=[
+            yt.fields.derived_field.ValidateSpatial(1, [("gas", "velocity_z")])
+        ],
+    )
+
+
+def _manual_gradient(field, data):
+    grad_field = ("gas", "velocity_z")
+    assert isinstance(grad_field, tuple)
+    ftype, fname = grad_field
+    sl_left = slice(None, -2, None)
+    sl_right = slice(2, None, None)
+    div_fac = 2.0
+    slice_3d = (slice(1, -1), slice(1, -1), slice(1, -1))
+    axi = 2
+    slice_3dl = slice_3d[:axi] + (sl_left,) + slice_3d[axi + 1 :]
+    slice_3dr = slice_3d[:axi] + (sl_right,) + slice_3d[axi + 1 :]
+    print(slice_3dl)
+    print(slice_3dr)
+
+    block_order = getattr(data, "_block_order", "C")
+    if block_order == "F":
+        print("Wtf")
+        exit()
+    else:
+        field_data = data[grad_field]
+    print(np.shape(field_data))
+    dx = div_fac * data[(ftype, "dz")]
+
+    # f = field_data[slice_3dr] / dx[slice_3d]
+    # f -= field_data[slice_3dl] / dx[slice_3d]
+    # print("first")
+    # f = field_data[1:-1, 1:-1, 2:] / dx[1:-1, 1:-1, 1:-1]
+    # print("Second")
+    # f -= field_data[1:-1, 1:-1, 0:-2] / dx[1:-1, 1:-1, 1:-1]
+
+    f = np.zeros_like(dx[1:-1, 1:-1, 1:-1], dtype=np.float64)
+    imax, jmax, kmax = np.array(np.shape(dx[1:-1, 1:-1, 1:-1]))
+    for k in range(kmax):
+        for j in range(jmax):
+            for i in range(imax):
+                f[i, j, k] = (
+                    0.5
+                    * (field_data[i + 1, j + 1, k + 2] - field_data[i + 1, j + 1, k])
+                    / dx[i + 1, j + 1, k + 1]
+                )
+
+    new_field = np.zeros_like(data[grad_field], dtype=np.float64)
+    new_field = data.ds.arr(new_field, field_data.units / dx.units)
+
+    new_field[1:-1, 1:-1, 1:-1] = f
+
+    return new_field
+    # return yt.YTArray(f, "1.0/s")
+
+    # dxmin = data.index.get_smallest_dx()
+
+    # gradient = np.gradient(data["velocity_z"], dxmin, axis=0, edge_order=2)
+    # return yt.YTArray(gradient, "1.0/s")

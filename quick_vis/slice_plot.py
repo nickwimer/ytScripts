@@ -128,11 +128,25 @@ def main():
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
 
+        ds.force_periodicity()
+
         # Visualize the gradient field, if requested
         if args.gradient:
             vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
         else:
             vis_field = args.field
+
+        # Use the difference field if requested
+        if args.diff:
+            print(vis_field)
+            diff_name = ("gas", f"{vis_field}_diff_{args.diff}")
+            utils.add_diff_field(ds=ds, name=diff_name, field=args.diff)
+            vis_field = f"{vis_field}_diff_{args.diff}"
+            print(vis_field)
+
+        # add manual gradient calc
+        # utils.add_manual_gradient(ds=ds, name=("gas", "manual_grad"))
+        # vis_field="manual_grad"
 
         # Get updated attributes for each plt file
         ds_attributes = utils.get_attributes(ds=ds)
@@ -186,6 +200,10 @@ def main():
             else:
                 new_label = rf"$\nabla_{args.gradient}$ {args.field}"
 
+            slc.set_colorbar_label(field=vis_field, label=new_label)
+
+        if args.diff:
+            new_label += f" - {args.diff}"
             slc.set_colorbar_label(field=vis_field, label=new_label)
 
         # Convert the slice to matplotlib figure

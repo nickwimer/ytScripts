@@ -204,6 +204,13 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Choice to visualize the gradient of the input field.",
         )
+        self.parser.add_argument(
+            "--diff",
+            type=str,
+            required=False,
+            default=None,
+            help="Field to subtract from input field.",
+        )
 
 
 class ytExtractArgs(ytArgs):
