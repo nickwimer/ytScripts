@@ -326,6 +326,27 @@ class ytExtractArgs(ytArgs):
             default="average_data",
             help="Name of the output data file (.pkl).",
         )
+        self.parser.add_argument(
+            "--normal",
+            type=str,
+            choices=["x", "y", "z"],
+            required=False,
+            default=None,
+            help="Option to perform 2D slice (defualts to domain average).",
+        )
+        self.parser.add_argument(
+            "--location",
+            type=float,
+            required=False,
+            default=None,
+            help="Physical location to perform the 2D slice (if normal is defined).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            required=False,
+            action="store_true",
+            help="Flag to explicitly remove all data in EB regions.",
+        )
 
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
