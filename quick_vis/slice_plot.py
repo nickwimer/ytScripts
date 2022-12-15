@@ -191,6 +191,9 @@ def main():
         # Convert the slice to matplotlib figure
         fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
 
+        # Get the axes from the figure handle
+        ax = fig.axes[0]
+
         if args.contour is not None:
             xres, yres, zres = np.array(ds_attributes["resolution"])
 
@@ -207,9 +210,6 @@ def main():
                 )
             else:
                 num_contours = len(args.contour) // 3
-
-            # Get the axes from the figure handle
-            ax = fig.axes[0]
 
             # Compute and plot the contours
             for icnt in range(num_contours):
