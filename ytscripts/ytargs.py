@@ -70,6 +70,11 @@ class ytArgs:
             action="store_true",
             help="Flag to turn on various statements.",
         )
+        self.parser.add_argument(
+            "--no_mpi",
+            action="store_true",
+            help="Flag to manually disable mpi features.",
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""

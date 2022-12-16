@@ -70,7 +70,8 @@ def main():
     norm_dict = {"x": 0, "y": 1, "z": 2}
 
     # Loop over the dataseries
-    yt.enable_parallelism()
+    if not args.no_mpi:
+        yt.enable_parallelism()
     data_dict = {}
     for sto, ds in ts.piter(storage=data_dict, dynamic=True):
         sto.result_id = float(ds.current_time)
@@ -102,12 +103,10 @@ def main():
         # Convert into a pandas dataframe for storage
         # df = pd.DataFrame(data={"time": time}, columns=["time"])
         df = pd.DataFrame(data={"time": data_dict.keys()})
-        # df = pd.DataFrame
 
         # Loop over the dataframe and add the data
         for idx, cell in df.iterrows():
             for key, value in data_dict[cell["time"]].items():
-                print(key, value)
                 df.loc[idx, key] = value
 
         # Save the data for later
