@@ -18,6 +18,8 @@ All formatting must pass through `black`, `isort`, and `flake8`
 
 The proper order should be `black`, then `isort`, finally `flake8` to catch any issues. If there are further changes, repeat the formatting sequence
 
+Most scripts can now make full use of parallel processing either over multiple datasets in a timeseries or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly usefull when dealing with a large number of time outputs or with very large data.
+
 
 # Scripts for Data Extractions
 Scripts for data extraction and maniupulation are located under `data_extraction/`
@@ -35,11 +37,15 @@ These slices will be saved in `outdata/slices/` with the following variables: `f
 `python data_extraction/extract_slices.py --help` for full list of arguments.
 
 ## extract_averages.py
-Extracts domain averaged quantities and saves in a pickled pandas dataframe
+Extracts domain averaged quantities and saves in a pickled pandas dataframe.
+
+The default behavior is to perform a full domain average of the quantity, but 2D averages can be extracted over slices specified with a `normal` direction and corresponding `location` keyword. 
+
+NOTE: If you have EB boundaries in the domain, you should run with flag `--rm_eb` to remove the non-fluid regions from the averages.
 
 Ex: `python data_extraction/extract_averages.py -p DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
 
-Data will be saved under `outdata/averages`.
+Data will be saved under `outdata/averages`, unless otherwise specified.
 
 `python data_extraction/extract_averages.py --help` for full list of arguments.
 

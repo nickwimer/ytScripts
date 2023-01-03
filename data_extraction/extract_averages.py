@@ -16,8 +16,15 @@ def get_args():
     ytparse = ytargs.ytExtractArgs()
     # Add in the arguments for the extract averages
     ytparse.average_args()
+    # Parse the args
+    args = ytparse.parse_args()
+
+    # Check to see if mutually inclusice argument are respected
+    if args.normal and (not args.location):
+        sys.exit(""" "Location" needs to be defined for use with "normal" """)
+
     # Return the parsed arguments
-    return ytparse.parse_args()
+    return args
 
 
 def main():
@@ -54,15 +61,35 @@ def main():
 
     if args.verbose:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
+        print(
+            f"""The derived fields in this dataset are: """
+            f"""{base_attributes["derived_field_list"]}"""
+        )
+
+    # define normal dict
+    norm_dict = {"x": 0, "y": 1, "z": 2}
 
     # Loop over the dataseries
-    yt.enable_parallelism()
+    if not args.no_mpi:
+        yt.enable_parallelism()
     data_dict = {}
     for sto, ds in ts.piter(storage=data_dict, dynamic=True):
         sto.result_id = float(ds.current_time)
 
-        # Get all the data with no modifications
-        data = ds.all_data()
+        all_data = ds.all_data()
+
+        # Filter out the EB regions
+        if args.rm_eb:
+            data = ds.cut_region(all_data, ["obj[('boxlib', 'vfrac')] > 0.5"])
+        else:
+            data = all_data
+
+        # Slice the data if requested
+        if args.normal:
+            data = ds.slice(
+                axis=norm_dict[args.normal], coord=args.location, data_source=data
+            )
+
         # Loop over the specified variables
         tmp_data = {}
         for field in args.fields:
@@ -76,7 +103,6 @@ def main():
         # Convert into a pandas dataframe for storage
         # df = pd.DataFrame(data={"time": time}, columns=["time"])
         df = pd.DataFrame(data={"time": data_dict.keys()})
-        # df = pd.DataFrame
 
         # Loop over the dataframe and add the data
         for idx, cell in df.iterrows():

@@ -70,6 +70,11 @@ class ytArgs:
             action="store_true",
             help="Flag to turn on various statements.",
         )
+        self.parser.add_argument(
+            "--no_mpi",
+            action="store_true",
+            help="Flag to manually disable mpi features.",
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""
@@ -325,6 +330,27 @@ class ytExtractArgs(ytArgs):
             required=False,
             default="average_data",
             help="Name of the output data file (.pkl).",
+        )
+        self.parser.add_argument(
+            "--normal",
+            type=str,
+            choices=["x", "y", "z"],
+            required=False,
+            default=None,
+            help="Option to perform 2D slice (defaults to domain average).",
+        )
+        self.parser.add_argument(
+            "--location",
+            type=float,
+            required=False,
+            default=None,
+            help="Physical location to perform the 2D slice (if normal is defined).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            required=False,
+            action="store_true",
+            help="Flag to explicitly remove all data in EB regions.",
         )
 
         # remove potentially conflicting arguments from base class
