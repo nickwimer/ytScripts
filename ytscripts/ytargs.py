@@ -337,7 +337,7 @@ class ytExtractArgs(ytArgs):
             choices=["x", "y", "z"],
             required=False,
             default=None,
-            help="Option to perform 2D slice (defualts to domain average).",
+            help="Option to perform 2D slice (defaults to domain average).",
         )
         self.parser.add_argument(
             "--location",
