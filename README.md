@@ -39,6 +39,8 @@ These slices will be saved in `outdata/slices/` with the following variables: `f
 ## extract_averages.py
 Extracts domain averaged quantities and saves in a pickled pandas dataframe.
 
+The default behavior is to perform a full domain average of the quantity, but 2D averages can be extracted over slices specified with a `normal` direction and corresponding `location` keyword. 
+
 NOTE: If you have EB boundaries in the domain, you should run with flag `--rm_eb` to remove the non-fluid regions from the averages.
 
 Ex: `python data_extraction/extract_averages.py -p DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
