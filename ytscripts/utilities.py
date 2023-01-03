@@ -6,11 +6,11 @@ import numpy as np
 import yt
 
 
-def load_dataseries(datapath, pname=None, units_override=None):
+def load_dataseries(datapath, pname=None, units_override=None, nprocs=1):
     """Loads the plt files based on method."""
     if pname is not None:
         load_list = [os.path.join(datapath, x) for x in pname]
-        ts = yt.DatasetSeries(load_list, units_override=units_override)
+        ts = yt.DatasetSeries(load_list, units_override=units_override, parallel=nprocs)
         # Find the index based on location of the selected plot files
         all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
 
@@ -22,6 +22,7 @@ def load_dataseries(datapath, pname=None, units_override=None):
         ts = yt.load(
             os.path.join(datapath, "plt?????"),
             units_override=units_override,
+            parallel=nprocs,
         )
 
         # Find the index based on location of the plot files

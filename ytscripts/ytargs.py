@@ -75,6 +75,16 @@ class ytArgs:
             action="store_true",
             help="Flag to manually disable mpi features.",
         )
+        self.parser.add_argument(
+            "--nprocs",
+            type=int,
+            required=False,
+            default=1,
+            help=(
+                "Number of processors to devote to each file when operating in"
+                "parallel mode"
+            ),
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""

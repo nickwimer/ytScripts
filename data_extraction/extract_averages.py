@@ -1,6 +1,7 @@
 """Extracts domain averaged quantities and saves for plotting."""
 import os
 import sys
+import time
 
 import pandas as pd
 import yt
@@ -52,9 +53,16 @@ def main():
     else:
         units_override = None
 
+    # start timer
+    if yt.is_root():
+        start_time = time.time()
+
     # Load data files into dataset series
     ts, _ = utils.load_dataseries(
-        datapath=args.datapath, pname=args.pname, units_override=units_override
+        datapath=args.datapath,
+        pname=args.pname,
+        units_override=units_override,
+        nprocs=args.nprocs,
     )
 
     base_attributes = utils.get_attributes(ds=ts[0])
@@ -111,6 +119,9 @@ def main():
 
         # Save the data for later
         df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
+
+        # print total time
+        print(f"Total elapsed time = {time.time() - start_time} seconds")
 
 
 if __name__ == "__main__":
