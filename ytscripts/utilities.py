@@ -1,6 +1,7 @@
 """Utility routines used throughout ytscripts."""
 import fnmatch
 import os
+import sys
 
 import numpy as np
 import yt
@@ -9,14 +10,34 @@ import yt
 def load_dataseries(datapath, pname=None, units_override=None, nprocs=1):
     """Loads the plt files based on method."""
     if pname is not None:
-        load_list = [os.path.join(datapath, x) for x in pname]
-        ts = yt.DatasetSeries(load_list, units_override=units_override, parallel=nprocs)
-        # Find the index based on location of the selected plot files
-        all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
 
-        index_dict = {}
-        for plt in pname:
-            index_dict.update({plt: all_files.index(plt)})
+        if "?" in pname[0] and len(pname) == 1:
+            ts = yt.load(
+                os.path.join(datapath, pname[0]),
+                units_override=units_override,
+                parallel=nprocs,
+            )
+
+            # Find the index based on location of the plot files
+            all_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
+
+            index_dict = {}
+            for plt in all_files:
+                index_dict.update({plt: all_files.index(plt)})
+        elif "*" in pname[0] and len(pname) > 1:
+            sys.exit("multiple ? character inputs not supported yet.")
+        else:
+            load_list = [os.path.join(datapath, x) for x in pname]
+            ts = yt.DatasetSeries(
+                load_list, units_override=units_override, parallel=nprocs
+            )
+
+            # Find the index based on location of the selected plot files
+            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+
+            index_dict = {}
+            for plt in pname:
+                index_dict.update({plt: all_files.index(plt)})
 
     else:
         ts = yt.load(
