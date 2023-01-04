@@ -7,24 +7,43 @@ import numpy as np
 import yt
 
 
-def load_dataseries(datapath, pname=None, units_override=None, nprocs=1):
+def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=None):
     """Loads the plt files based on method."""
     if pname is not None:
-
         if "?" in pname[0] and len(pname) == 1:
-            ts = yt.load(
-                os.path.join(datapath, pname[0]),
-                units_override=units_override,
-                parallel=nprocs,
-            )
+            if nskip:
+                select_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
+                load_files = select_files[0 : len(select_files) : nskip + 1]
+                load_list = [os.path.join(datapath, x) for x in load_files]
+                print(load_list)
+                # exit()
+                ts = yt.DatasetSeries(
+                    load_list,
+                    units_override=units_override,
+                    parallel=nprocs,
+                )
 
-            # Find the index based on location of the plot files
-            all_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
+                # Find the index based on location of the plot files
+                all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
 
-            index_dict = {}
-            for plt in all_files:
-                index_dict.update({plt: all_files.index(plt)})
-        elif "*" in pname[0] and len(pname) > 1:
+                index_dict = {}
+                for plt in all_files:
+                    index_dict.update({plt: all_files.index(plt)})
+            else:
+                ts = yt.load(
+                    os.path.join(datapath, pname[0]),
+                    units_override=units_override,
+                    parallel=nprocs,
+                )
+
+                # Find the index based on location of the plot files
+                all_files = fnmatch.filter(sorted(os.listdir(datapath)), load_files)
+
+                index_dict = {}
+                for plt in all_files:
+                    index_dict.update({plt: all_files.index(plt)})
+
+        elif "?" in pname[0] and len(pname) > 1:
             sys.exit("multiple ? character inputs not supported yet.")
         else:
             load_list = [os.path.join(datapath, x) for x in pname]
@@ -40,18 +59,37 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1):
                 index_dict.update({plt: all_files.index(plt)})
 
     else:
-        ts = yt.load(
-            os.path.join(datapath, "plt?????"),
-            units_override=units_override,
-            parallel=nprocs,
-        )
+        if nskip:
+            select_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            load_files = select_files[0 : len(select_files) : nskip + 1]
+            load_list = [os.path.join(datapath, x) for x in load_files]
 
-        # Find the index based on location of the plot files
-        all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            ts = yt.DatasetSeries(
+                load_list,
+                units_override=units_override,
+                parallel=nprocs,
+            )
 
-        index_dict = {}
-        for plt in all_files:
-            index_dict.update({plt: all_files.index(plt)})
+            # Find the index based on location of the plot files
+            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+
+            index_dict = {}
+            for plt in all_files:
+                index_dict.update({plt: all_files.index(plt)})
+
+        else:
+            ts = yt.load(
+                os.path.join(datapath, "plt?????"),
+                units_override=units_override,
+                parallel=nprocs,
+            )
+
+            # Find the index based on location of the plot files
+            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+
+            index_dict = {}
+            for plt in all_files:
+                index_dict.update({plt: all_files.index(plt)})
 
     return ts, index_dict
 

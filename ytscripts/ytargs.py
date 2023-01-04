@@ -85,6 +85,13 @@ class ytArgs:
                 "parallel mode"
             ),
         )
+        self.parser.add_argument(
+            "--nskip",
+            type=int,
+            required=False,
+            default=None,
+            help="""Skip every "nskip" entries in "pname" list""",
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""

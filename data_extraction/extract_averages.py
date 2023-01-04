@@ -63,6 +63,7 @@ def main():
         pname=args.pname,
         units_override=units_override,
         nprocs=args.nprocs,
+        nskip=args.nskip,
     )
 
     base_attributes = utils.get_attributes(ds=ts[0])
