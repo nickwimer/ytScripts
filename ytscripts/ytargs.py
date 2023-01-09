@@ -460,3 +460,29 @@ class ytPlotArgs(ytArgs):
 
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
+
+
+class ytAnalysisArgs(ytArgs):
+    """Class to interface with custom data analysis functions."""
+
+    def __init__(self, **kwargs):
+        """Initialize ytAnalysisArgs."""
+        super(ytAnalysisArgs, self).__init__(**kwargs)
+
+    def mixture_fraction(self):
+        """Add in arguments for analyzing mixture fraction data."""
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="mixture_average",
+            help="Name of the output data file (.pkl).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            required=False,
+            action="store_true",
+            help="Flag to explicitly remove all data in EB regions.",
+        )
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
