@@ -1,19 +1,23 @@
 name: ytscripts
 channels:
-  - defaults
+  - conda-forge
 
 dependencies:
-  - python
-  - numpy<1.23.0
+  - python=3.8.13
+  - yt=4.0.5
+  # - numpy<1.23.0
+  - numpy=1.22.3
   - pandas
-  - matplotlib<3.4.0
-  - h5py
-  - scikit-image
+  - matplotlib-base=3.5.2
+  # - matplotlib
+  - h5py=3.7.0
+  - scikit-image=0.19.2
   - pip
   - pip:
     - black
     - isort
     - flake8
-    - yt
+    # - yt
     - lxml
     - mpi4py
+    - pyvalem
