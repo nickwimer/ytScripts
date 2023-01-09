@@ -39,6 +39,8 @@ def main():
     fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
 
     df = pd.read_pickle(os.path.join(args.datapath, f"{args.fname[0]}.pkl"))
+    print(df)
+    exit()
     # df["mix_frac"] = np.linspace(0, 1, len(df["temp_bins"]))
     len_temp_bins = len(df.columns) - 1
     mix_frac = np.linspace(0, 1, len_temp_bins + 1)

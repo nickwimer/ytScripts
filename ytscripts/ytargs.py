@@ -484,5 +484,17 @@ class ytAnalysisArgs(ytArgs):
             action="store_true",
             help="Flag to explicitly remove all data in EB regions.",
         )
+        self.parser.add_argument(
+            "--nbins",
+            required=False,
+            type=int,
+            default=10,
+            help="Number of bins to use for the mixture fraction averaging.",
+        )
+        # self.parser.add_argument(
+        #     "--bin_rang",
+        #     required=False,
+        #     default=[]
+        # )
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")

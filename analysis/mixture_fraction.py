@@ -25,7 +25,7 @@ def get_args():
 
 
 def _mixture_fraction(field, data):
-    return 1 - (data[("boxlib", "Y(N2)")]) / 0.77
+    return 1 - (data[("boxlib", "Y(N2)")]) / 0.815102
 
 
 def main():
@@ -128,7 +128,7 @@ def main():
     # print(ds)
 
     # create mix frac bins
-    mix_frac_bins = np.linspace(0, 1, 11)
+    mix_frac_bins = np.linspace(0, 1, args.nbins + 1)
 
     # Loop over the dataseries
     if not args.no_mpi:
@@ -154,6 +154,10 @@ def main():
         else:
             data = all_data
 
+        print(data.min(("boxlib", "Y(N2)")), data.max(("boxlib", "Y(N2)")))
+        # print(data.min(("boxlib", "Y(CH4)")), data.max(("boxlib", "Y(CH4)")))
+        # print(data.min(("gas", "mix_frac")), data.max(("gas", "mix_frac")))
+        # exit()
         # data = data.get_data(fields=["Temp", "mix_frac", ("boxlib", "cell_volume")])
 
         tmp_data = {}
