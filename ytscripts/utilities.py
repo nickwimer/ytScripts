@@ -1,6 +1,8 @@
 """Utility routines used throughout ytscripts."""
+import copy
 import fnmatch
 import os
+import re
 import sys
 
 import numpy as np
@@ -143,3 +145,89 @@ def get_gradient_field(ds, field, grad_type):
     ds.add_gradient_fields(field)
 
     return f"{field}_gradient_{grad_type}"
+
+
+def compute_elem_mass_fraction(attributes, keys=None):
+    """Compute the elem mass fraction for streams."""
+
+    # define atomic masses dict
+    atomic_masses = {"C": 12.01, "H": 1.00, "O": 16.00, "N": 14.01}
+
+    spec_dict = {}
+    fields = []
+    # loop over all fields
+    for fname in attributes["field_list"]:
+        # Only look at species (contain Y)
+        if "Y(" in fname[1]:
+            cut_name = fname[1][2:-1]
+            if cut_name[0:2] == "NC":
+                cut_name = cut_name[1:]
+
+            elem_dict = re.findall(r"([A-Z][a-z]?)(\d*)", cut_name)
+
+            if keys and cut_name in keys:
+                fields.append(fname)
+
+                # add entry to the species dict
+                spec_dict[cut_name] = {"C": 0, "H": 0, "O": 0, "N": 0}
+
+                # print(elem_dict{"C"})
+                for elem in elem_dict:
+                    if elem[1] == "":
+                        num = 1
+                    else:
+                        num = int(elem[1])
+
+                    if elem[0] == "C":
+                        spec_dict[cut_name]["C"] += num
+                    elif elem[0] == "H":
+                        spec_dict[cut_name]["H"] += num
+                    elif elem[0] == "O":
+                        spec_dict[cut_name]["O"] += num
+                    elif elem[0] == "N":
+                        spec_dict[cut_name]["N"] += num
+
+            elif not keys:
+                fields.append(fname)
+
+                # add entry to the species dict
+                spec_dict[cut_name] = {"C": 0, "H": 0, "O": 0, "N": 0}
+
+                # print(elem_dict{"C"})
+                for elem in elem_dict:
+                    if elem[1] == "":
+                        num = 1
+                    else:
+                        num = int(elem[1])
+
+                    if elem[0] == "C":
+                        spec_dict[cut_name]["C"] += num
+                    elif elem[0] == "H":
+                        spec_dict[cut_name]["H"] += num
+                    elif elem[0] == "O":
+                        spec_dict[cut_name]["O"] += num
+                    elif elem[0] == "N":
+                        spec_dict[cut_name]["N"] += num
+
+    # Compute the elemental mass fraction from the spec_dict
+    # elem_mass_frac_dict = {"C": 0, "H": 0, "O": 0, "N": 0}
+    elem_mass_frac_dict = copy.deepcopy(spec_dict)
+    for spec in spec_dict:
+        elem_mass_frac_dict[spec]["C"] += spec_dict[spec]["C"] * atomic_masses["C"]
+        elem_mass_frac_dict[spec]["H"] += spec_dict[spec]["H"] * atomic_masses["H"]
+        elem_mass_frac_dict[spec]["O"] += spec_dict[spec]["O"] * atomic_masses["O"]
+        elem_mass_frac_dict[spec]["N"] += spec_dict[spec]["N"] * atomic_masses["N"]
+
+    for spec in elem_mass_frac_dict:
+        total_mass = (
+            elem_mass_frac_dict[spec]["C"]
+            + elem_mass_frac_dict[spec]["H"]
+            + elem_mass_frac_dict[spec]["O"]
+            + elem_mass_frac_dict[spec]["N"]
+        )
+        elem_mass_frac_dict[spec]["C"] /= total_mass
+        elem_mass_frac_dict[spec]["H"] /= total_mass
+        elem_mass_frac_dict[spec]["O"] /= total_mass
+        elem_mass_frac_dict[spec]["N"] /= total_mass
+
+    return elem_mass_frac_dict, atomic_masses, fields
