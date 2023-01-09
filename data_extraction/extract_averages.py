@@ -20,7 +20,7 @@ def get_args():
     # Parse the args
     args = ytparse.parse_args()
 
-    # Check to see if mutually inclusice argument are respected
+    # Check to see if mutually inclusive argument are respected
     if args.normal and (not args.location):
         sys.exit(""" "Location" needs to be defined for use with "normal" """)
 
