@@ -50,8 +50,10 @@ def main():
             "mass_unit": (1.0, "kg"),
             "velocity_unit": (1.0, "m/s"),
         }
+        eb_var_name = "volFrac"
     else:
         units_override = None
+        eb_var_name = "vfrac"
 
     # start timer
     if yt.is_root():
@@ -89,7 +91,7 @@ def main():
 
         # Filter out the EB regions
         if args.rm_eb:
-            data = ds.cut_region(all_data, ["obj[('boxlib', 'vfrac')] > 0.5"])
+            data = ds.cut_region(all_data, [f"obj[('boxlib', '{eb_var_name}')] > 0.5"])
         else:
             data = all_data
 
