@@ -39,7 +39,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
                 )
 
                 # Find the index based on location of the plot files
-                all_files = fnmatch.filter(sorted(os.listdir(datapath)), load_files)
+                all_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
 
                 index_dict = {}
                 for plt in all_files:
