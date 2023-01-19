@@ -56,6 +56,11 @@ def main():
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
 
+        if args.field:
+            vis_field = args.field
+        else:
+            vis_field = None
+
         # Visualize the gradient field, if requested
         if args.gradient:
             vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
