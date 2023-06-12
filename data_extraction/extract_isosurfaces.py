@@ -7,7 +7,7 @@ import h5py
 import numpy as np
 from mpi4py import MPI
 from scipy.ndimage import gaussian_filter
-from skimage.measure import marching_cubes
+from skimage.measure import marching_cubes, mesh_surface_area
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -222,6 +222,8 @@ def do_isosurface_extraction(
                         method="lewiner",
                         mask=child_mask,
                     )
+
+                    # area = mesh_surface_area(verts, faces)
 
                     # offset the physical location
                     verts += np.array(g.fcoords.min(axis=0))

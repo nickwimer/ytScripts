@@ -1,6 +1,7 @@
 """Extracts domain averaged quantities and saves for plotting."""
 import os
 import sys
+import time
 
 import pandas as pd
 import yt
@@ -19,7 +20,7 @@ def get_args():
     # Parse the args
     args = ytparse.parse_args()
 
-    # Check to see if mutually inclusice argument are respected
+    # Check to see if mutually inclusive argument are respected
     if args.normal and (not args.location):
         sys.exit(""" "Location" needs to be defined for use with "normal" """)
 
@@ -49,12 +50,22 @@ def main():
             "mass_unit": (1.0, "kg"),
             "velocity_unit": (1.0, "m/s"),
         }
+        eb_var_name = "volFrac"
     else:
         units_override = None
+        eb_var_name = "vfrac"
+
+    # start timer
+    if yt.is_root():
+        start_time = time.time()
 
     # Load data files into dataset series
     ts, _ = utils.load_dataseries(
-        datapath=args.datapath, pname=args.pname, units_override=units_override
+        datapath=args.datapath,
+        pname=args.pname,
+        units_override=units_override,
+        nprocs=args.nprocs,
+        nskip=args.nskip,
     )
 
     base_attributes = utils.get_attributes(ds=ts[0])
@@ -80,7 +91,7 @@ def main():
 
         # Filter out the EB regions
         if args.rm_eb:
-            data = ds.cut_region(all_data, ["obj[('boxlib', 'vfrac')] > 0.5"])
+            data = ds.cut_region(all_data, [f"obj[('boxlib', '{eb_var_name}')] > 0.5"])
         else:
             data = all_data
 
@@ -111,6 +122,9 @@ def main():
 
         # Save the data for later
         df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
+
+        # print total time
+        print(f"Total elapsed time = {time.time() - start_time} seconds")
 
 
 if __name__ == "__main__":

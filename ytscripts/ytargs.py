@@ -75,6 +75,23 @@ class ytArgs:
             action="store_true",
             help="Flag to manually disable mpi features.",
         )
+        self.parser.add_argument(
+            "--nprocs",
+            type=int,
+            required=False,
+            default=1,
+            help=(
+                "Number of processors to devote to each file when operating in"
+                "parallel mode"
+            ),
+        )
+        self.parser.add_argument(
+            "--nskip",
+            type=int,
+            required=False,
+            default=None,
+            help="""Skip every "nskip" entries in "pname" list""",
+        )
 
     def orientation_args(self):
         """Add 2D slicing arguments."""
@@ -441,5 +458,43 @@ class ytPlotArgs(ytArgs):
             help="type of plot to make.",
         )
 
+        # remove potentially conflicting arguments from base class
+        self.remove_arg("field")
+
+
+class ytAnalysisArgs(ytArgs):
+    """Class to interface with custom data analysis functions."""
+
+    def __init__(self, **kwargs):
+        """Initialize ytAnalysisArgs."""
+        super(ytAnalysisArgs, self).__init__(**kwargs)
+
+    def mixture_fraction(self):
+        """Add in arguments for analyzing mixture fraction data."""
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="mixture_average",
+            help="Name of the output data file (.pkl).",
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            required=False,
+            action="store_true",
+            help="Flag to explicitly remove all data in EB regions.",
+        )
+        self.parser.add_argument(
+            "--nbins",
+            required=False,
+            type=int,
+            default=10,
+            help="Number of bins to use for the mixture fraction averaging.",
+        )
+        # self.parser.add_argument(
+        #     "--bin_rang",
+        #     required=False,
+        #     default=[]
+        # )
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")

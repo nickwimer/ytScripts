@@ -60,9 +60,11 @@ def main():
             "velocity_unit": (1.0, "m/s"),
         }
         axes_unit = "m"
+        eb_var_name = "volFrac"
     else:
         units_override = None
         axes_unit = "cm"
+        eb_var_name = "vfrac"
 
     # Load data files into dataset series
     ts, index_dict = utils.load_dataseries(
@@ -81,7 +83,7 @@ def main():
             dims=base_attributes["dimensions"],
             ds=ts[0],
         )
-        num_cells_0 = float(data["vfrac"].sum())
+        num_cells_0 = float(data[eb_var_name].sum())
         domain_volume = dx0 * dy0 * dz0 * num_cells_0
         # left_edge = np.array(base_attributes["left_edge"])
         # right_edge = np.array(base_attributes["right_edge"])
@@ -303,7 +305,7 @@ def main():
             elif args.normal == "z":
                 extent = [lx, rx, ly, ry]
 
-            vfrac = slc.frb[("boxlib", "vfrac")].to_ndarray()
+            vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
             m_vfrac = np.ma.array(
                 args.rm_eb * np.ones(np.shape(vfrac)),
                 mask=(vfrac > 0.5),
