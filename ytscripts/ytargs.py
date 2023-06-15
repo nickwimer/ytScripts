@@ -330,6 +330,13 @@ class ytExtractArgs(ytArgs):
             default=None,
             help="Choice to extract the gradient of the input field.",
         )
+        self.parser.add_argument(
+            "--extra_fields",
+            type=str,
+            required=False,
+            default=None,
+            help="List of additional fields to extract along isosurface.",
+        )
 
     def average_args(self):
         """Add arguments for extracting averages."""

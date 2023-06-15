@@ -25,7 +25,18 @@ def get_args():
 
 
 def write_xdmf(
-    fbase, fhdf5, field, ftype, ctype, value, time, conn_shape, coord_shape, field_shape
+    fbase,
+    fhdf5,
+    field,
+    extra_fields,
+    ftype,
+    ctype,
+    value,
+    time,
+    conn_shape,
+    coord_shape,
+    field_shape,
+    extra_field_shape,
 ):
     """Write the XDMF wrapper based on the hdf5 data."""
     # Create the XDMF file for writing
@@ -80,6 +91,16 @@ def write_xdmf(
         f"""\t\t\t</Attribute>\n"""
     )
 
+    xdmf_file.write(
+        f"""\t\t\t<Attribute Name="{extra_fields}" AttributeType="{ftype}" """
+        f"""Center="{ctype}">\n"""
+        f"""\t\t\t\t<DataItem Format="HDF" DataType="Float" Precision="8" """
+        f"""Dimensions="{extra_field_shape[0]}">\n"""
+        f"""\t\t\t\t\t{fhdf5}.hdf5:/{extra_fields}\n"""
+        f"""\t\t\t\t</DataItem>\n"""
+        f"""\t\t\t</Attribute>\n"""
+    )
+
     # Ending of the Grid block
     xdmf_file.write("\t\t</Grid>\n")
 
@@ -92,14 +113,15 @@ def write_xdmf(
     xdmf_file.close()
 
 
-def write_hdf5(verts, samples, faces, field, fname):
+def write_hdf5(verts, samples, extra_samples, extra_fields, faces, field, fname):
     """Write the HDF5 file based on the extracted isosurface."""
     with h5py.File(fname, "w") as f:
         f.create_dataset("Conn", data=faces.astype(np.int32), dtype=np.int32)
         f.create_dataset("Coord", data=verts, dtype=np.float64)
         f.create_dataset(field, data=samples, dtype=np.float64)
+        f.create_dataset(extra_fields, data=extra_samples, dtype=np.float64)
 
-    return np.shape(faces), np.shape(verts), np.shape(samples)
+    return np.shape(faces), np.shape(verts), np.shape(samples), np.shape(extra_samples)
 
 
 def do_isosurface_extraction(
@@ -107,6 +129,7 @@ def do_isosurface_extraction(
     ds_attributes,
     outformat,
     field,
+    extra_fields,
     value,
     outpath,
     fname,
@@ -167,6 +190,7 @@ def do_isosurface_extraction(
             verts_np = np.empty((0, 3))
             faces_np = np.empty((0, 3))
             samples_np = np.empty((0))
+            extra_samples = np.empty((0))
 
             num_grids = len(dregion.index.grids)
 
@@ -235,6 +259,15 @@ def do_isosurface_extraction(
                     verts_np = np.append(verts_np, verts, axis=0)
                     faces_np = np.append(faces_np, faces, axis=0)
                     samples_np = np.append(samples_np, values, axis=0)
+                    # print(type(samples_np))
+
+                    tmp_samps = dregion.ds.find_field_values_at_points(
+                        extra_fields, verts
+                    ).v
+                    # print(type(tmp_samps))
+                    # exit()
+
+                    extra_samples = np.append(extra_samples, tmp_samps)
 
                 except ValueError:
                     # Skip the regions that do not have values for the isosurface
@@ -251,12 +284,17 @@ def do_isosurface_extraction(
             verts_np = verts_np.astype(np.float64)
             faces_np = faces_np.astype(np.int32)
             samples_np = samples_np.astype(np.float64)
+            extra_samples = extra_samples.astype(np.float64)
+            # print(type(samples_np))
+            # print(type(extra_samples))
+            # exit()
 
             comm.barrier()
             # gather and combine
             all_verts = comm.gather(verts_np, root=0)
             all_faces = comm.gather(faces_np, root=0)
             all_samples = comm.gather(samples_np, root=0)
+            extra_samples = comm.gather(extra_samples, root=0)
 
             # Barrier before writing
             comm.barrier()
@@ -264,6 +302,7 @@ def do_isosurface_extraction(
                 all_verts_np = np.empty((0, 3), dtype=np.float64)
                 all_faces_np = np.empty((0, 3), dtype=np.int32)
                 all_samples_np = np.empty((0), dtype=np.float64)
+                all_extra_samps_np = np.empty((0), dtype=np.float64)
 
                 for i in range(size):
                     # offset the face indices by the current length of the array
@@ -273,12 +312,18 @@ def do_isosurface_extraction(
                     all_verts_np = np.append(all_verts_np, all_verts[i], axis=0)
                     all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
                     all_samples_np = np.append(all_samples_np, all_samples[i], axis=0)
+                    all_extra_samps_np = np.append(
+                        all_extra_samps_np, extra_samples[i], axis=0
+                    )
+
 
         # Write out the hdf5 and the xdmf file
         if rank == 0:
-            conn_shape, coord_shape, field_shape = write_hdf5(
+            conn_shape, coord_shape, field_shape, extra_field_shape = write_hdf5(
                 verts=all_verts_np,
                 samples=all_samples_np,
+                extra_samples=all_extra_samps_np,
+                extra_fields=extra_fields,
                 faces=all_faces_np,
                 field=field,
                 fname=os.path.join(outpath, f"{fname}.hdf5"),
@@ -288,6 +333,7 @@ def do_isosurface_extraction(
                 fbase=os.path.join(outpath, fname),
                 fhdf5=fname,
                 field=field,
+                extra_fields=extra_fields,
                 ftype="Scalar",
                 ctype="Node" if not do_yt else "Cell",
                 value=value,
@@ -295,6 +341,7 @@ def do_isosurface_extraction(
                 conn_shape=conn_shape,
                 coord_shape=coord_shape,
                 field_shape=field_shape,
+                extra_field_shape=extra_field_shape,
             )
 
     else:
@@ -489,6 +536,7 @@ def main():
             ds_attributes=ds_attributes,
             outformat=args.format,
             field=vis_field,
+            extra_fields=args.extra_fields,
             value=value,
             outpath=outpath if rank == 0 else None,
             fname=fname,
