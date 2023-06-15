@@ -200,7 +200,7 @@ def do_isosurface_extraction(
                 if do_ghost:
                     g, child_mask = retrieve_ghost_zones(
                         cube=g,
-                        n_zones=1,
+                        n_zones=2,
                         fields=field,
                         ds_left_edge=ds_attributes["left_edge"],
                         ds_right_edge=ds_attributes["right_edge"],
