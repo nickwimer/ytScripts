@@ -73,6 +73,13 @@ Ex: `python data_extraction/extract_grid_info.py -p DATADIR/ -o OUTDIR/ --name F
 
 Will save a pickle file of the pandas dataframe with grid information as a function of time and some stored metadata about the simulation.
 
+## extract_lines.py
+Extracts axis aligned lines of data from plot files.
+
+Ex: `python data_extraction/extract_lines.py -p DATADIR/ -o OUTDIR/ --name FILE_NAME --field temp --normal x --coords 0 0`
+
+Will save a pickle file of the pandas dataframe with the line extracted. The index will be the normal coordinate info and the columns will be the timestamp contained in the series of plot files.
+
 
 # Scripts for plotting extracted data
 Scripts for plotting data that was previously extracted using files under `data_extraction/`

@@ -386,6 +386,34 @@ class ytExtractArgs(ytArgs):
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
 
+    def line_args(self):
+        """Add arguments for extracting line data."""
+        self.parser.add_argument(
+            "--coords",
+            required=True,
+            type=float,
+            nargs="+",
+            help=(
+                "List of points to extract line aligned with normal."
+                "NOTE: if you are casting along x, this will be (y, z). If you are "
+                "casting along y, this will be (z, x). If you are casting along z, "
+                "this will be (x, y)."
+            ),
+        )
+        self.parser.add_argument(
+            "--rm_eb",
+            required=False,
+            action="store_true",
+            help="Flag to explicitly remove all data in EB regions.",
+        )
+        self.parser.add_argument(
+            "--name",
+            type=str,
+            required=False,
+            default="line_data",
+            help="Name of the output data file (.pkl).",
+        )
+
 
 class ytPlotArgs(ytArgs):
     """Class to interface with custom plot functions."""
