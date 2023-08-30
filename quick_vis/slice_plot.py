@@ -167,7 +167,7 @@ def main():
             slc.set_center(pbox_center)
         if args.fbounds is not None:
             slc.set_zlim(vis_field, args.fbounds[0], args.fbounds[1])
-        slc.annotate_timestamp(draw_inset_box=True)
+        slc.annotate_timestamp(draw_inset_box=(not args.no_time))
         if args.grids:
             if len(args.grids) > 0:
                 slc.annotate_grids(
@@ -178,6 +178,14 @@ def main():
                 )
             else:
                 slc.annotate_grids()
+
+        # annotate the cell edges of the mesh
+        if args.cells:
+            slc.annotate_cell_edges(
+                line_width=float(args.cells[0]),
+                alpha=float(args.cells[1]),
+                color=args.cells[2],
+            )
         slc.set_log(vis_field, args.plot_log)
         slc.set_cmap(field=vis_field, cmap=args.cmap)
 
@@ -190,8 +198,19 @@ def main():
 
             slc.set_colorbar_label(field=vis_field, label=new_label)
 
+        # Remove the units
+        if args.no_units:
+            norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
+            slc.set_colorbar_label(field=vis_field, label=vis_field)
+            slc.set_xlabel(norm_dict[args.normal][0])
+            slc.set_ylabel(norm_dict[args.normal][1])
+
         # Convert the slice to matplotlib figure
-        fig = slc.export_to_mpl_figure(nrows_ncols=(1, 1))
+        fig = slc.export_to_mpl_figure(
+            nrows_ncols=(1, 1),
+            cbar_pad=f"{args.cbar_pad}%",
+            cbar_location=args.cbar_loc,
+        )
 
         # Get the axes from the figure handle
         ax = fig.axes[0]

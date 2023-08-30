@@ -165,3 +165,13 @@ Some helpful options:
 `--grid_info`: Add a text box to the slice plot with information about the grids in the simulation. Inputs are: `xloc`, `yloc`, `min_level`, and `max_level`, where the first two inputs define the location of the text box and the second two inputs define the level range for information in the text box.
 
 `--rm_eb`: Optional flag to remove the EB boundary from the plot as defined by `vfrac` field in the dataset. Takes a float to specify the color between `[0=white, 1=black]`.
+
+`--gradient`: Choice of ["x", "y", "z", "magnitude"] to compute and visualize the gradient of the input field
+
+`--cbar_pad`: Percent to pad the colorbar from the figure axes (default = 5%)
+
+`--cbar_loc`: Location for the colorbar ["left", "right", "bottom", "top"]
+
+`--no_time`: Flag to remove the timestamp in the figure
+
+`--no_units`: Flag to remove all units from the plots (axes and colorbar)
