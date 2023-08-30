@@ -176,6 +176,14 @@ class ytVisArgs(ytArgs):
             ),
         )
         self.parser.add_argument(
+            "--cells",
+            type=str,
+            nargs="+",
+            # action="store_true",
+            default=False,
+            help=("Options to specify annotate cells (linewidth, alpha, color)",),
+        )
+        self.parser.add_argument(
             "--buff",
             type=int,
             nargs="+",
@@ -225,6 +233,30 @@ class ytVisArgs(ytArgs):
             required=False,
             default=None,
             help="Choice to visualize the gradient of the input field.",
+        )
+        self.parser.add_argument(
+            "--cbar_pad",
+            type=float,
+            required=False,
+            default=5,
+            help="Percent to pad the colorbar from the axes.",
+        )
+        self.parser.add_argument(
+            "--cbar_loc",
+            type=str,
+            choices=["left", "right", "bottom", "top"],
+            default="right",
+            help="Location for the colorbar.",
+        )
+        self.parser.add_argument(
+            "--no_time",
+            action="store_true",
+            help="Flag to remove the timestamp.",
+        )
+        self.parser.add_argument(
+            "--no_units",
+            action="store_true",
+            help="Flag to remove all units from plots.",
         )
 
 
