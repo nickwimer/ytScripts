@@ -240,16 +240,13 @@ def main():
             slc.set_ylabel(f"${norm_dict[args.normal][1]}$")
 
         # Override the colorbar label
-        if vis_field in configs["vis_field_attrs"]:
+        if vis_field in configs["vis_field_attrs"] and not args.no_units:
             slc.set_colorbar_label(
                 field=vis_field,
                 label=configs["vis_field_attrs"][vis_field]["label"],
             )
 
         slc.set_font_size(configs["plot_attrs"]["base"]["fontsize"])
-
-        # print(configs)
-        # exit()
 
         # Convert the slice to matplotlib figure
         fig = slc.export_to_mpl_figure(
