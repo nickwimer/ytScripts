@@ -3,21 +3,19 @@ channels:
   - conda-forge
 
 dependencies:
-  - python=3.8.13
-  - yt=4.0.5
-  # - numpy<1.23.0
-  - numpy=1.22.3
-  - pandas
-  - matplotlib-base=3.5.2
-  # - matplotlib
-  - h5py=3.7.0
-  - scikit-image=0.19.2
+  - python>=3.11
+  - yt
   - pip
   - pip:
+    - numpy
+    - pandas
+    - matplotlib
+    - h5py
+    - scikit-image
+    - pydantic
     - black
     - isort
     - flake8
-    # - yt
     - lxml
     - mpi4py
     - pyvalem

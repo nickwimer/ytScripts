@@ -2,18 +2,22 @@
 import os
 import pickle as pl
 import sys
+import tomllib
 
 import numpy as np
 import yt
+from pydantic.v1.utils import deep_update
 from skimage.measure import find_contours
 from yt.units.yt_array import YTArray
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
+import matplotlib.pyplot as plt  # noqa: E402
+
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
-import matplotlib.pyplot as plt
 plt.rc("text", usetex=True)
+
 
 def get_args():
     """Parse command line arguments."""
@@ -25,6 +29,25 @@ def get_args():
     ytparse.slice_args()
     # Return the parsed arguments
     return ytparse.parse_args()
+
+
+def get_configs():
+    """Parse the configuration options from toml file."""
+    cpath = os.path.abspath(os.path.join(sys.argv[0], ".."))
+
+    # Read the default configs
+    with open(os.path.join(cpath, "config.toml"), "rb") as f:
+        configs = tomllib.load(f)
+
+    # Read any updates to the configs
+    if "config_user.toml" in os.listdir(cpath):
+        with open(os.path.join(cpath, "config_user.toml"), "rb") as f:
+            user_configs = tomllib.load(f)
+
+    # Update the configuration dictionary
+    configs = deep_update(configs, user_configs)
+
+    return configs
 
 
 def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
@@ -42,9 +65,11 @@ def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
 
 
 def main():
-
     # Parse the input arguments
     args = get_args()
+
+    # Parse the configuration options
+    configs = get_configs()
 
     # Make the output directory for images
     if args.outpath:
@@ -131,7 +156,6 @@ def main():
     # Loop over all datasets in the time series
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
-
         # Visualize the gradient field, if requested
         if args.gradient:
             vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
@@ -202,33 +226,49 @@ def main():
             slc.set_colorbar_label(field=vis_field, label=new_label)
 
         # Remove the units
-        vis_field_attrs = {"density": {"label":r"$\rho$"}}
         if args.no_units:
             norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
-            #slc.set_colorbar_label(field=vis_field, label=vis_field_attrs[vis_field]["label"])
-            slc.set_colorbar_label(field=vis_field, label="")
+            slc.set_colorbar_label(
+                field=vis_field,
+                label=configs["vis_field_attrs"][vis_field]["label"]
+                if vis_field in configs["vis_field_attrs"]
+                else vis_field,
+            )
+            if not configs["cbar_attrs"]["label"]["loc"] == "right":
+                slc.set_colorbar_label(field=vis_field, label="")
             slc.set_xlabel(f"${norm_dict[args.normal][0]}$")
             slc.set_ylabel(f"${norm_dict[args.normal][1]}$")
 
-        slc.set_font_size(35)
+        slc.set_font_size(configs["plot_attrs"]["base"]["fontsize"])
+
+        # print(configs)
+        # exit()
 
         # Convert the slice to matplotlib figure
         fig = slc.export_to_mpl_figure(
             nrows_ncols=(1, 1),
-            cbar_pad=f"{args.cbar_pad}%",
-            cbar_location=args.cbar_loc,
+            cbar_pad=configs["cbar_attrs"]["base"]["pad"],
+            cbar_location=configs["cbar_attrs"]["base"]["loc"],
         )
 
         # Get the axes from the figure handle
         ax = fig.axes[0]
 
-        ax.tick_params(axis='x', labelsize=25)
-        ax.tick_params(axis='y', labelsize=25)
+        axlabel_size = configs["plot_attrs"]["axes"]["labelsize"]
+        ax.tick_params(axis="x", labelsize=axlabel_size)
+        ax.tick_params(axis="y", labelsize=axlabel_size)
 
         axc = fig.axes[1]
-        axc.tick_params(axis='x', labelsize=25)
-        axc.tick_params(axis='y', labelsize=25)
-        axc.set_title(vis_field_attrs[vis_field]["label"], fontsize=35)
+        axc.tick_params(axis="x", labelsize=axlabel_size)
+        axc.tick_params(axis="y", labelsize=axlabel_size)
+
+        if configs["cbar_attrs"]["label"]["loc"] == "top":
+            axc.set_title(
+                configs["vis_field_attrs"][vis_field]["label"]
+                if vis_field in configs["vis_field_attrs"]
+                else vis_field,
+                fontsize=configs["plot_attrs"]["base"]["fontsize"],
+            )
         axc.set_xlabel("")
 
         if args.contour is not None:
@@ -294,7 +334,6 @@ def main():
 
         # Add grid information to the slice plot
         if args.grid_info:
-
             dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
 
             level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
@@ -329,7 +368,6 @@ def main():
 
         # Remove the EB boundary defined by vfrac < 0.5
         if args.rm_eb:
-
             if args.pbox:
                 extent = [args.pbox[0], args.pbox[2], args.pbox[1], args.pbox[3]]
             else:
