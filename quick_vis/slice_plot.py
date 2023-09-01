@@ -12,6 +12,8 @@ sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
+import matplotlib.pyplot as plt
+plt.rc("text", usetex=True)
 
 def get_args():
     """Parse command line arguments."""
@@ -167,7 +169,8 @@ def main():
             slc.set_center(pbox_center)
         if args.fbounds is not None:
             slc.set_zlim(vis_field, args.fbounds[0], args.fbounds[1])
-        slc.annotate_timestamp(draw_inset_box=(not args.no_time))
+        if not args.no_time:
+            slc.annotate_timestamp(draw_inset_box=True)
         if args.grids:
             if len(args.grids) > 0:
                 slc.annotate_grids(
@@ -199,11 +202,15 @@ def main():
             slc.set_colorbar_label(field=vis_field, label=new_label)
 
         # Remove the units
+        vis_field_attrs = {"density": {"label":r"$\rho$"}}
         if args.no_units:
             norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
-            slc.set_colorbar_label(field=vis_field, label=vis_field)
-            slc.set_xlabel(norm_dict[args.normal][0])
-            slc.set_ylabel(norm_dict[args.normal][1])
+            #slc.set_colorbar_label(field=vis_field, label=vis_field_attrs[vis_field]["label"])
+            slc.set_colorbar_label(field=vis_field, label="")
+            slc.set_xlabel(f"${norm_dict[args.normal][0]}$")
+            slc.set_ylabel(f"${norm_dict[args.normal][1]}$")
+
+        slc.set_font_size(35)
 
         # Convert the slice to matplotlib figure
         fig = slc.export_to_mpl_figure(
@@ -214,6 +221,15 @@ def main():
 
         # Get the axes from the figure handle
         ax = fig.axes[0]
+
+        ax.tick_params(axis='x', labelsize=25)
+        ax.tick_params(axis='y', labelsize=25)
+
+        axc = fig.axes[1]
+        axc.tick_params(axis='x', labelsize=25)
+        axc.tick_params(axis='y', labelsize=25)
+        axc.set_title(vis_field_attrs[vis_field]["label"], fontsize=35)
+        axc.set_xlabel("")
 
         if args.contour is not None:
             xres, yres, zres = np.array(ds_attributes["resolution"])
@@ -314,15 +330,18 @@ def main():
         # Remove the EB boundary defined by vfrac < 0.5
         if args.rm_eb:
 
-            lx, ly, lz = np.array(ds_attributes["left_edge"])
-            rx, ry, rz = np.array(ds_attributes["right_edge"])
+            if args.pbox:
+                extent = [args.pbox[0], args.pbox[2], args.pbox[1], args.pbox[3]]
+            else:
+                lx, ly, lz = np.array(ds_attributes["left_edge"])
+                rx, ry, rz = np.array(ds_attributes["right_edge"])
 
-            if args.normal == "x":
-                extent = [ly, ry, lz, rz]
-            elif args.normal == "y":
-                extent = [lz, rz, lx, rx]
-            elif args.normal == "z":
-                extent = [lx, rx, ly, ry]
+                if args.normal == "x":
+                    extent = [ly, ry, lz, rz]
+                elif args.normal == "y":
+                    extent = [lz, rz, lx, rx]
+                elif args.normal == "z":
+                    extent = [lx, rx, ly, ry]
 
             vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
             m_vfrac = np.ma.array(
