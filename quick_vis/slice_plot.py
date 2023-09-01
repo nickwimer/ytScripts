@@ -239,6 +239,13 @@ def main():
             slc.set_xlabel(f"${norm_dict[args.normal][0]}$")
             slc.set_ylabel(f"${norm_dict[args.normal][1]}$")
 
+        # Override the colorbar label
+        if vis_field in configs["vis_field_attrs"]:
+            slc.set_colorbar_label(
+                field=vis_field,
+                label=configs["vis_field_attrs"][vis_field]["label"],
+            )
+
         slc.set_font_size(configs["plot_attrs"]["base"]["fontsize"])
 
         # print(configs)
