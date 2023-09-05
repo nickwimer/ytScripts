@@ -124,6 +124,8 @@ This will create a 2D slice plot with x as the normal irection and bounds on fie
 
 Can now make full use of parallel processing over multiple datasets in a timeseries. Just submit using `mpirun -np X` or equivalent and images will be processed in an embarassingly parallel manner.
 
+This script now automatically references a list of configuration settings located in `quick_vis/config.toml`. If you would like to change any of these default settings simply create a new configuration file called `quick_vis/config_user.toml` and manually override just the settings that you want to change. The code will update the configuration settings with your new values. NOTE: In the future many of the command line options will be incorporated into these files.
+
 Some helpful options:
 
 `--datapath`: Path to the plot files.
@@ -167,10 +169,6 @@ Some helpful options:
 `--rm_eb`: Optional flag to remove the EB boundary from the plot as defined by `vfrac` field in the dataset. Takes a float to specify the color between `[0=white, 1=black]`.
 
 `--gradient`: Choice of ["x", "y", "z", "magnitude"] to compute and visualize the gradient of the input field
-
-`--cbar_pad`: Percent to pad the colorbar from the figure axes (default = 5%)
-
-`--cbar_loc`: Location for the colorbar ["left", "right", "bottom", "top"]
 
 `--no_time`: Flag to remove the timestamp in the figure
 

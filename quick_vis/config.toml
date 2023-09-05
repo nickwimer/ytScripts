@@ -1,0 +1,35 @@
+title = "Default configuration file"
+
+# Holds visualization field attributes
+[vis_field_attrs]
+
+## Used to override the vis field display name
+[vis_field_attrs.density]
+label = "$\\rho$"
+
+##########
+# Holds various pyplot settings 
+[plot_attrs]
+
+## Base plot settings
+[plot_attrs.base]
+fontsize = 35
+## Settings for axes
+[plot_attrs.axes]
+labelsize = 25
+
+##########
+# Holds the colorbar settings
+[cbar_attrs]
+
+## Base colorbar settings
+[cbar_attrs.base]
+pad = "5%"
+loc = "right"
+fontsize = 35
+## Colorbar label settings
+[cbar_attrs.label]
+loc = "right"
+## Settings for colorbar title
+[cbar_attrs.title]
+pad = 10

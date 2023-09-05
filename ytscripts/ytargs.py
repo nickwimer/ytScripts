@@ -235,20 +235,6 @@ class ytVisArgs(ytArgs):
             help="Choice to visualize the gradient of the input field.",
         )
         self.parser.add_argument(
-            "--cbar_pad",
-            type=float,
-            required=False,
-            default=5,
-            help="Percent to pad the colorbar from the axes.",
-        )
-        self.parser.add_argument(
-            "--cbar_loc",
-            type=str,
-            choices=["left", "right", "bottom", "top"],
-            default="right",
-            help="Location for the colorbar.",
-        )
-        self.parser.add_argument(
             "--no_time",
             action="store_true",
             help="Flag to remove the timestamp.",
