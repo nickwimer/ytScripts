@@ -44,8 +44,8 @@ def get_configs():
         with open(os.path.join(cpath, "config_user.toml"), "rb") as f:
             user_configs = tomllib.load(f)
 
-    # Update the configuration dictionary
-    configs = deep_update(configs, user_configs)
+        # Update the configuration dictionary
+        configs = deep_update(configs, user_configs)
 
     return configs
 
@@ -271,7 +271,8 @@ def main():
                 configs["vis_field_attrs"][vis_field]["label"]
                 if vis_field in configs["vis_field_attrs"]
                 else vis_field,
-                fontsize=configs["plot_attrs"]["base"]["fontsize"],
+                fontsize=configs["cbar_attrs"]["base"]["fontsize"],
+                pad=configs["cbar_attrs"]["title"]["pad"],
             )
         axc.set_xlabel("")
 
