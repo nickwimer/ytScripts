@@ -10,3 +10,5 @@ cells = [1e-10, 0.5, "black"]
 pbox = [-1, -1, 1, 1]
 no_units = true
 no_time = true
+
+add_udf = "double_ramp.py"

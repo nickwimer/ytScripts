@@ -1,10 +1,12 @@
 """2D slice down the middle of the domain."""
 
+import importlib
 import os
 import pickle as pl
 import subprocess
 import sys
 import tomllib
+from inspect import getmembers, isfunction
 
 import numpy as np
 import yt
@@ -99,6 +101,19 @@ def main():
     # Parse the input file options
     if args["ifile"]:
         args = get_inputs(args, configs)
+
+    # Import UDFS
+    udf_funcs = {}
+    if args["add_udf"]:
+        udf_path = os.path.abspath(os.path.join(sys.argv[0], "../../", "udfs"))
+        sys.path.append(udf_path)
+        udf_mod = importlib.import_module("udfs" + f""".{args["add_udf"][:-3]}""")
+
+        udf_tups = getmembers(udf_mod, isfunction)
+
+        # Convert the tuples to dict
+        for iname, ifunc in udf_tups:
+            udf_funcs.update({iname: ifunc})
 
     # Make the output directory for images
     if args["outpath"]:
@@ -445,21 +460,25 @@ def main():
                 elif args["normal"] == "z":
                     extent = [lx, rx, ly, ry]
 
-            vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
-            m_vfrac = np.ma.array(
-                args["rm_eb"] * np.ones(np.shape(vfrac)),
-                mask=(vfrac > 0.5),
-                fill_value=np.nan,
-            )
-            ax.imshow(
-                m_vfrac,
-                origin="lower",
-                extent=extent,
-                aspect="equal",
-                cmap="binary",
-                vmin=0.0,
-                vmax=1.0,
-            )
+            # TODO: move the default rm_eb function into utils of top of script
+            if "rm_eb" in udf_funcs:
+                ax = udf_funcs["rm_eb"](ax)
+            else:
+                vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
+                m_vfrac = np.ma.array(
+                    args["rm_eb"] * np.ones(np.shape(vfrac)),
+                    mask=(vfrac > 0.5),
+                    fill_value=np.nan,
+                )
+                ax.imshow(
+                    m_vfrac,
+                    origin="lower",
+                    extent=extent,
+                    aspect="equal",
+                    cmap="binary",
+                    vmin=0.0,
+                    vmax=1.0,
+                )
 
         fig.tight_layout()
         fig.savefig(

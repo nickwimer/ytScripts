@@ -254,6 +254,13 @@ class ytVisArgs(ytArgs):
             default=None,
             help="Path to the input file for configuring plots.",
         )
+        self.parser.add_argument(
+            "--add_udf",
+            type=str,
+            required=False,
+            default=None,
+            help="Name of user defined functions file (located in udfs/).",
+        )
 
 
 class ytExtractArgs(ytArgs):
