@@ -42,8 +42,8 @@ def get_args():
     ytparse.orientation_args()
     ytparse.vis_2d_args()
     ytparse.slice_args()
-    # Return the parsed arguments
-    return ytparse.parse_args()
+    # Return the parsed arguments as a dict
+    return vars(ytparse.parse_args())
 
 
 def get_configs():
@@ -63,6 +63,16 @@ def get_configs():
         configs = deep_update(configs, user_configs)
 
     return configs
+
+
+def get_inputs(args, configs):
+    """Parse the input file options from toml."""
+    with open(args["ifile"], "rb") as f:
+        input_options = tomllib.load(f)
+
+    args = deep_update(args, input_options)
+
+    return args
 
 
 def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
@@ -86,15 +96,19 @@ def main():
     # Parse the configuration options
     configs = get_configs()
 
+    # Parse the input file options
+    if args["ifile"]:
+        args = get_inputs(args, configs)
+
     # Make the output directory for images
-    if args.outpath:
-        imgpath = args.outpath
+    if args["outpath"]:
+        imgpath = args["outpath"]
     else:
         imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata/", "images"))
     os.makedirs(imgpath, exist_ok=True)
 
     # Override the units if needed
-    if args.SI:
+    if args["SI"]:
         units_override = {
             "length_unit": (1.0, "m"),
             "time_unit": (1.0, "s"),
@@ -110,14 +124,14 @@ def main():
 
     # Load data files into dataset series
     ts, index_dict = utils.load_dataseries(
-        datapath=args.datapath, pname=args.pname, units_override=units_override
+        datapath=args["datapath"], pname=args["pname"], units_override=units_override
     )
 
     # Get base attributes
     base_attributes = utils.get_attributes(ds=ts[0])
 
     # get number of cells in the level 0 non-EB grid
-    if args.grid_info:
+    if args["grid_info"]:
         dx0, dy0, dz0 = np.array(base_attributes["dxyz"])
         data = ts[0].covering_grid(
             level=0,
@@ -132,7 +146,7 @@ def main():
         # Dx, Dy, Dz = right_edge - left_edge
         # domain_volume = Dx * Dy * Dz
 
-    if args.verbose:
+    if args["verbose"]:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
         print(
             f"""The derived fields in this dataset are: """
@@ -140,32 +154,32 @@ def main():
         )
 
     # Set the center of the plot for loading the data
-    if args.center is not None:
-        slc_center = args.center
+    if args["center"] is not None:
+        slc_center = args["center"]
     else:
         # Set the center based on the plt data
         slc_center = (
             base_attributes["right_edge"] + base_attributes["left_edge"]
         ) / 2.0
         # provide slight offset to avoid grid alignment vis issues
-        slc_center += YTArray(args.grid_offset, base_attributes["length_unit"])
+        slc_center += YTArray(args["grid_offset"], base_attributes["length_unit"])
 
     # Compute the center of the image for plotting
-    if args.pbox:
+    if args["pbox"]:
         # Set the center based on the pbox
         pbox_center = [
-            (args.pbox[2] + args.pbox[0]) / 2.0,
-            (args.pbox[3] + args.pbox[1]) / 2.0,
+            (args["pbox"][2] + args["pbox"][0]) / 2.0,
+            (args["pbox"][3] + args["pbox"][1]) / 2.0,
         ]
         # Set the width based on the pbox
         pbox_width = (
-            (args.pbox[2] - args.pbox[0], axes_unit),
-            (args.pbox[3] - args.pbox[1], axes_unit),
+            (args["pbox"][2] - args["pbox"][0], axes_unit),
+            (args["pbox"][3] - args["pbox"][1], axes_unit),
         )
         # Set the left edge base on the pbox
         # pbox_left_edge = [args.pbox[0], args.pbox[1]]
 
-        if args.contour:
+        if args["contour"]:
             sys.exit("joint pbox and contour options are currently broken...")
 
     # Loop over all datasets in the time series
@@ -179,10 +193,10 @@ def main():
             utils.define_velocity_fields(ds)
 
         # Visualize the gradient field, if requested
-        if args.gradient:
-            vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
+        if args["gradient"]:
+            vis_field = utils.get_gradient_field(ds, args["field"], args["gradient"])
         else:
-            vis_field = args.field
+            vis_field = args["field"]
 
         # Get updated attributes for each plt file
         ds_attributes = utils.get_attributes(ds=ds)
@@ -206,11 +220,13 @@ def main():
         # Plot the field
         slc = yt.SlicePlot(
             ds=ds,
-            normal=args.normal,
+            normal=args["normal"],
             fields=vis_field,
             center=slc_center,
             buff_size=(
-                tuple(args.buff) if args.buff is not None else slc_res[args.normal]
+                tuple(args["buff"])
+                if args["buff"] is not None
+                else slc_res[args["normal"]]
             ),
         )
         if args.normal == "y":
@@ -218,45 +234,45 @@ def main():
         slc.set_axes_unit(axes_unit)
         slc.set_origin("native")
 
-        if args.pbox is not None:
+        if args["pbox"] is not None:
             slc.set_width(pbox_width)
             slc.set_center(pbox_center)
-        if args.fbounds is not None:
-            slc.set_zlim(vis_field, args.fbounds[0], args.fbounds[1])
-        if not args.no_time:
+        if args["fbounds"] is not None:
+            slc.set_zlim(vis_field, args["fbounds"][0], args["fbounds"][1])
+        if not args["no_time"]:
             slc.annotate_timestamp(draw_inset_box=True)
-        if args.grids:
-            if len(args.grids) > 0:
+        if args["grids"]:
+            if len(args["grids"]) > 0:
                 slc.annotate_grids(
-                    alpha=args.grids[0],
-                    min_level=args.grids[1],
-                    max_level=args.grids[2],
-                    linewidth=args.grids[3],
+                    alpha=args["grids"][0],
+                    min_level=args["grids"][1],
+                    max_level=args["grids"][2],
+                    linewidth=args["grids"][3],
                 )
             else:
                 slc.annotate_grids()
 
         # annotate the cell edges of the mesh
-        if args.cells:
+        if args["cells"]:
             slc.annotate_cell_edges(
-                line_width=float(args.cells[0]),
-                alpha=float(args.cells[1]),
-                color=args.cells[2],
+                line_width=float(args["cells"][0]),
+                alpha=float(args["cells"][1]),
+                color=args["cells"][2],
             )
-        slc.set_log(vis_field, args.plot_log)
-        slc.set_cmap(field=vis_field, cmap=args.cmap)
+        slc.set_log(vis_field, args["plot_log"])
+        slc.set_cmap(field=vis_field, cmap=args["cmap"])
 
         # Set the colorbar label for gradient fields (too long)
-        if args.gradient:
-            if args.gradient == "magnitude":
-                new_label = rf"|$\nabla$ {args.field}|"
+        if args["gradient"]:
+            if args["gradient"] == "magnitude":
+                new_label = rf"""|$\nabla$ {args["field"]}|"""
             else:
-                new_label = rf"$\nabla_{args.gradient}$ {args.field}"
+                new_label = rf"""$\nabla_{args["gradient"]}$ {args["field"]}"""
 
             slc.set_colorbar_label(field=vis_field, label=new_label)
 
         # Remove the units
-        if args.no_units:
+        if args["no_units"]:
             norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
             slc.set_colorbar_label(
                 field=vis_field,
@@ -266,17 +282,21 @@ def main():
                     else vis_field
                 ),
             )
-            if not configs["cbar_attrs"]["label"]["loc"] == "right":
-                slc.set_colorbar_label(field=vis_field, label="")
-            slc.set_xlabel(f"${norm_dict[args.normal][0]}$")
-            slc.set_ylabel(f"${norm_dict[args.normal][1]}$")
+            # if not configs["cbar_attrs"]["label"]["loc"] == "right":
+            # slc.set_colorbar_label(field=vis_field, label="")
+            slc.set_xlabel(f"""${norm_dict[args["normal"]][0]}$""")
+            slc.set_ylabel(f"""${norm_dict[args["normal"]][1]}$""")
 
         # Override the colorbar label
-        if vis_field in configs["vis_field_attrs"] and not args.no_units:
+        if vis_field in configs["vis_field_attrs"] and not args["no_units"]:
             slc.set_colorbar_label(
                 field=vis_field,
                 label=configs["vis_field_attrs"][vis_field]["label"],
             )
+
+        # Remove the colorbar label if plotting on top
+        if configs["cbar_attrs"]["label"]["loc"] == "top":
+            slc.set_colorbar_label(field=vis_field, label="")
 
         slc.set_font_size(configs["plot_attrs"]["base"]["fontsize"])
 
@@ -310,7 +330,7 @@ def main():
             )
         axc.set_xlabel("")
 
-        if args.contour is not None:
+        if args["contour"] is not None:
             xres, yres, zres = np.array(ds_attributes["resolution"])
 
             lx, ly, lz = np.array(ds_attributes["left_edge"])
@@ -320,59 +340,59 @@ def main():
             dz = (rz - lz) / zres
 
             # contour must be a multiple of three arguments
-            if not len(args.contour) % 3 == 0:
+            if not len(args["contour"]) % 3 == 0:
                 sys.exit(
                     "Contour argument must be a multiple of 3! [FIELD, VALUE, COLOR]"
                 )
             else:
-                num_contours = len(args.contour) // 3
+                num_contours = len(args["contour"]) // 3
 
             # Compute and plot the contours
             for icnt in range(num_contours):
-                if args.clw is None:
+                if args["clw"] is None:
                     linewidth = 1.0
                 else:
-                    linewidth = args.clw[icnt]
+                    linewidth = args["clw"][icnt]
 
                 idx = icnt * 3
                 contour = find_contours(
-                    image=slc.frb[args.contour[idx]], level=args.contour[idx + 1]
+                    image=slc.frb[args["contour"][idx]], level=args["contour"][idx + 1]
                 )
 
-                if args.normal == "x":
+                if args["normal"] == "x":
                     plot_contours(
                         contour=contour,
                         ax=ax,
                         left_edge=[ly, lz],
                         dxy=[dy, dz],
-                        color=args.contour[idx + 2],
+                        color=args["contour"][idx + 2],
                         linewidth=linewidth,
                     )
-                elif args.normal == "y":
+                elif args["normal"] == "y":
                     plot_contours(
                         contour=contour,
                         ax=ax,
                         left_edge=[lz, lx],
                         dxy=[dz, dx],
-                        color=args.contour[idx + 2],
+                        color=args["contour"][idx + 2],
                         linewidth=linewidth,
                     )
-                elif args.normal == "z":
+                elif args["normal"] == "z":
                     plot_contours(
                         contour=contour,
                         ax=ax,
                         left_edge=[lx, ly],
                         dxy=[dx, dy],
-                        color=args.contour[idx + 2],
+                        color=args["contour"][idx + 2],
                         linewidth=linewidth,
                     )
                 else:
-                    sys.exit(f"Normal {args.normal} is not in [x, y, z]!")
+                    sys.exit(f"""Normal {args["normal"]} is not in [x, y, z]!""")
 
-        plt_fname = f"{vis_field}_{args.normal}_{str(index).zfill(5)}"
+        plt_fname = f"""{vis_field}_{args["normal"]}_{str(index).zfill(5)}"""
 
         # Add grid information to the slice plot
-        if args.grid_info:
+        if args["grid_info"]:
             dx0, dy0, dz0 = np.array(ds_attributes["dxyz"])
 
             level_data = ds.index.level_stats[0 : ds.index.max_level + 1]
@@ -390,7 +410,7 @@ def main():
 
             # Define text with grid info
             text_string = ""
-            for ilev in np.arange(args.grid_info[2], args.grid_info[3] + 1):
+            for ilev in np.arange(args["grid_info"][2], args["grid_info"][3] + 1):
                 text_string += (
                     f"Level {int(ilev)} vol: {cell_vol_percents[int(ilev)]:.1f}%\n"
                 )
@@ -398,31 +418,36 @@ def main():
 
             # Add text
             ax.text(
-                x=args.grid_info[0],
-                y=args.grid_info[1],
+                x=args["grid_info"][0],
+                y=args["grid_info"][1],
                 s=text_string,
                 color="white",
                 bbox=dict(facecolor="black", edgecolor="white", boxstyle="round"),
             )
 
         # Remove the EB boundary defined by vfrac < 0.5
-        if args.rm_eb:
-            if args.pbox:
-                extent = [args.pbox[0], args.pbox[2], args.pbox[1], args.pbox[3]]
+        if args["rm_eb"]:
+            if args["pbox"]:
+                extent = [
+                    args["pbox"][0],
+                    args["pbox"][2],
+                    args["pbox"][1],
+                    args["pbox"][3],
+                ]
             else:
                 lx, ly, lz = np.array(ds_attributes["left_edge"])
                 rx, ry, rz = np.array(ds_attributes["right_edge"])
 
-                if args.normal == "x":
+                if args["normal"] == "x":
                     extent = [ly, ry, lz, rz]
-                elif args.normal == "y":
+                elif args["normal"] == "y":
                     extent = [lz, rz, lx, rx]
-                elif args.normal == "z":
+                elif args["normal"] == "z":
                     extent = [lx, rx, ly, ry]
 
             vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
             m_vfrac = np.ma.array(
-                args.rm_eb * np.ones(np.shape(vfrac)),
+                args["rm_eb"] * np.ones(np.shape(vfrac)),
                 mask=(vfrac > 0.5),
                 fill_value=np.nan,
             )
@@ -439,11 +464,11 @@ def main():
         fig.tight_layout()
         fig.savefig(
             os.path.join(imgpath, f"{plt_fname}.png"),
-            dpi=args.dpi,
+            dpi=args["dpi"],
         )
 
         # Dump the figure handle as pickle for later modifications
-        if args.pickle:
+        if args["pickle"]:
             with open(os.path.join(imgpath, f"{plt_fname}.pickle"), "wb") as f:
                 pl.dump(fig, f)
 

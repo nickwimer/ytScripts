@@ -58,7 +58,8 @@ class ytArgs:
         self.parser.add_argument(
             "--field",
             type=str,
-            required=True,
+            required=False,
+            default="density",
             help="Name of the field for visualization.",
         )
         self.parser.add_argument(
@@ -99,7 +100,8 @@ class ytArgs:
         self.parser.add_argument(
             "--normal",
             type=str,
-            required=True,
+            required=False,
+            default="z",
             help="Normal direction for the slice plot.",
         )
         self.parser.add_argument(
@@ -244,6 +246,13 @@ class ytVisArgs(ytArgs):
             "--no_units",
             action="store_true",
             help="Flag to remove all units from plots.",
+        )
+        self.parser.add_argument(
+            "--ifile",
+            type=str,
+            required=False,
+            default=None,
+            help="Path to the input file for configuring plots.",
         )
 
 
