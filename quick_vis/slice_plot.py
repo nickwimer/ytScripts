@@ -53,20 +53,22 @@ def get_args():
         with open(init_args.ifile, "rb") as f:
             input_options = tomllib.load(f)
 
-    # Now combine the two with preference towards input file
-    args = deep_update(vars(init_args), input_options)
+        # Now combine the two with preference towards input file
+        args = deep_update(vars(init_args), input_options)
 
-    # Update any manually specified values
-    for indx, iarg in enumerate(sys.argv):
-        if "-" in iarg:
-            user_arg = iarg.replace("-", "")
+        # Update any manually specified values
+        for indx, iarg in enumerate(sys.argv):
+            if "-" in iarg:
+                user_arg = iarg.replace("-", "")
 
-            # Check to see if arg is a flag
-            if type(args[user_arg]) is bool:
-                args = deep_update(args, {user_arg: True})
-            else:
-                args = deep_update(args, {user_arg: sys.argv[indx + 1]})
+                # Check to see if arg is a flag
+                if type(args[user_arg]) is bool:
+                    args = deep_update(args, {user_arg: True})
+                else:
+                    args = deep_update(args, {user_arg: sys.argv[indx + 1]})
 
+    else:
+        args = vars(init_args)
     # Return the parsed arguments as a dict
     return args
 
