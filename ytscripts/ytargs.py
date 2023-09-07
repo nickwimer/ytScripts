@@ -33,14 +33,12 @@ class ytArgs:
     def io_args(self):
         """Add I/O arguments."""
         self.parser.add_argument(
-            "-p",
             "--datapath",
             type=str,
             required=True,
             help="Path to the data files.",
         )
         self.parser.add_argument(
-            "-o",
             "--outpath",
             type=str,
             required=False,
@@ -92,7 +90,14 @@ class ytArgs:
             type=int,
             required=False,
             default=None,
-            help="""Skip every "nskip" entries in "pname" list""",
+            help="""Skip every "nskip" entries in "pname" list.""",
+        )
+        self.parser.add_argument(
+            "--ifile",
+            type=str,
+            required=False,
+            default=None,
+            help="Path to the input file for configuring plots.",
         )
 
     def orientation_args(self):
@@ -155,7 +160,6 @@ class ytVisArgs(ytArgs):
     def slice_args(self):
         """Add arguments for SlicePlot."""
         self.parser.add_argument(
-            "-c",
             "--center",
             nargs="+",
             type=float,
@@ -171,7 +175,6 @@ class ytVisArgs(ytArgs):
             "--grids",
             type=float,
             nargs="+",
-            # action="store_true",
             default=None,
             help=(
                 "Options to specify annotate grids (alpha, min_level, max_level, "
@@ -180,11 +183,10 @@ class ytVisArgs(ytArgs):
         )
         self.parser.add_argument(
             "--cells",
-            type=str,
             nargs="+",
-            # action="store_true",
-            default=False,
-            help="Options to specify annotate cells (linewidth, alpha, color)",
+            type=str,
+            default=None,
+            help="Options to specify annotate cells (linewidth, alpha, color).",
         )
         self.parser.add_argument(
             "--buff",
@@ -246,13 +248,6 @@ class ytVisArgs(ytArgs):
             "--no_units",
             action="store_true",
             help="Flag to remove all units from plots.",
-        )
-        self.parser.add_argument(
-            "--ifile",
-            type=str,
-            required=False,
-            default=None,
-            help="Path to the input file for configuring plots.",
         )
         self.parser.add_argument(
             "--add_udf",
@@ -448,7 +443,6 @@ class ytPlotArgs(ytArgs):
             help="Names of the data fields to plot.",
         )
         self.parser.add_argument(
-            "-f",
             "--fname",
             type=str,
             nargs="+",
@@ -470,7 +464,6 @@ class ytPlotArgs(ytArgs):
     def grid_args(self):
         """Add arguments for plotting grid info."""
         self.parser.add_argument(
-            "-f",
             "--fname",
             type=str,
             required=True,

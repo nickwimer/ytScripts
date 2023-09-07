@@ -44,8 +44,31 @@ def get_args():
     ytparse.orientation_args()
     ytparse.vis_2d_args()
     ytparse.slice_args()
+
+    # Get the initial set of arguments
+    init_args = ytparse.parse_args()
+
+    # Read the input file if it exists
+    if init_args.ifile:
+        with open(init_args.ifile, "rb") as f:
+            input_options = tomllib.load(f)
+
+    # Now combine the two with preference towards input file
+    args = deep_update(vars(init_args), input_options)
+
+    # Update any manually specified values
+    for indx, iarg in enumerate(sys.argv):
+        if "-" in iarg:
+            user_arg = iarg.replace("-", "")
+
+            # Check to see if arg is a flag
+            if type(args[user_arg]) is bool:
+                args = deep_update(args, {user_arg: True})
+            else:
+                args = deep_update(args, {user_arg: sys.argv[indx + 1]})
+
     # Return the parsed arguments as a dict
-    return vars(ytparse.parse_args())
+    return args
 
 
 def get_configs():
@@ -65,16 +88,6 @@ def get_configs():
         configs = deep_update(configs, user_configs)
 
     return configs
-
-
-def get_inputs(args, configs):
-    """Parse the input file options from toml."""
-    with open(args["ifile"], "rb") as f:
-        input_options = tomllib.load(f)
-
-    args = deep_update(args, input_options)
-
-    return args
 
 
 def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
@@ -98,11 +111,7 @@ def main():
     # Parse the configuration options
     configs = get_configs()
 
-    # Parse the input file options
-    if args["ifile"]:
-        args = get_inputs(args, configs)
-
-    # Import UDFS
+    # Import UDFs
     udf_funcs = {}
     if args["add_udf"]:
         udf_path = os.path.abspath(os.path.join(sys.argv[0], "../../", "udfs"))
