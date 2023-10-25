@@ -126,6 +126,10 @@ def main():
         for iname, ifunc in udf_tups:
             udf_funcs.update({iname: ifunc})
 
+    # Enable tex parsing for plots
+    if args["use_tex"]:
+        plt.rc("text", usetex=True)
+
     # Make the output directory for images
     if args["outpath"]:
         imgpath = args["outpath"]

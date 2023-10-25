@@ -1,3 +1,4 @@
+"""Example way to override rm_eb behavior."""
 import matplotlib as mpl
 import matplotlib.patches as patches
 import numpy as np
@@ -17,9 +18,6 @@ def rm_eb(ax):
     r2.set_transform(rotate + translate_p + ax.transData)
     r3.set_transform(rotate + translate_m + ax.transData)
 
-    # r1 = patches.Rectangle((-10,-0.172), 20, 0.344, fc="blue", alpha=0.50)
-    # r1.set_transform(rotate+ax.transData)
-    # ax.add_patch(r1)
     ax.add_patch(r2)
     ax.add_patch(r3)
 
