@@ -154,7 +154,10 @@ def main():
 
     # Load data files into dataset series
     ts, index_dict = utils.load_dataseries(
-        datapath=args["datapath"], pname=args["pname"], units_override=units_override
+        datapath=args["datapath"],
+        pname=args["pname"],
+        units_override=units_override,
+        nskip=args["nskip"],
     )
 
     # Get base attributes
