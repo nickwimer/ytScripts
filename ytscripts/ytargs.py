@@ -34,7 +34,8 @@ class ytArgs:
         self.parser.add_argument(
             "--datapath",
             type=str,
-            required=True,
+            required=False,
+            default=None,
             help="Path to the data files.",
         )
         self.parser.add_argument(
@@ -254,6 +255,11 @@ class ytVisArgs(ytArgs):
             required=False,
             default=None,
             help="Name of user defined functions file (located in udfs/).",
+        )
+        self.parser.add_argument(
+            "--use_tex",
+            action="store_true",
+            help="Flag to use latex parser.",
         )
 
 

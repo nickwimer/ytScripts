@@ -18,8 +18,6 @@ import matplotlib.pyplot as plt  # noqa: E402
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
-plt.rc("text", usetex=True)
-
 
 def get_args():
     """Parse command line arguments."""
@@ -110,6 +108,10 @@ def main():
         # Convert the tuples to dict
         for iname, ifunc in udf_tups:
             udf_funcs.update({iname: ifunc})
+
+    # Enable tex parsing for plots
+    if args["use_tex"]:
+        plt.rc("text", usetex=True)
 
     # Make the output directory for images
     if args["outpath"]:
