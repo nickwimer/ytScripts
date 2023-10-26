@@ -1,0 +1,8 @@
+title = "Example to extract average data"
+
+datapath = "None"
+outpath = "None"
+
+fields = ["temp", "pressure", "density"]
+name = "averages"
+SI = false

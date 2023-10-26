@@ -7,6 +7,12 @@ title = "Default configuration file"
 [vis_field_attrs.density]
 label = "$\\rho$"
 
+[vis_field_attrs.temp]
+label = "T"
+
+[vis_field_attrs.Temp]
+label = "T"
+
 ##########
 # Holds various pyplot settings 
 [plot_attrs]
