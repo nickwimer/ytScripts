@@ -372,7 +372,7 @@ class ytExtractArgs(ytArgs):
             "--fields",
             type=str,
             nargs="+",
-            required=True,
+            required=False,
             default=None,
             help="Names of the data fields to extract.",
         )
