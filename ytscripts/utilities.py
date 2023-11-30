@@ -145,6 +145,43 @@ def get_fig_aspect_ratio(xlen, ylen, base=5):
     return fx, fy
 
 
+def _velocity_x(field, data):
+    return yt.YTArray(data["velocityx"], "m/s")
+
+
+def _velocity_y(field, data):
+    return yt.YTArray(data["velocityy"], "m/s")
+
+
+def _velocity_z(field, data):
+    return yt.YTArray(data["velocityz"], "m/s")
+
+
+def define_velocity_fields(ds):
+    """Add some velocity fields."""
+    ds.add_field(
+        name=("boxlib", "velocity_x"),
+        function=_velocity_x,
+        sampling_type="cell",
+        units="m/s",
+        display_name="u",
+    )
+    ds.add_field(
+        name=("boxlib", "velocity_y"),
+        function=_velocity_y,
+        sampling_type="cell",
+        units="m/s",
+        display_name="v",
+    )
+    ds.add_field(
+        name=("boxlib", "velocity_z"),
+        function=_velocity_z,
+        sampling_type="cell",
+        units="m/s",
+        display_name="w",
+    )
+
+
 def get_gradient_field(ds, field, grad_type):
     """Add the gradient field and return new field name."""
     ds.force_periodicity()
