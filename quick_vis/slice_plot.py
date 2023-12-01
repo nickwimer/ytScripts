@@ -179,6 +179,12 @@ def main():
             "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
         }
 
+        if args.normal == "y":
+            max_res = max(
+                ds_attributes["resolution"][2], ds_attributes["resolution"][0]
+            )
+            slc_res["y"] = (max_res, max_res)
+
         # Set index according to dict
         index = index_dict[str(ds)]
 
