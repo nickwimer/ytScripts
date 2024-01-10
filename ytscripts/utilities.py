@@ -1,6 +1,6 @@
 """Utility routines used throughout ytscripts."""
 import copy
-import fnmatch
+import glob
 import os
 import re
 import sys
@@ -9,12 +9,18 @@ import numpy as np
 import yt
 
 
+def get_files(datapath, pattern="plt*"):
+    return sorted(
+        [os.path.basename(x) for x in glob.glob(os.path.join(datapath, pattern))]
+    )
+
+
 def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=None):
     """Loads the plt files based on method."""
     if pname is not None:
         if "?" in pname[0] and len(pname) == 1:
             if nskip:
-                select_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
+                select_files = get_files(datapath, pname[0])
                 load_files = select_files[0 : len(select_files) : nskip + 1]
                 load_list = [os.path.join(datapath, x) for x in load_files]
                 print(load_list)
@@ -26,7 +32,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
                 )
 
                 # Find the index based on location of the plot files
-                all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+                all_files = get_files(datapath)
 
                 index_dict = {}
                 for plt in all_files:
@@ -39,7 +45,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
                 )
 
                 # Find the index based on location of the plot files
-                all_files = fnmatch.filter(sorted(os.listdir(datapath)), pname[0])
+                all_files = get_files(datpath, pname[0])
 
                 index_dict = {}
                 for plt in all_files:
@@ -54,7 +60,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
             )
 
             # Find the index based on location of the selected plot files
-            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            all_files = get_files(datapath)
 
             index_dict = {}
             for plt in pname:
@@ -62,7 +68,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
 
     else:
         if nskip:
-            select_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            select_files = get_files(datapath)
             load_files = select_files[0 : len(select_files) : nskip + 1]
             load_list = [os.path.join(datapath, x) for x in load_files]
 
@@ -73,7 +79,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
             )
 
             # Find the index based on location of the plot files
-            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            all_files = get_files(datapath)
 
             index_dict = {}
             for plt in all_files:
@@ -87,7 +93,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
             )
 
             # Find the index based on location of the plot files
-            all_files = fnmatch.filter(sorted(os.listdir(datapath)), "plt?????")
+            all_files = get_files(datapath)
 
             index_dict = {}
             for plt in all_files:
@@ -137,6 +143,43 @@ def get_fig_aspect_ratio(xlen, ylen, base=5):
     fy = base
 
     return fx, fy
+
+
+def _velocity_x(field, data):
+    return yt.YTArray(data["velocityx"], "m/s")
+
+
+def _velocity_y(field, data):
+    return yt.YTArray(data["velocityy"], "m/s")
+
+
+def _velocity_z(field, data):
+    return yt.YTArray(data["velocityz"], "m/s")
+
+
+def define_velocity_fields(ds):
+    """Add some velocity fields."""
+    ds.add_field(
+        name=("boxlib", "velocity_x"),
+        function=_velocity_x,
+        sampling_type="cell",
+        units="m/s",
+        display_name="u",
+    )
+    ds.add_field(
+        name=("boxlib", "velocity_y"),
+        function=_velocity_y,
+        sampling_type="cell",
+        units="m/s",
+        display_name="v",
+    )
+    ds.add_field(
+        name=("boxlib", "velocity_z"),
+        function=_velocity_z,
+        sampling_type="cell",
+        units="m/s",
+        display_name="w",
+    )
 
 
 def get_gradient_field(ds, field, grad_type):

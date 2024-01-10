@@ -156,6 +156,13 @@ def main():
     # Loop over all datasets in the time series
     yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
+        if (
+            hasattr(ds.fields.boxlib, "velocityx")
+            and hasattr(ds.fields.boxlib, "velocityy")
+            and hasattr(ds.fields.boxlib, "velocityz")
+        ):
+            utils.define_velocity_fields(ds)
+
         # Visualize the gradient field, if requested
         if args.gradient:
             vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
@@ -172,6 +179,12 @@ def main():
             "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
         }
 
+        if args.normal == "y":
+            max_res = max(
+                ds_attributes["resolution"][2], ds_attributes["resolution"][0]
+            )
+            slc_res["y"] = (max_res, max_res)
+
         # Set index according to dict
         index = index_dict[str(ds)]
 
@@ -185,6 +198,8 @@ def main():
             if args.buff is not None
             else slc_res[args.normal],
         )
+        if args.normal == "y":
+            slc.swap_axes()
         slc.set_axes_unit(axes_unit)
         slc.set_origin("native")
 
