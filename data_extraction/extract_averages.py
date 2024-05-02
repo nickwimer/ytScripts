@@ -1,4 +1,5 @@
 """Extracts domain averaged quantities and saves for plotting."""
+
 import os
 import sys
 import time

@@ -1,6 +1,8 @@
 """2D slice down the middle of the domain."""
+
 import os
 import pickle as pl
+import subprocess
 import sys
 import tomllib
 
@@ -16,7 +18,20 @@ import matplotlib.pyplot as plt  # noqa: E402
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
-plt.rc("text", usetex=True)
+
+def is_latex_available():
+    """Check if latex is available."""
+    try:
+        subprocess.check_output(["latex"])
+        return True
+    except FileNotFoundError:
+        return False
+
+
+if is_latex_available():
+    plt.rc("text", usetex=True)
+else:
+    print("LaTeX not available, using standard font.")
 
 
 def get_args():
@@ -194,9 +209,9 @@ def main():
             normal=args.normal,
             fields=vis_field,
             center=slc_center,
-            buff_size=tuple(args.buff)
-            if args.buff is not None
-            else slc_res[args.normal],
+            buff_size=(
+                tuple(args.buff) if args.buff is not None else slc_res[args.normal]
+            ),
         )
         if args.normal == "y":
             slc.swap_axes()
@@ -245,9 +260,11 @@ def main():
             norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
             slc.set_colorbar_label(
                 field=vis_field,
-                label=configs["vis_field_attrs"][vis_field]["label"]
-                if vis_field in configs["vis_field_attrs"]
-                else vis_field,
+                label=(
+                    configs["vis_field_attrs"][vis_field]["label"]
+                    if vis_field in configs["vis_field_attrs"]
+                    else vis_field
+                ),
             )
             if not configs["cbar_attrs"]["label"]["loc"] == "right":
                 slc.set_colorbar_label(field=vis_field, label="")
@@ -283,9 +300,11 @@ def main():
 
         if configs["cbar_attrs"]["label"]["loc"] == "top":
             axc.set_title(
-                configs["vis_field_attrs"][vis_field]["label"]
-                if vis_field in configs["vis_field_attrs"]
-                else vis_field,
+                (
+                    configs["vis_field_attrs"][vis_field]["label"]
+                    if vis_field in configs["vis_field_attrs"]
+                    else vis_field
+                ),
                 fontsize=configs["cbar_attrs"]["base"]["fontsize"],
                 pad=configs["cbar_attrs"]["title"]["pad"],
             )

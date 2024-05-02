@@ -1,4 +1,5 @@
 """Argument Parser classes for common arguments."""
+
 import argparse
 
 
@@ -181,7 +182,7 @@ class ytVisArgs(ytArgs):
             nargs="+",
             # action="store_true",
             default=False,
-            help=("Options to specify annotate cells (linewidth, alpha, color)",),
+            help="Options to specify annotate cells (linewidth, alpha, color)",
         )
         self.parser.add_argument(
             "--buff",

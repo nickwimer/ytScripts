@@ -1,4 +1,5 @@
 """Utility routines used throughout ytscripts."""
+
 import copy
 import glob
 import os
@@ -45,7 +46,7 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
                 )
 
                 # Find the index based on location of the plot files
-                all_files = get_files(datpath, pname[0])
+                all_files = get_files(datapath, pname[0])
 
                 index_dict = {}
                 for plt in all_files:
