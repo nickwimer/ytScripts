@@ -133,3 +133,6 @@ dmypy.json
 
 # Output data
 outdata
+
+# vscode
+.vscode/
