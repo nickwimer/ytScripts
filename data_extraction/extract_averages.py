@@ -3,11 +3,9 @@
 import os
 import sys
 import time
-import tomllib
 
 import pandas as pd
 import yt
-from pydantic.v1.utils import deep_update
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -26,31 +24,15 @@ def get_args():
     # Get the initial set of arguments
     init_args = ytparse.parse_args()
 
-    # Read the input file if it exists
+    # Override the command-line arguments with the input file
     if init_args.ifile:
-        with open(init_args.ifile, "rb") as f:
-            input_options = tomllib.load(f)
-
-        # Now combine the two with preference towards input file
-        args = deep_update(vars(init_args), input_options)
-
-        # Update any manually specified values
-        for indx, iarg in enumerate(sys.argv):
-            if "-" in iarg:
-                user_arg = iarg.replace("-", "")
-
-                # Check to see if arg is a flag
-                if type(args[user_arg]) is bool:
-                    args = deep_update(args, {user_arg: True})
-                else:
-                    args = deep_update(args, {user_arg: sys.argv[indx + 1]})
-
+        args = ytparse.override_args(init_args, init_args.ifile)
     else:
         args = vars(init_args)
 
     # Check to see if mutually inclusive argument are respected
     if args["normal"] and (not args["location"]):
-        sys.exit(""" "Location" needs to be defined for use with "normal" """)
+        raise ValueError('"Location" needs to be defined for use with "normal".')
 
     # Return the parsed arguments
     return args
