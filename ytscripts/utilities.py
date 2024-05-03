@@ -4,101 +4,91 @@ import copy
 import glob
 import os
 import re
-import sys
 
 import numpy as np
 import yt
 
 
 def get_files(datapath, pattern="plt*"):
+    """Get all the plt files in the directory."""
+    files = glob.glob(os.path.join(datapath, pattern))
     return sorted(
-        [os.path.basename(x) for x in glob.glob(os.path.join(datapath, pattern))]
+        [
+            os.path.basename(f)
+            for f in files
+            if re.match(r"plt\d+$", os.path.basename(f))
+        ]
     )
 
 
+def create_index_dict(all_files, plt_files):
+    """Create a dictionary of the index of the plot files."""
+    index_dict = {}
+    for plt in plt_files:
+        index_dict.update({plt: all_files.index(plt)})
+
+    return index_dict
+
+
 def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=None):
-    """Loads the plt files based on method."""
+    """
+    Load a series of datasets from files in a given directory.
+
+    Parameters:
+    - datapath (str): The path to the directory containing the dataset files.
+    - pname (list, optional): A list of patterns to match the dataset files.
+    - units_override (dict, optional): A dictionary specifying unit overrides for the
+                                       loaded datasets. Default is None.
+    - nprocs (int, optional): The number of processes to use for parallel loading.
+    - nskip (int, optional): The number of files to skip between loaded datasets.
+
+    Returns:
+    - ts (yt.DatasetSeries): A series of loaded datasets.
+    - index_dict (dict): A dictionary mapping file indices to their corresponding
+                         dataset indices.
+    """
+
     if pname is not None:
-        if "?" in pname[0] and len(pname) == 1:
-            if nskip:
-                select_files = get_files(datapath, pname[0])
-                load_files = select_files[0 : len(select_files) : nskip + 1]
-                load_list = [os.path.join(datapath, x) for x in load_files]
-                print(load_list)
-                # exit()
-                ts = yt.DatasetSeries(
-                    load_list,
-                    units_override=units_override,
-                    parallel=nprocs,
-                )
-
-                # Find the index based on location of the plot files
-                all_files = get_files(datapath)
-
-                index_dict = {}
-                for plt in all_files:
-                    index_dict.update({plt: all_files.index(plt)})
-            else:
-                ts = yt.load(
-                    os.path.join(datapath, pname[0]),
-                    units_override=units_override,
-                    parallel=nprocs,
-                )
-
-                # Find the index based on location of the plot files
-                all_files = get_files(datapath, pname[0])
-
-                index_dict = {}
-                for plt in all_files:
-                    index_dict.update({plt: all_files.index(plt)})
-
-        elif "?" in pname[0] and len(pname) > 1:
-            sys.exit("multiple ? character inputs not supported yet.")
-        else:
-            load_list = [os.path.join(datapath, x) for x in pname]
-            ts = yt.DatasetSeries(
-                load_list, units_override=units_override, parallel=nprocs
+        load_list = []
+        for pattern in pname:
+            matched_files = glob.glob(os.path.join(datapath, pattern))
+            matched_files = sorted(
+                [f for f in matched_files if re.match(r"plt\d+$", os.path.basename(f))]
             )
+            if nskip:
+                matched_files = matched_files[:: nskip + 1]
+            load_list.extend(matched_files)
 
-            # Find the index based on location of the selected plot files
-            all_files = get_files(datapath)
+        ts = yt.DatasetSeries(
+            load_list,
+            units_override=units_override,
+            parallel=nprocs,
+        )
 
-            index_dict = {}
-            for plt in pname:
-                index_dict.update({plt: all_files.index(plt)})
+        # Find the index based on location of the plot files
+        all_files = get_files(datapath)
+
+        index_dict = create_index_dict(all_files, all_files)
 
     else:
+        select_files = get_files(datapath)
         if nskip:
-            select_files = get_files(datapath)
             load_files = select_files[0 : len(select_files) : nskip + 1]
-            load_list = [os.path.join(datapath, x) for x in load_files]
-
-            ts = yt.DatasetSeries(
-                load_list,
-                units_override=units_override,
-                parallel=nprocs,
-            )
-
-            # Find the index based on location of the plot files
-            all_files = get_files(datapath)
-
-            index_dict = {}
-            for plt in all_files:
-                index_dict.update({plt: all_files.index(plt)})
-
         else:
-            ts = yt.load(
-                os.path.join(datapath, "plt?????"),
-                units_override=units_override,
-                parallel=nprocs,
-            )
+            load_files = select_files
 
-            # Find the index based on location of the plot files
-            all_files = get_files(datapath)
+        load_list = [os.path.join(datapath, x) for x in load_files]
 
-            index_dict = {}
-            for plt in all_files:
-                index_dict.update({plt: all_files.index(plt)})
+        ts = yt.DatasetSeries(
+            load_list,
+            units_override=units_override,
+            parallel=nprocs,
+        )
+
+        # Find the index based on location of the plot files
+        all_files = get_files(datapath)
+
+        index_dict = create_index_dict(all_files, select_files)
 
     return ts, index_dict
 
