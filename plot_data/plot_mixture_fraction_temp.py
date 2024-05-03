@@ -1,4 +1,5 @@
 """Load averages from npz and plot."""
+
 import os
 import sys
 
@@ -83,4 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
+    sys.exit("This script is not yet implemented.")
     main()
