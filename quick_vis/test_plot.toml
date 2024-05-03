@@ -1,0 +1,14 @@
+title = "Figure specific inputs"
+
+
+field = "density"
+grid_offset = 1e-6
+normal = "z"
+rm_eb = 1e-16
+cmap = "viridis"
+cells = [1e-10, 0.5, "black"]
+pbox = [-1, -1, 1, 1]
+no_units = true
+no_time = true
+
+add_udf = "double_ramp.py"

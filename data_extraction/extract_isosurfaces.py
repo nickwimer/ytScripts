@@ -1,4 +1,5 @@
 """Extracts iso-surfaces from plot files and saves."""
+
 import os
 import sys
 import time
@@ -7,7 +8,8 @@ import h5py
 import numpy as np
 from mpi4py import MPI
 from scipy.ndimage import gaussian_filter
-from skimage.measure import marching_cubes, mesh_surface_area
+from skimage.measure import marching_cubes
+# from skimage.measure import mesh_surface_area
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -20,8 +22,18 @@ def get_args():
     ytparse = ytargs.ytExtractArgs()
     # Add in the arguments for the extract isosurfaces
     ytparse.isosurface_args()
-    # Return the parsed arguments
-    return ytparse.parse_args()
+
+    # Get the initial set of arguments
+    init_args = ytparse.parse_args()
+
+    # Override the command-line arguments with the input file
+    if init_args.ifile:
+        args = ytparse.override_args(init_args, init_args.ifile)
+    else:
+        args = vars(init_args)
+
+    # Return the parsed arguments as a dict
+    return args
 
 
 def write_xdmf(
@@ -413,8 +425,8 @@ def main():
 
     # Create the output directory
     if rank == 0:
-        if args.outpath:
-            outpath = args.outpath
+        if args["outpath"]:
+            outpath = args["outpath"]
         else:
             outpath = os.path.abspath(
                 os.path.join(sys.argv[0], "../../outdata", "isosurfaces")
@@ -423,13 +435,13 @@ def main():
 
     # Load the plt files
     ts, _ = utils.load_dataseries(
-        datapath=args.datapath,
-        pname=args.pname,
+        datapath=args["datapath"],
+        pname=args["pname"],
     )
 
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    if args.verbose:
+    if args["verbose"]:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     comm.Barrier()
@@ -442,13 +454,13 @@ def main():
         comm.Barrier()
 
         # Visualize the gradient field, if requested
-        if args.gradient:
-            vis_field = utils.get_gradient_field(ds, args.field, args.gradient)
+        if args["gradient"]:
+            vis_field = utils.get_gradient_field(ds, args["field"], args["gradient"])
         else:
-            vis_field = args.field
+            vis_field = args["field"]
 
         # Force periodicity for the yt surface extraction routines...
-        if args.format in ["ply", "obj"] or args.yt:
+        if args["format"] in ["ply", "obj"] or args["yt"]:
             ds.force_periodicity()
 
         # Get the updated attributes for the current plt file
@@ -458,14 +470,14 @@ def main():
         dregion = ds.all_data()
 
         # Export the isosurfaces in specified format
-        if args.value:
-            fname = f"isosurface_{vis_field}_{args.value}_{ds.basename}"
-            value = args.value
-        elif args.vfunction:
-            vstime = args.vfunction[0]
-            vetime = args.vfunction[2]
-            vsval = args.vfunction[1]
-            veval = args.vfunction[3]
+        if args["value"]:
+            fname = f"isosurface_{vis_field}_{args["value"]}_{ds.basename}"
+            value = args["value"]
+        elif args["vfunction"]:
+            vstime = args["vfunction"][0]
+            vetime = args["vfunction"][2]
+            vsval = args["vfunction"][1]
+            veval = args["vfunction"][3]
             ds_time = float(ds_attributes["time"])
             if ds_time >= vetime:
                 value = veval
@@ -481,13 +493,13 @@ def main():
         else:
             sys.exit("must have either value or vfunction defined!")
 
-        if args.yt:
+        if args["yt"]:
             fname += "_yt"
 
         do_isosurface_extraction(
             dregion=dregion,
             ds_attributes=ds_attributes,
-            outformat=args.format,
+            outformat=args["format"],
             field=vis_field,
             value=value,
             outpath=outpath if rank == 0 else None,
@@ -495,13 +507,13 @@ def main():
             comm=comm,
             rank=rank,
             size=size,
-            do_ghost=args.do_ghost,
-            do_yt=args.yt,
-            single_level=args.single_level,
-            smooth=args.smooth,
-            ds=ds if args.format == "ply" else None,
-            iso_edge=args.iso_edge,
-            do_gradient=True if args.gradient else False,
+            do_ghost=args["do_ghost"],
+            do_yt=args["yt"],
+            single_level=args["single_level"],
+            smooth=args["smooth"],
+            ds=ds if args["format"] == "ply" else None,
+            iso_edge=args["iso_edge"],
+            do_gradient=True if args["gradient"] else False,
         )
         if rank == 0:
             print(

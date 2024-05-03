@@ -1,4 +1,5 @@
 """Extracts domain averaged quantities and saves for plotting."""
+
 import os
 import sys
 import time
@@ -20,22 +21,30 @@ def get_args():
     # Parse the args
     args = ytparse.parse_args()
 
+    # Get the initial set of arguments
+    init_args = ytparse.parse_args()
+
+    # Override the command-line arguments with the input file
+    if init_args.ifile:
+        args = ytparse.override_args(init_args, init_args.ifile)
+    else:
+        args = vars(init_args)
+
     # Check to see if mutually inclusive argument are respected
-    if args.normal and (not args.location):
-        sys.exit(""" "Location" needs to be defined for use with "normal" """)
+    if args["normal"] and (not args["location"]):
+        raise ValueError('"Location" needs to be defined for use with "normal".')
 
     # Return the parsed arguments
     return args
 
 
 def main():
-
     # Parse the input arguments
     args = get_args()
 
     # Create the output directory
-    if args.outpath:
-        outpath = args.outpath
+    if args["outpath"]:
+        outpath = args["outpath"]
     else:
         outpath = os.path.abspath(
             os.path.join(sys.argv[0], "../../outdata", "averages")
@@ -43,7 +52,7 @@ def main():
     os.makedirs(outpath, exist_ok=True)
 
     # Override the units if needed
-    if args.SI:
+    if args["SI"]:
         units_override = {
             "length_unit": (1.0, "m"),
             "time_unit": (1.0, "s"),
@@ -61,16 +70,16 @@ def main():
 
     # Load data files into dataset series
     ts, _ = utils.load_dataseries(
-        datapath=args.datapath,
-        pname=args.pname,
+        datapath=args["datapath"],
+        pname=args["pname"],
         units_override=units_override,
-        nprocs=args.nprocs,
-        nskip=args.nskip,
+        nprocs=args["nprocs"],
+        nskip=args["nskip"],
     )
 
     base_attributes = utils.get_attributes(ds=ts[0])
 
-    if args.verbose:
+    if args["verbose"]:
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
         print(
             f"""The derived fields in this dataset are: """
@@ -81,7 +90,7 @@ def main():
     norm_dict = {"x": 0, "y": 1, "z": 2}
 
     # Loop over the dataseries
-    if not args.no_mpi:
+    if not args["no_mpi"]:
         yt.enable_parallelism()
     data_dict = {}
     for sto, ds in ts.piter(storage=data_dict, dynamic=True):
@@ -90,20 +99,20 @@ def main():
         all_data = ds.all_data()
 
         # Filter out the EB regions
-        if args.rm_eb:
+        if args["rm_eb"]:
             data = ds.cut_region(all_data, [f"obj[('boxlib', '{eb_var_name}')] > 0.5"])
         else:
             data = all_data
 
         # Slice the data if requested
-        if args.normal:
+        if args["normal"]:
             data = ds.slice(
-                axis=norm_dict[args.normal], coord=args.location, data_source=data
+                axis=norm_dict[args["normal"]], coord=args["location"], data_source=data
             )
 
         # Loop over the specified variables
         tmp_data = {}
-        for field in args.fields:
+        for field in args["fields"]:
             tmp_data[field] = data.mean(
                 ("boxlib", field), weight=("boxlib", "cell_volume")
             )
@@ -121,7 +130,7 @@ def main():
                 df.loc[idx, key] = value
 
         # Save the data for later
-        df.to_pickle(os.path.join(outpath, f"{args.name}.pkl"))
+        df.to_pickle(os.path.join(outpath, f"""{args["name"]}.pkl"""))
 
         # print total time
         print(f"Total elapsed time = {time.time() - start_time} seconds")

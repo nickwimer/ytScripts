@@ -1,4 +1,5 @@
 """Load slices from npz and plot."""
+
 import os
 import sys
 
@@ -16,7 +17,18 @@ def get_args():
     ytparse = ytargs.ytPlotArgs()
     # Add in the arguments for plotting slices
     ytparse.slice_args()
-    return ytparse.parse_args()
+
+    # Get the initial set of arguments
+    init_args = ytparse.parse_args()
+
+    # Override the command-line arguments with the input file
+    if init_args.ifile:
+        args = ytparse.override_args(init_args, init_args.ifile)
+    else:
+        args = vars(init_args)
+
+    # Return the parsed arguments as a dict
+    return args
 
 
 def main():
@@ -25,23 +37,23 @@ def main():
     args = get_args()
 
     # Create the output directory
-    if args.outpath:
-        imgpath = args.outpath
+    if args["outpath"]:
+        imgpath = args["outpath"]
     else:
         imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "images"))
     os.makedirs(imgpath, exist_ok=True)
 
     # Get list of files in the data directory
-    files = np.sort(os.listdir(args.datapath))
+    files = np.sort(os.listdir(args["datapath"]))
 
     # Loop over files, plot and save images
     index = 0
     for fname in files:
 
         # Load the data
-        data = np.load(os.path.join(args.datapath, fname), allow_pickle=True)
+        data = np.load(os.path.join(args["datapath"], fname), allow_pickle=True)
         # Print out the variables in the dataset
-        if index == 0 and args.verbose:
+        if index == 0 and args["verbose"]:
             print(f"""The variables contained in this file are: {data.files}""")
 
         # Unpack the dicts
@@ -56,31 +68,31 @@ def main():
         time = ds_attributes["time"]
         length_unit = ds_attributes["length_unit"]
 
-        if args.field not in data["fields"]:
-            sys.exit(f"""{args.field} not in {data["fields"]}""")
+        if args["field"] not in data["fields"]:
+            sys.exit(f"""{args["field"]} not in {data["fields"]}""")
 
         # Inputs for plotting
-        ylen, xlen = slices[args.field].shape
+        ylen, xlen = slices[args["field"]].shape
 
-        if args.pbox is None:
+        if args["pbox"] is None:
             fx, fy = utils.get_fig_aspect_ratio(xlen, ylen, base=5)
         else:
             if normal == "x":
                 fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[1],
-                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[2],
+                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[1],
+                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[2],
                     base=3,
                 )
             elif normal == "y":
                 fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[0],
-                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[2],
+                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[0],
+                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[2],
                     base=3,
                 )
             elif normal == "z":
                 fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args.pbox[2] - args.pbox[0]) / dxyz[0],
-                    ylen=(args.pbox[3] - args.pbox[1]) / dxyz[1],
+                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[0],
+                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[1],
                     base=3,
                 )
             else:
@@ -89,7 +101,7 @@ def main():
         # Set the figure and axes
         fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
         # Set the colormap
-        cmap = plt.cm.get_cmap(args.cmap)
+        cmap = plt.cm.get_cmap(args["cmap"])
 
         if normal == "x":
             y = np.linspace(
@@ -102,10 +114,10 @@ def main():
             im = ax.pcolormesh(
                 Y,
                 Z,
-                slices[args.field],
+                slices[args["field"]],
                 cmap=cmap,
-                vmin=args.fbounds[0] if args.fbounds else None,
-                vmax=args.fbounds[1] if args.fbounds else None,
+                vmin=args["fbounds"][0] if args["fbounds"] else None,
+                vmax=args["fbounds"][1] if args["fbounds"] else None,
             )
             ax.set_xlabel(f"y ({length_unit.units})")
             ax.set_ylabel(f"z ({length_unit.units})")
@@ -120,10 +132,10 @@ def main():
             im = ax.pcolormesh(
                 X,
                 Z,
-                slices[args.field],
+                slices[args["field"]],
                 cmap=cmap,
-                vmin=args.fbounds[0],
-                vmax=args.fbounds[1],
+                vmin=args["fbounds"][0],
+                vmax=args["fbounds"][1],
             )
             ax.set_xlabel(f"x ({length_unit.units})")
             ax.set_ylabel(f"z ({length_unit.units})")
@@ -138,10 +150,10 @@ def main():
             im = ax.pcolormesh(
                 X,
                 Y,
-                slices[args.field],
+                slices[args["field"]],
                 cmap=cmap,
-                vmin=args.fbounds[0],
-                vmax=args.fbounds[1],
+                vmin=args["fbounds"][0],
+                vmax=args["fbounds"][1],
             )
             ax.set_xlabel(f"x ({length_unit.units})")
             ax.set_ylabel(f"y ({length_unit.units})")
@@ -152,9 +164,9 @@ def main():
             f"""{normal} = {iloc:.4f} {length_unit.units}, """
             f"""time = {float(time.in_units("ms")):.2f} ms"""
         )
-        if args.pbox:
-            ax.set_xlim(args.pbox[0], args.pbox[2])
-            ax.set_ylim(args.pbox[1], args.pbox[3])
+        if args["pbox"]:
+            ax.set_xlim(args["pbox"][0], args["pbox"][2])
+            ax.set_ylim(args["pbox"][1], args["pbox"][3])
         else:
             ax.set_aspect("equal")
 
@@ -162,8 +174,10 @@ def main():
         fig.colorbar(im, ax=ax)
 
         fig.savefig(
-            os.path.join(imgpath, f"""{args.field}_{normal}{iloc:.4f}_{index}.png"""),
-            dpi=args.dpi,
+            os.path.join(
+                imgpath, f"""{args["field"]}_{normal}{iloc:.4f}_{index}.png"""
+            ),
+            dpi=args["dpi"],
         )
 
         index += 1
