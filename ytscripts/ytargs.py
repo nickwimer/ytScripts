@@ -1,6 +1,15 @@
 """Argument Parser classes for common arguments."""
 
 import argparse
+import sys
+import tomllib
+
+from pydantic.v1.utils import deep_update
+
+
+# add support for jupyter notebooks
+def is_notebook():
+    return "ipykernel" in sys.modules
 
 
 class ytArgs:
@@ -12,9 +21,42 @@ class ytArgs:
 
         self.io_args()
 
-    def parse_args(self):
+    def parse_args(self, args=None):
         """Return the parsed args."""
-        return self.parser.parse_args()
+        return (
+            self.parser.parse_args() if args is None else self.parser.parse_args(args)
+        )
+        # return self.parser.parse_args()
+
+    def override_args(self, init_args, input_file):
+        """Override CLI arguments with those from input file."""
+        if input_file:
+            with open(input_file, "rb") as f:
+                input_options = tomllib.load(f)
+
+            # Now combine the two with preference to the input file
+            args = deep_update(vars(init_args), input_options)
+
+            # If the code is being run in a notebook, ignore --f argument
+            if is_notebook():
+                sys_args = [arg for arg in sys.argv if not arg.startswith("--f=")]
+            else:
+                sys_args = sys.argv
+
+            # Update any manually specified arguments
+            for indx, iarg in enumerate(sys_args):
+                if "-" in iarg[0]:
+                    user_arg = iarg.replace("-", "")
+
+                    # Check to see if arg is a flag
+                    if type(args[user_arg]) is bool:
+                        args = deep_update(args, {user_arg: True})
+                    else:
+                        args = deep_update(args, {user_arg: sys_args[indx + 1]})
+        else:
+            args = vars(init_args)
+
+        return args
 
     def remove_arg(self, arg):
         """Remove argument from parser."""
@@ -58,7 +100,7 @@ class ytArgs:
             "--field",
             type=str,
             required=False,
-            default="density",
+            default=None,
             help="Name of the field for visualization.",
         )
         self.parser.add_argument(

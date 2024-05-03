@@ -4,9 +4,31 @@ import copy
 import glob
 import os
 import re
+import sys
+import tomllib
 
 import numpy as np
 import yt
+from pydantic.v1.utils import deep_update
+
+
+def get_configs():
+    """Parse the configuration options from toml file."""
+    cpath = os.path.abspath(os.path.join(sys.argv[0], ".."))
+
+    # Read the default configs
+    with open(os.path.join(cpath, "config.toml"), "rb") as f:
+        configs = tomllib.load(f)
+
+    # Read any updates to the configs
+    if "config_user.toml" in os.listdir(cpath):
+        with open(os.path.join(cpath, "config_user.toml"), "rb") as f:
+            user_configs = tomllib.load(f)
+
+        # Update the configuration dictionary
+        configs = deep_update(configs, user_configs)
+
+    return configs
 
 
 def get_files(datapath, pattern="plt*"):

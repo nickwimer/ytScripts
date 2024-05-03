@@ -5,12 +5,10 @@ import os
 import pickle as pl
 import subprocess
 import sys
-import tomllib
 from inspect import getmembers, isfunction
 
 import numpy as np
 import yt
-from pydantic.v1.utils import deep_update
 from skimage.measure import find_contours
 from yt.units.yt_array import YTArray
 
@@ -48,48 +46,14 @@ def get_args():
     # Get the initial set of arguments
     init_args = ytparse.parse_args()
 
-    # Read the input file if it exists
+    # Override the command-line arguments with the input file
     if init_args.ifile:
-        with open(init_args.ifile, "rb") as f:
-            input_options = tomllib.load(f)
-
-        # Now combine the two with preference towards input file
-        args = deep_update(vars(init_args), input_options)
-
-        # Update any manually specified values
-        for indx, iarg in enumerate(sys.argv):
-            if "-" in iarg:
-                user_arg = iarg.replace("-", "")
-
-                # Check to see if arg is a flag
-                if type(args[user_arg]) is bool:
-                    args = deep_update(args, {user_arg: True})
-                else:
-                    args = deep_update(args, {user_arg: sys.argv[indx + 1]})
-
+        args = ytparse.override_args(init_args, init_args.ifile)
     else:
         args = vars(init_args)
+
     # Return the parsed arguments as a dict
     return args
-
-
-def get_configs():
-    """Parse the configuration options from toml file."""
-    cpath = os.path.abspath(os.path.join(sys.argv[0], ".."))
-
-    # Read the default configs
-    with open(os.path.join(cpath, "config.toml"), "rb") as f:
-        configs = tomllib.load(f)
-
-    # Read any updates to the configs
-    if "config_user.toml" in os.listdir(cpath):
-        with open(os.path.join(cpath, "config_user.toml"), "rb") as f:
-            user_configs = tomllib.load(f)
-
-        # Update the configuration dictionary
-        configs = deep_update(configs, user_configs)
-
-    return configs
 
 
 def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
@@ -111,7 +75,7 @@ def main():
     args = get_args()
 
     # Parse the configuration options
-    configs = get_configs()
+    configs = utils.get_configs()
 
     # Import UDFs
     udf_funcs = {}
@@ -241,7 +205,7 @@ def main():
             "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
         }
 
-        if args.normal == "y":
+        if args["normal"] == "y":
             max_res = max(
                 ds_attributes["resolution"][2], ds_attributes["resolution"][0]
             )
@@ -262,7 +226,7 @@ def main():
                 else slc_res[args["normal"]]
             ),
         )
-        if args.normal == "y":
+        if args["normal"] == "y":
             slc.swap_axes()
         slc.set_axes_unit(axes_unit)
         slc.set_origin("native")
