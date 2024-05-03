@@ -3,7 +3,6 @@
 import importlib
 import os
 import pickle as pl
-import subprocess
 import sys
 from inspect import getmembers, isfunction
 
@@ -18,17 +17,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
-
-def is_latex_available():
-    """Check if latex is available."""
-    try:
-        subprocess.check_output(["latex"])
-        return True
-    except FileNotFoundError:
-        return False
-
-
-if is_latex_available():
+if utils.is_latex_available():
     plt.rc("text", usetex=True)
 else:
     print("LaTeX not available, using standard font.")
@@ -411,7 +400,7 @@ def main():
                 text_string += (
                     f"Level {int(ilev)} vol: {cell_vol_percents[int(ilev)]:.1f}%\n"
                 )
-            text_string += f"{total_cells*3/1e6:.0f}M  DOF"
+            text_string += f"{total_cells * 3 / 1e6:.0f}M  DOF"
 
             # Add text
             ax.text(

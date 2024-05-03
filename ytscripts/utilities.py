@@ -4,12 +4,27 @@ import copy
 import glob
 import os
 import re
+import subprocess
 import sys
 import tomllib
 
 import numpy as np
 import yt
 from pydantic.v1.utils import deep_update
+
+
+def is_notebook():
+    """Check if the script is running in a Jupyter notebook."""
+    return "ipykernel" in sys.modules
+
+
+def is_latex_available():
+    """Check if latex is available."""
+    try:
+        subprocess.check_output(["latex"])
+        return True
+    except FileNotFoundError:
+        return False
 
 
 def get_configs():
