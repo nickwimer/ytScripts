@@ -1,4 +1,5 @@
 """Load grid info from pickle and plot."""
+
 import os
 import sys
 
@@ -16,8 +17,18 @@ def get_args():
     ytparse = ytargs.ytPlotArgs()
     # Add in the arguments for the plot grid info
     ytparse.grid_args()
-    # Return the parsed arguments
-    return ytparse.parse_args()
+
+    # Get the initial set of arguments
+    init_args = ytparse.parse_args()
+
+    # Override the command-line arguments with the input file
+    if init_args.ifile:
+        args = ytparse.override_args(init_args, init_args.ifile)
+    else:
+        args = vars(init_args)
+
+    # Return the parsed arguments as a dict
+    return args
 
 
 def main():
@@ -26,14 +37,14 @@ def main():
     args = get_args()
 
     # Create the output directory
-    if args.outpath:
-        imgpath = args.outpath
+    if args["outpath"]:
+        imgpath = args["outpath"]
     else:
         imgpath = os.path.abspath(os.path.join(sys.argv[0], "../../outdata", "images"))
     os.makedirs(imgpath, exist_ok=True)
 
     # Load the dataframe
-    df = pd.read_pickle(os.path.join(args.datapath, f"{args.fname}.pkl"))
+    df = pd.read_pickle(os.path.join(args["datapath"], f"""{args["fname"]}.pkl"""))
 
     # Sort the dataframe by time
     df.sort_values(by="time", inplace=True, ignore_index=True)
@@ -73,34 +84,48 @@ def main():
     fx = 6
     fy = 5
 
-    if args.ptype == "line":
+    if args["ptype"] == "line":
 
         # Create the figure and axes
         fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
 
         # Make simple line plot
         for lev in range(np.max(max_levels)):
-            ax.plot(time, cell_tot_percents[:, lev], label=f"level {lev}")
+            ax.plot(
+                time,
+                cell_tot_percents[:, lev],
+                label=f"level {lev}",
+                marker="o",
+                linestyle="-",
+                markersize=4,
+            )
 
         ax.legend()
         ax.set_xlabel("time (s)")
         ax.set_ylabel(r"num cells %")
 
-        fig.savefig(os.path.join(imgpath, "num_cells_percent.png"), dpi=args.dpi)
+        fig.savefig(os.path.join(imgpath, "num_cells_percent.png"), dpi=args["dpi"])
 
         # Create the figure and axes
         fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
 
         # Make simple line plot
         for lev in range(np.max(max_levels)):
-            ax.plot(time, cell_vol_percents[:, lev], label=f"level {lev}")
+            ax.plot(
+                time,
+                cell_vol_percents[:, lev],
+                label=f"level {lev}",
+                marker="o",
+                linestyle="-",
+                markersize=4,
+            )
 
         ax.set_ylim(0, np.max(cell_vol_percents[:, 1]))
         ax.legend()
         ax.set_xlabel("time (s)")
         ax.set_ylabel(r"volume domain %")
 
-        fig.savefig(os.path.join(imgpath, "vol_domain_percent.png"), dpi=args.dpi)
+        fig.savefig(os.path.join(imgpath, "vol_domain_percent.png"), dpi=args["dpi"])
 
 
 if __name__ == "__main__":
