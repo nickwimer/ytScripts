@@ -376,7 +376,7 @@ class ytExtractArgs(ytArgs):
                 "nargs": "+",
                 "help": (
                     "Value of the iso surface to extract as a function "
-                    "(start_time; start_value; end_time1; end_value)."
+                    "(start_time; start_value; end_time; end_value)."
                 ),
             },
         }
