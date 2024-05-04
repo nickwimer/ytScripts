@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ytscripts.utilities &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ytscripts.utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ytscripts.utilities</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Utility routines used throughout ytscripts.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">tomllib</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">yt</span>
+<span class="kn">from</span> <span class="nn">pydantic.v1.utils</span> <span class="kn">import</span> <span class="n">deep_update</span>
+
+
+<div class="viewcode-block" id="is_notebook">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_notebook">[docs]</a>
+<span class="k">def</span> <span class="nf">is_notebook</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the script is running in a Jupyter notebook.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;ipykernel&quot;</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span></div>
+
+
+
+<div class="viewcode-block" id="is_latex_available">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_latex_available">[docs]</a>
+<span class="k">def</span> <span class="nf">is_latex_available</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if latex is available.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s2">&quot;latex&quot;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+
+<div class="viewcode-block" id="get_configs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_configs">[docs]</a>
+<span class="k">def</span> <span class="nf">get_configs</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse the configuration options from toml file.&quot;&quot;&quot;</span>
+    <span class="n">cpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;..&quot;</span><span class="p">))</span>
+
+    <span class="c1"># Read the default configs</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpath</span><span class="p">,</span> <span class="s2">&quot;config.toml&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Read any updates to the configs</span>
+    <span class="k">if</span> <span class="s2">&quot;config_user.toml&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cpath</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpath</span><span class="p">,</span> <span class="s2">&quot;config_user.toml&quot;</span><span class="p">),</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">user_configs</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># Update the configuration dictionary</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="n">deep_update</span><span class="p">(</span><span class="n">configs</span><span class="p">,</span> <span class="n">user_configs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">configs</span></div>
+
+
+
+<div class="viewcode-block" id="get_files">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_files">[docs]</a>
+<span class="k">def</span> <span class="nf">get_files</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="s2">&quot;plt*&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get all the plt files in the directory.&quot;&quot;&quot;</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">files</span>
+            <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;plt\d+$&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_index_dict">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.create_index_dict">[docs]</a>
+<span class="k">def</span> <span class="nf">create_index_dict</span><span class="p">(</span><span class="n">all_files</span><span class="p">,</span> <span class="n">plt_files</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a dictionary of the index of the plot files.&quot;&quot;&quot;</span>
+    <span class="n">index_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">plt</span> <span class="ow">in</span> <span class="n">plt_files</span><span class="p">:</span>
+        <span class="n">index_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">plt</span><span class="p">:</span> <span class="n">all_files</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">plt</span><span class="p">)})</span>
+
+    <span class="k">return</span> <span class="n">index_dict</span></div>
+
+
+
+<div class="viewcode-block" id="load_dataseries">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.load_dataseries">[docs]</a>
+<span class="k">def</span> <span class="nf">load_dataseries</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nskip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Load a series of datasets from files in a given directory.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    - datapath (str): The path to the directory containing the dataset files.</span>
+<span class="sd">    - pname (list, optional): A list of patterns to match the dataset files.</span>
+<span class="sd">    - units_override (dict, optional): A dictionary specifying unit overrides for the</span>
+<span class="sd">    loaded datasets. Default is None.</span>
+<span class="sd">    - nprocs (int, optional): The number of processes to use for parallel loading.</span>
+<span class="sd">    - nskip (int, optional): The number of files to skip between loaded datasets.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    - ts (yt.DatasetSeries): A series of loaded datasets.</span>
+<span class="sd">    - index_dict (dict): A dictionary mapping file indices to their corresponding</span>
+<span class="sd">    dataset indices.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">pname</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">load_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">pname</span><span class="p">:</span>
+            <span class="n">matched_files</span> <span class="o">=</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+            <span class="n">matched_files</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">matched_files</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;plt\d+$&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f</span><span class="p">))]</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">nskip</span><span class="p">:</span>
+                <span class="n">matched_files</span> <span class="o">=</span> <span class="n">matched_files</span><span class="p">[::</span> <span class="n">nskip</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">load_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">matched_files</span><span class="p">)</span>
+
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">DatasetSeries</span><span class="p">(</span>
+            <span class="n">load_list</span><span class="p">,</span>
+            <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span><span class="p">,</span>
+            <span class="n">parallel</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Find the index based on location of the plot files</span>
+        <span class="n">all_files</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+
+        <span class="n">index_dict</span> <span class="o">=</span> <span class="n">create_index_dict</span><span class="p">(</span><span class="n">all_files</span><span class="p">,</span> <span class="n">all_files</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">select_files</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nskip</span><span class="p">:</span>
+            <span class="n">load_files</span> <span class="o">=</span> <span class="n">select_files</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">select_files</span><span class="p">)</span> <span class="p">:</span> <span class="n">nskip</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">load_files</span> <span class="o">=</span> <span class="n">select_files</span>
+
+        <span class="n">load_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">load_files</span><span class="p">]</span>
+
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">DatasetSeries</span><span class="p">(</span>
+            <span class="n">load_list</span><span class="p">,</span>
+            <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span><span class="p">,</span>
+            <span class="n">parallel</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Find the index based on location of the plot files</span>
+        <span class="n">all_files</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+
+        <span class="n">index_dict</span> <span class="o">=</span> <span class="n">create_index_dict</span><span class="p">(</span><span class="n">all_files</span><span class="p">,</span> <span class="n">select_files</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ts</span><span class="p">,</span> <span class="n">index_dict</span></div>
+
+
+
+<div class="viewcode-block" id="get_attributes">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_attributes">[docs]</a>
+<span class="k">def</span> <span class="nf">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gets commonly used attributes from the dataset and stores in dict.&quot;&quot;&quot;</span>
+    <span class="c1"># Get base attributes</span>
+    <span class="n">ds_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;field_list&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">field_list</span><span class="p">,</span>
+        <span class="s2">&quot;derived_field_list&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">derived_field_list</span><span class="p">,</span>
+        <span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">,</span>
+        <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_dimensions</span><span class="p">,</span>
+        <span class="s2">&quot;left_edge&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_left_edge</span><span class="p">,</span>
+        <span class="s2">&quot;right_edge&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_right_edge</span><span class="p">,</span>
+        <span class="s2">&quot;max_level&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">max_level</span><span class="p">,</span>
+        <span class="s2">&quot;length_unit&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">length_unit</span><span class="p">,</span>
+        <span class="s2">&quot;time_unit&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">time_unit</span><span class="p">,</span>
+        <span class="s2">&quot;width&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_width</span><span class="p">,</span>
+        <span class="s2">&quot;center&quot;</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_center</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Make commonly used attributes</span>
+    <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">ds_dict</span><span class="p">[</span><span class="s2">&quot;right_edge&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">&quot;left_edge&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">ds_dict</span><span class="p">[</span>
+        <span class="s2">&quot;dimensions&quot;</span>
+    <span class="p">]</span>
+    <span class="p">(</span><span class="n">x_res</span><span class="p">,</span> <span class="n">y_res</span><span class="p">,</span> <span class="n">z_res</span><span class="p">)</span> <span class="o">=</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">&quot;dimensions&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">&quot;max_level&quot;</span><span class="p">]</span>
+
+    <span class="c1"># Update dictionary values</span>
+    <span class="n">ds_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;dxyz&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">),</span>
+            <span class="s2">&quot;resolution&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">x_res</span><span class="p">,</span> <span class="n">y_res</span><span class="p">,</span> <span class="n">z_res</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds_dict</span></div>
+
+
+
+<div class="viewcode-block" id="get_fig_aspect_ratio">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_fig_aspect_ratio">[docs]</a>
+<span class="k">def</span> <span class="nf">get_fig_aspect_ratio</span><span class="p">(</span><span class="n">xlen</span><span class="p">,</span> <span class="n">ylen</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the aspect ratio to fit the data.&quot;&quot;&quot;</span>
+
+    <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">ylen</span> <span class="o">/</span> <span class="n">xlen</span><span class="p">)</span>
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">base</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">aspect_ratio</span><span class="p">)</span>
+    <span class="n">fy</span> <span class="o">=</span> <span class="n">base</span>
+
+    <span class="k">return</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_velocity_x</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;velocityx&quot;</span><span class="p">],</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_velocity_y</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;velocityy&quot;</span><span class="p">],</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_velocity_z</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;velocityz&quot;</span><span class="p">],</span> <span class="s2">&quot;m/s&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="define_velocity_fields">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.define_velocity_fields">[docs]</a>
+<span class="k">def</span> <span class="nf">define_velocity_fields</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add some velocity fields.&quot;&quot;&quot;</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;boxlib&quot;</span><span class="p">,</span> <span class="s2">&quot;velocity_x&quot;</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_x</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">&quot;u&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;boxlib&quot;</span><span class="p">,</span> <span class="s2">&quot;velocity_y&quot;</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_y</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">&quot;v&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;boxlib&quot;</span><span class="p">,</span> <span class="s2">&quot;velocity_z&quot;</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_z</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">&quot;m/s&quot;</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_gradient_field">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_gradient_field">[docs]</a>
+<span class="k">def</span> <span class="nf">get_gradient_field</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">grad_type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add the gradient field and return new field name.&quot;&quot;&quot;</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">force_periodicity</span><span class="p">()</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_gradient_fields</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">_gradient_</span><span class="si">{</span><span class="n">grad_type</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="compute_elem_mass_fraction">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.compute_elem_mass_fraction">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_elem_mass_fraction</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Compute the elem mass fraction for streams.&quot;&quot;&quot;</span>
+
+    <span class="c1"># define atomic masses dict</span>
+    <span class="n">atomic_masses</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mf">12.01</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mf">1.00</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="mf">16.00</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="mf">14.01</span><span class="p">}</span>
+
+    <span class="n">spec_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># loop over all fields</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">[</span><span class="s2">&quot;field_list&quot;</span><span class="p">]:</span>
+        <span class="c1"># Only look at species (contain Y)</span>
+        <span class="k">if</span> <span class="s2">&quot;Y(&quot;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">cut_name</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cut_name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;NC&quot;</span><span class="p">:</span>
+                <span class="n">cut_name</span> <span class="o">=</span> <span class="n">cut_name</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="n">elem_dict</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;([A-Z][a-z]?)(\d*)&quot;</span><span class="p">,</span> <span class="n">cut_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">keys</span> <span class="ow">and</span> <span class="n">cut_name</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+                <span class="c1"># add entry to the species dict</span>
+                <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+                <span class="c1"># print(elem_dict{&quot;C&quot;})</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elem_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;N&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+                <span class="c1"># add entry to the species dict</span>
+                <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;N&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+                <span class="c1"># print(elem_dict{&quot;C&quot;})</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elem_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;H&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;O&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;N&quot;</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+
+    <span class="c1"># Compute the elemental mass fraction from the spec_dict</span>
+    <span class="c1"># elem_mass_frac_dict = {&quot;C&quot;: 0, &quot;H&quot;: 0, &quot;O&quot;: 0, &quot;N&quot;: 0}</span>
+    <span class="n">elem_mass_frac_dict</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">spec_dict</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">spec_dict</span><span class="p">:</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">spec_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">atomic_masses</span><span class="p">[</span><span class="s2">&quot;C&quot;</span><span class="p">]</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">spec_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">atomic_masses</span><span class="p">[</span><span class="s2">&quot;H&quot;</span><span class="p">]</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">spec_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">atomic_masses</span><span class="p">[</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">+=</span> <span class="n">spec_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">atomic_masses</span><span class="p">[</span><span class="s2">&quot;N&quot;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">elem_mass_frac_dict</span><span class="p">:</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;C&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_mass</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;H&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_mass</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;O&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_mass</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">][</span><span class="s2">&quot;N&quot;</span><span class="p">]</span> <span class="o">/=</span> <span class="n">total_mass</span>
+
+    <span class="k">return</span> <span class="n">elem_mass_frac_dict</span><span class="p">,</span> <span class="n">atomic_masses</span><span class="p">,</span> <span class="n">fields</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
