@@ -23,21 +23,27 @@ else:
     print("LaTeX not available, using standard font.")
 
 
-def get_args():
-    """Parse command line arguments."""
-    # Initialize the class for yt visualization arguments
+def get_parser():
+    """Get the parser."""
     ytparse = ytargs.ytVisArgs()
     # Add in the arguments needed for SlicePlot
     ytparse.orientation_args()
     ytparse.vis_2d_args()
     ytparse.slice_args()
 
+    return ytparse.get_parser()
+
+
+def get_args(parser):
+    """Get the arguments from the parser."""
+    args = parser.parse_args()
+
     # Get the initial set of arguments
-    init_args = ytparse.parse_args()
+    init_args = parser.parse_args()
 
     # Override the command-line arguments with the input file
     if init_args.ifile:
-        args = ytparse.override_args(init_args, init_args.ifile)
+        args = parser.override_args(init_args, init_args.ifile)
     else:
         args = vars(init_args)
 
@@ -61,7 +67,8 @@ def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
 
 def main():
     # Parse the input arguments
-    args = get_args()
+    parser = get_parser()
+    args = get_args(parser)
 
     # Parse the configuration options
     configs = utils.get_configs()

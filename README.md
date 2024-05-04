@@ -20,6 +20,23 @@ The proper order should be `black`, then `isort`, finally `flake8` to catch any 
 
 Most scripts can now make full use of parallel processing either over multiple datasets in a time series or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly useful when dealing with a large number of time outputs or with very large data.
 
+# Documentation
+
+Documentation is provided through Sphinx under Docs. Everything necessary to build the documentation is provided in the `environment.yml` file.
+
+Simply navigate to `Docs/`:
+`cd Docs/`
+
+and do `make html` to build the docs.
+
+Then `open Docs/build/html/index.html`
+
+Following is a summary of the scripts provided, but this information will be removed in a future update in support for the github docs...
+
+---
+
+---
+
 # Scripts for Data Extractions
 
 Scripts for data extraction and manipulation are located under `data_extraction/`

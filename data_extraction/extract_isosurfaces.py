@@ -9,6 +9,7 @@ import numpy as np
 from mpi4py import MPI
 from scipy.ndimage import gaussian_filter
 from skimage.measure import marching_cubes
+
 # from skimage.measure import mesh_surface_area
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
@@ -16,19 +17,25 @@ import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
 
-def get_args():
-    """Parse command line arguments."""
-    # Initialize the class for data extraction
+def get_parser():
+    """Get the parser."""
     ytparse = ytargs.ytExtractArgs()
     # Add in the arguments for the extract isosurfaces
     ytparse.isosurface_args()
 
+    return ytparse.get_parser()
+
+
+def get_args(parser):
+    """Get the arguments from the parser."""
+    args = parser.parse_args()
+
     # Get the initial set of arguments
-    init_args = ytparse.parse_args()
+    init_args = parser.parse_args()
 
     # Override the command-line arguments with the input file
     if init_args.ifile:
-        args = ytparse.override_args(init_args, init_args.ifile)
+        args = parser.override_args(init_args, init_args.ifile)
     else:
         args = vars(init_args)
 
@@ -421,7 +428,8 @@ def main():
     rank = comm.Get_rank()
     size = comm.Get_size()
     # Parse the input arguments
-    args = get_args()
+    parser = get_parser()
+    args = get_args(parser)
 
     # Create the output directory
     if rank == 0:
@@ -471,7 +479,7 @@ def main():
 
         # Export the isosurfaces in specified format
         if args["value"]:
-            fname = f"isosurface_{vis_field}_{args["value"]}_{ds.basename}"
+            fname = f"""isosurface_{vis_field}_{args["value"]}_{ds.basename}"""
             value = args["value"]
         elif args["vfunction"]:
             vstime = args["vfunction"][0]

@@ -7,15 +7,18 @@ dependencies:
   - yt
   - pip
   - pip:
-    - numpy
-    - pandas
-    - matplotlib
-    - h5py
-    - scikit-image
-    - pydantic
-    - black
-    - isort
-    - flake8
-    - lxml
-    - mpi4py
-    - pyvalem
+      - numpy
+      - pandas
+      - matplotlib
+      - h5py
+      - scikit-image
+      - pydantic
+      - black
+      - isort
+      - flake8
+      - lxml
+      - mpi4py
+      - pyvalem
+      - sphinx
+      - sphinx_rtd_theme
+      - sphinx_argparse
