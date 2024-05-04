@@ -75,14 +75,14 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
     - datapath (str): The path to the directory containing the dataset files.
     - pname (list, optional): A list of patterns to match the dataset files.
     - units_override (dict, optional): A dictionary specifying unit overrides for the
-                                       loaded datasets. Default is None.
+    loaded datasets. Default is None.
     - nprocs (int, optional): The number of processes to use for parallel loading.
     - nskip (int, optional): The number of files to skip between loaded datasets.
 
     Returns:
     - ts (yt.DatasetSeries): A series of loaded datasets.
     - index_dict (dict): A dictionary mapping file indices to their corresponding
-                         dataset indices.
+    dataset indices.
     """
 
     if pname is not None:

@@ -18,6 +18,10 @@ class ytArgs:
 
         self.io_args()
 
+    def get_parser(self):
+        """Return the parser."""
+        return self.parser
+
     def parse_args(self, args=None):
         """Return the parsed args."""
         return (
