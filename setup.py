@@ -39,6 +39,7 @@ setup(
     entry_points={
         "console_scripts": [
             "quick_vis = quick_vis:main",
+            "data_extraction = data_extraction:main",
         ],
     },
 )

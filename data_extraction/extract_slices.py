@@ -18,7 +18,7 @@ def get_parser():
     ytparse.orientation_args()
     ytparse.slice_args()
 
-    return ytparse.get_parser()
+    return ytparse
 
 
 def get_args(parser):

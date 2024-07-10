@@ -18,7 +18,7 @@ def get_parser():
     # Add in the arguments for the extract averages
     ytparse.average_args()
 
-    return ytparse.get_parser()
+    return ytparse
 
 
 def get_args(parser):

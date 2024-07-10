@@ -23,7 +23,7 @@ def get_parser():
     # Add in the arguments for the extract isosurfaces
     ytparse.isosurface_args()
 
-    return ytparse.get_parser()
+    return ytparse
 
 
 def get_args(parser):
