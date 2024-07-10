@@ -2,6 +2,36 @@
 
 Collection of Python scripts that use "The yt Project" for data manipulation and visualization
 
+## Installation
+
+Installation can be handled in one of two ways. The new, recommended method which will allow
+for more native command line usage is to install the entire repo as a python package using `pip`.
+This is achieved using the following steps:
+
+```shell
+conda create -n ytscripts
+conda activate ytscripts
+conda install python=3.11
+```
+
+The pip package can then be installed either:
+
+```shell
+git clone https://github.com/nickwimer/ytScripts.git
+cd ytScripts
+pip install --upgrade .
+```
+
+or directly through github:
+
+```shell
+pip install --upgrade git+https://github.com/nickwimer/ytScripts.git
+```
+
+---
+
+The older method of installing is to use the `environment.yml` file to create the conda environment:
+
 To install dependencies, with a working `conda` distribution, type:
 
 `conda env create --file environment.yml`
@@ -14,13 +44,9 @@ after environment is created:
 
 `conda activate ytscripts`
 
-All formatting must pass through `black`, `isort`, and `flake8`
+NOTE: Most scripts can now make full use of parallel processing either over multiple datasets in a time series or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly useful when dealing with a large number of time outputs or with very large data.
 
-The proper order should be `black`, then `isort`, finally `flake8` to catch any issues. If there are further changes, repeat the formatting sequence
-
-Most scripts can now make full use of parallel processing either over multiple datasets in a time series or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly useful when dealing with a large number of time outputs or with very large data.
-
-# Documentation
+## Documentation
 
 Documentation is provided through Sphinx under Docs. Everything necessary to build the documentation is provided in the `environment.yml` file.
 
@@ -32,6 +58,12 @@ and do `make html` to build the docs.
 Then `open Docs/build/html/index.html`
 
 Following is a summary of the scripts provided, but this information will be removed in a future update in support for the github docs...
+
+## Contributing
+
+All formatting must pass through `black`, `isort`, and `flake8`
+
+The proper order should be `black`, then `isort`, finally `flake8` to catch any issues. If there are further changes, repeat the formatting sequence
 
 ---
 
