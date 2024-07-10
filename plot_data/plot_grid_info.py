@@ -17,7 +17,7 @@ def get_parser():
     # Add in the arguments for the plot grid info
     ytparse.grid_args()
 
-    return ytparse.get_parser()
+    return ytparse
 
 
 def get_args(parser):

@@ -40,6 +40,7 @@ setup(
         "console_scripts": [
             "quick_vis = quick_vis:main",
             "data_extraction = data_extraction:main",
+            "plot_data = plot_data:main",
         ],
     },
 )
