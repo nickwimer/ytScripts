@@ -19,6 +19,11 @@ def get_parser():
     return ytparse
 
 
+def get_base_parser():
+    """Get the base level parser primarily for documentation."""
+    return get_parser().get_parser()
+
+
 def get_args(parser):
     """Get the arguments from the parser."""
     args = parser.parse_args()

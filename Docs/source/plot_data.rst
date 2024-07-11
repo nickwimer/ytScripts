@@ -9,7 +9,7 @@ plot\_data.plot\_averages module
 
 .. argparse::
    :module: plot_data.plot_averages
-   :func: get_parser
+   :func: get_base_parser
    :prog: plot_averages
 
 .. automodule:: plot_data.plot_averages
@@ -22,7 +22,7 @@ plot\_data.plot\_grid\_info module
 
 .. argparse::
    :module: plot_data.plot_grid_info
-   :func: get_parser
+   :func: get_base_parser
    :prog: plot_grid_info
 
 .. automodule:: plot_data.plot_grid_info
@@ -35,7 +35,7 @@ plot\_data.plot\_slices module
 
 .. argparse::
    :module: plot_data.plot_slices
-   :func: get_parser
+   :func: get_base_parser
    :prog: plot_slices
 
 .. automodule:: plot_data.plot_slices
