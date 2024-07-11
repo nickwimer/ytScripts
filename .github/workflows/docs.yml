@@ -1,0 +1,83 @@
+name: Build and Deploy Docs
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [closed, opened, synchronize]
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.x"
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/setup.py') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install MPICH
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmpich-dev
+
+      - name: Install package
+        run: pip install --upgrade .
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install sphinx nbsphinx nbsphinx_link sphinx_rtd_theme
+
+      - name: Install Pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Build documentation
+        run: |
+          cd Docs
+          make html
+          touch build/html/.nojekyll
+
+      - name: Set TARGET_FOLDER and CLEAN
+        run: |
+          if [ "${{ github.event_name }}" == "push" ] && [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "TARGET_FOLDER=/" >> $GITHUB_ENV
+            echo "CLEAN=true" >> $GITHUB_ENV
+          elif [ "${{ github.event_name }}" == "pull_request" ] && [ "${{ github.event.action }}" == "closed" ]; then
+            echo "TARGET_FOLDER=pr-preview/${{ github.event.number }}" >> $GITHUB_ENV
+            echo "CLEAN=true" >> $GITHUB_ENV
+          else
+            echo "TARGET_FOLDER=pr-preview/${{ github.event.number }}" >> $GITHUB_ENV
+            echo "CLEAN=false" >> $GITHUB_ENV
+          fi
+
+      - name: Stage Cleanup for _downloads directory (files older than 10 days)
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: |
+          find _downloads -type f -mtime +10 -delete || true
+          git add _downloads || true
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@releases/v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: Docs/build/html
+          single-commit: true
+          target-folder: ${{ env.TARGET_FOLDER }}
+          clean: ${{ env.CLEAN }}

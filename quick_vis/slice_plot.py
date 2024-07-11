@@ -31,7 +31,12 @@ def get_parser():
     ytparse.vis_2d_args()
     ytparse.slice_args()
 
-    return ytparse.get_parser()
+    return ytparse
+
+
+def get_base_parser():
+    """Get the base level parser primarily for documentation."""
+    return get_parser().get_parser()
 
 
 def get_args(parser):

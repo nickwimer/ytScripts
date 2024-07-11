@@ -8,7 +8,7 @@ quick\_vis.slice\_plot module
 -----------------------------
 .. argparse::
    :module: quick_vis.slice_plot
-   :func: get_parser
+   :func: get_base_parser
    :prog: slice_plot
 
 .. automodule:: quick_vis.slice_plot
