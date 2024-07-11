@@ -29,6 +29,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
+      - name: Install MPICH
+       run: |
+          sudo apt-get update
+          sudo apt-get install -y libmpich-dev
+
       - name: Install package
         run: pip install --upgrade .
 

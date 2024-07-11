@@ -28,6 +28,10 @@ or directly through github:
 pip install --upgrade git+https://github.com/nickwimer/ytScripts.git
 ```
 
+NOTE: The pip install will try to install `mpi4py` which will result in an error if there
+are no MPI libraries installed on your system. First make sure that the MPI libraries are
+properly installed.
+
 ---
 
 The older method of installing is to use the `environment.yml` file to create the conda environment:
