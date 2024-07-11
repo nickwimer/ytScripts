@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_extraction.extract_grid_info &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../data_extraction.html">data_extraction</a></li>
+      <li class="breadcrumb-item active">data_extraction.extract_grid_info</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for data_extraction.extract_grid_info</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Extracts grid information at each level and saves to file.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">yt</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;../../&quot;</span><span class="p">)))</span>
+<span class="kn">import</span> <span class="nn">ytscripts.utilities</span> <span class="k">as</span> <span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span> <span class="nn">ytscripts.ytargs</span> <span class="k">as</span> <span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_grid_info.get_parser">[docs]</a>
+<span class="k">def</span> <span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the parser.&quot;&quot;&quot;</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytExtractArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments for the extract grid info</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">grid_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_grid_info.get_base_parser">[docs]</a>
+<span class="k">def</span> <span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the base level parser primarily for documentation.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_grid_info.get_args">[docs]</a>
+<span class="k">def</span> <span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get the arguments from the parser.&quot;&quot;&quot;</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Get the initial set of arguments</span>
+    <span class="n">init_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Override the command-line arguments with the input file</span>
+    <span class="k">if</span> <span class="n">init_args</span><span class="o">.</span><span class="n">ifile</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">override_args</span><span class="p">(</span><span class="n">init_args</span><span class="p">,</span> <span class="n">init_args</span><span class="o">.</span><span class="n">ifile</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">init_args</span><span class="p">)</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_grid_info.main">[docs]</a>
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Main function for grid info extraction.&quot;&quot;&quot;</span>
+
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Create the output directory</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;outpath&quot;</span><span class="p">]:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;outpath&quot;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;../../outdata&quot;</span><span class="p">,</span> <span class="s2">&quot;grid_info&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Override the units if needed</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;SI&quot;</span><span class="p">]:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;length_unit&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;time_unit&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;mass_unit&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;kg&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;velocity_unit&quot;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;m/s&quot;</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Load data files into dataset series</span>
+    <span class="n">ts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_dataseries</span><span class="p">(</span>
+        <span class="n">datapath</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;datapath&quot;</span><span class="p">],</span> <span class="n">pname</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;pname&quot;</span><span class="p">],</span> <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span>
+    <span class="p">)</span>
+
+    <span class="n">base_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">&quot;verbose&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&quot;&quot;The fields in this dataset are: </span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">&quot;field_list&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Loop over the dataseries</span>
+    <span class="n">yt</span><span class="o">.</span><span class="n">enable_parallelism</span><span class="p">()</span>
+    <span class="n">data_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">sto</span><span class="p">,</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">piter</span><span class="p">(</span><span class="n">storage</span><span class="o">=</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">sto</span><span class="o">.</span><span class="n">result_id</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">)</span>
+
+        <span class="n">level_data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">level_stats</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max_level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">tmp_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">level_data</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">level_data</span><span class="p">[</span><span class="s2">&quot;level&quot;</span><span class="p">],</span>
+            <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;numgrids&quot;</span><span class="p">,</span> <span class="s2">&quot;numcells&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">sto</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="n">tmp_df</span>
+
+    <span class="k">if</span> <span class="n">yt</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+
+        <span class="c1"># Convert into a pandas dataframe for storage</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s2">&quot;time&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="s2">&quot;grid_data&quot;</span><span class="p">:</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()})</span>
+
+        <span class="c1"># Sort the dataframe by time</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="n">by</span><span class="o">=</span><span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Add some metadata</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;base_attributes&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">base_attributes</span>
+
+        <span class="c1"># Save the data for later</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="si">}</span><span class="s2">.pkl&quot;&quot;&quot;</span><span class="p">))</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

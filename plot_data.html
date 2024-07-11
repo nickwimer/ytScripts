@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plot_data package &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ytscripts package" href="ytscripts.html" />
+    <link rel="prev" title="data_extraction package" href="data_extraction.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">plot_data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-data-plot-averages-module">plot_data.plot_averages module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_averages.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_averages.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_averages.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_averages.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-data-plot-grid-info-module">plot_data.plot_grid_info module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_grid_info.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_grid_info.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_grid_info.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_grid_info.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#plot-data-plot-slices-module">plot_data.plot_slices module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_slices.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_slices.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_slices.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.plot_slices.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-plot_data">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.ListScriptsAction"><code class="docutils literal notranslate"><span class="pre">ListScriptsAction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.list_scripts"><code class="docutils literal notranslate"><span class="pre">list_scripts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#plot_data.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">plot_data package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/plot_data.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="plot-data-package">
+<h1>plot_data package<a class="headerlink" href="#plot-data-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="plot-data-plot-averages-module">
+<h2>plot_data.plot_averages module<a class="headerlink" href="#plot-data-plot-averages-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">plot_averages</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="o">--</span><span class="n">fields</span> <span class="n">FIELDS</span> <span class="p">[</span><span class="n">FIELDS</span> <span class="o">...</span><span class="p">]</span> <span class="o">--</span><span class="n">fname</span>
+                     <span class="n">FNAME</span> <span class="p">[</span><span class="n">FNAME</span> <span class="o">...</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dpi</span> <span class="n">DPI</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the data files.</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Flag to manually disable mpi features.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--fields</kbd></dt>
+<dd><p>Names of the data fields to plot.</p>
+</dd>
+<dt><kbd>--fname</kbd></dt>
+<dd><p>Name of the data file to load and plot (.pkl).</p>
+<p>Default: “average_data”</p>
+</dd>
+<dt><kbd>--dpi</kbd></dt>
+<dd><p>dpi of the output image (default = 300).</p>
+<p>Default: 300</p>
+</dd>
+</dl>
+</section>
+<p id="module-plot_data.plot_averages">Load averages from npz and plot.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_averages.get_args">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_averages.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_averages.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_averages.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_averages.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_averages.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_averages.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_averages.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_averages.get_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_averages.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_averages.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_averages.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_averages.main">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_averages.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_averages.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_averages.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="plot-data-plot-grid-info-module">
+<h2>plot_data.plot_grid_info module<a class="headerlink" href="#plot-data-plot-grid-info-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">plot_grid_info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="o">--</span><span class="n">fname</span> <span class="n">FNAME</span> <span class="p">[</span><span class="o">--</span><span class="n">dpi</span> <span class="n">DPI</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">ptype</span> <span class="p">{</span><span class="n">line</span><span class="p">,</span><span class="n">pie</span><span class="p">,</span><span class="n">bar</span><span class="p">}]</span>
+</pre></div>
+</div>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the data files.</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Flag to manually disable mpi features.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--fname</kbd></dt>
+<dd><p>Name of the data file to load and plot (.pkl).</p>
+<p>Default: “grid_info”</p>
+</dd>
+<dt><kbd>--dpi</kbd></dt>
+<dd><p>dpi of the output image (default = 300).</p>
+<p>Default: 300</p>
+</dd>
+<dt><kbd>--ptype</kbd></dt>
+<dd><p>Possible choices: line, pie, bar</p>
+<p>type of plot to make.</p>
+<p>Default: “line”</p>
+</dd>
+</dl>
+</section>
+<p id="module-plot_data.plot_grid_info">Load grid info from pickle and plot.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_grid_info.get_args">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_grid_info.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_grid_info.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_grid_info.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_grid_info.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_grid_info.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_grid_info.get_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_grid_info.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_grid_info.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_grid_info.main">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_grid_info.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_grid_info.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_grid_info.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="plot-data-plot-slices-module">
+<h2>plot_data.plot_slices module<a class="headerlink" href="#plot-data-plot-slices-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">plot_slices</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cmap</span> <span class="n">CMAP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dpi</span> <span class="n">DPI</span><span class="p">]</span>
+                   <span class="p">[</span><span class="o">--</span><span class="n">pbox</span> <span class="n">PBOX</span> <span class="p">[</span><span class="n">PBOX</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">fbounds</span> <span class="n">FBOUNDS</span> <span class="p">[</span><span class="n">FBOUNDS</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the data files.</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Flag to manually disable mpi features.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--cmap</kbd></dt>
+<dd><p>Colormap for the 2D plot.</p>
+<p>Default: “dusk”</p>
+</dd>
+<dt><kbd>--dpi</kbd></dt>
+<dd><p>dpi of the output image (default = 300).</p>
+<p>Default: 300</p>
+</dd>
+<dt><kbd>--pbox</kbd></dt>
+<dd><p>Bounding box of the plot specified by the two corners (x0 y0 x1 y1).</p>
+</dd>
+<dt><kbd>--fbounds</kbd></dt>
+<dd><p>Bounds for the colorbar.</p>
+</dd>
+</dl>
+</section>
+<p id="module-plot_data.plot_slices">Load slices from npz and plot.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_slices.get_args">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_slices.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_slices.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_slices.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_slices.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_slices.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_slices.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_slices.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_slices.get_parser">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_slices.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_slices.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_slices.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.plot_slices.main">
+<span class="sig-prename descclassname"><span class="pre">plot_data.plot_slices.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data/plot_slices.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.plot_slices.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-plot_data">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-plot_data" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="plot_data.ListScriptsAction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plot_data.</span></span><span class="sig-name descname"><span class="pre">ListScriptsAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option_strings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">const</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metavar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data.html#ListScriptsAction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.ListScriptsAction" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.list_scripts">
+<span class="sig-prename descclassname"><span class="pre">plot_data.</span></span><span class="sig-name descname"><span class="pre">list_scripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data.html#list_scripts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.list_scripts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_data.main">
+<span class="sig-prename descclassname"><span class="pre">plot_data.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_data.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plot_data.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="data_extraction.html" class="btn btn-neutral float-left" title="data_extraction package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ytscripts.html" class="btn btn-neutral float-right" title="ytscripts package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

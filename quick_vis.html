@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quick_vis package &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="data_extraction package" href="data_extraction.html" />
+    <link rel="prev" title="Welcome to ytScripts’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">quick_vis package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#quick-vis-slice-plot-module">quick_vis.slice_plot module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.slice_plot.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.slice_plot.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.slice_plot.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.slice_plot.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.slice_plot.plot_contours"><code class="docutils literal notranslate"><span class="pre">plot_contours()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-quick_vis">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.ListScriptsAction"><code class="docutils literal notranslate"><span class="pre">ListScriptsAction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.list_scripts"><code class="docutils literal notranslate"><span class="pre">list_scripts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick_vis.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">quick_vis package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_vis.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-vis-package">
+<h1>quick_vis package<a class="headerlink" href="#quick-vis-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="quick-vis-slice-plot-module">
+<h2>quick_vis.slice_plot module<a class="headerlink" href="#quick-vis-slice-plot-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">slice_plot</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">normal</span> <span class="n">NORMAL</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">grid_offset</span> <span class="n">GRID_OFFSET</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">cmap</span> <span class="n">CMAP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">dpi</span> <span class="n">DPI</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">pbox</span> <span class="n">PBOX</span> <span class="p">[</span><span class="n">PBOX</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">fbounds</span> <span class="n">FBOUNDS</span> <span class="p">[</span><span class="n">FBOUNDS</span> <span class="o">...</span><span class="p">]]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">center</span> <span class="n">CENTER</span> <span class="p">[</span><span class="n">CENTER</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">plot_log</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">grids</span> <span class="n">GRIDS</span> <span class="p">[</span><span class="n">GRIDS</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">cells</span> <span class="n">CELLS</span> <span class="p">[</span><span class="n">CELLS</span> <span class="o">...</span><span class="p">]]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">buff</span> <span class="n">BUFF</span> <span class="p">[</span><span class="n">BUFF</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">contour</span> <span class="n">CONTOUR</span> <span class="p">[</span><span class="n">CONTOUR</span> <span class="o">...</span><span class="p">]]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">clw</span> <span class="n">CLW</span> <span class="p">[</span><span class="n">CLW</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">pickle</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">grid_info</span> <span class="n">GRID_INFO</span> <span class="p">[</span><span class="n">GRID_INFO</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">rm_eb</span> <span class="n">RM_EB</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">gradient</span> <span class="p">{</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">magnitude</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_time</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_units</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">--</span><span class="n">add_udf</span> <span class="n">ADD_UDF</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">use_tex</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the data files.</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Name of plt files to plot (if empty, do all)</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Flag to manually disable mpi features.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: 1</p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--normal</kbd></dt>
+<dd><p>Normal direction for the slice plot.</p>
+<p>Default: “z”</p>
+</dd>
+<dt><kbd>--grid_offset</kbd></dt>
+<dd><p>Amount to offset center to avoid grid alignment vis issues.</p>
+<p>Default: 0.0</p>
+</dd>
+<dt><kbd>--cmap</kbd></dt>
+<dd><p>Colormap for the 2D plot.</p>
+<p>Default: “dusk”</p>
+</dd>
+<dt><kbd>--dpi</kbd></dt>
+<dd><p>dpi of the output image (default = 300).</p>
+<p>Default: 300</p>
+</dd>
+<dt><kbd>--pbox</kbd></dt>
+<dd><p>Bounding box of the plot specified by the two corners (x0 y0 x1 y1).</p>
+</dd>
+<dt><kbd>--fbounds</kbd></dt>
+<dd><p>Bounds for the colorbar.</p>
+</dd>
+<dt><kbd>--center</kbd></dt>
+<dd><p>Coordinate list for center of slice plot (x, y, z).</p>
+</dd>
+<dt><kbd>--plot_log</kbd></dt>
+<dd><p>Plot in log values.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--grids</kbd></dt>
+<dd><p>Options to specify annotate grids (alpha, min_level, max_level, linewidth).</p>
+</dd>
+<dt><kbd>--cells</kbd></dt>
+<dd><p>Options to specify annotate cells (linewidth, alpha, color).</p>
+</dd>
+<dt><kbd>--buff</kbd></dt>
+<dd><p>Buffer for the SlicePlot image for plotting.</p>
+</dd>
+<dt><kbd>--contour</kbd></dt>
+<dd><p>Name of contour field and value to plot on top of slice.</p>
+</dd>
+<dt><kbd>--clw</kbd></dt>
+<dd><p>Linewidth for each of the contour lines.</p>
+</dd>
+<dt><kbd>--pickle</kbd></dt>
+<dd><p>Flag to store image as pickle for later manipulation.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--grid_info</kbd></dt>
+<dd><p>Add text box with grid information (xloc, yloc, min_lev, max_lev).</p>
+</dd>
+<dt><kbd>--rm_eb</kbd></dt>
+<dd><p>Float value to plot non-fluid using binary cmap [0, 1].</p>
+</dd>
+<dt><kbd>--gradient</kbd></dt>
+<dd><p>Possible choices: x, y, z, magnitude</p>
+<p>Choice to visualize the gradient of the input field.</p>
+</dd>
+<dt><kbd>--no_time</kbd></dt>
+<dd><p>Flag to remove the timestamp.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--no_units</kbd></dt>
+<dd><p>Flag to remove all units from plots.</p>
+<p>Default: False</p>
+</dd>
+<dt><kbd>--add_udf</kbd></dt>
+<dd><p>Name of user defined functions file (located in udfs/).</p>
+</dd>
+<dt><kbd>--use_tex</kbd></dt>
+<dd><p>Flag to use latex parser.</p>
+<p>Default: False</p>
+</dd>
+</dl>
+</section>
+<p id="module-quick_vis.slice_plot">2D slice down the middle of the domain.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.slice_plot.get_args">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.slice_plot.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis/slice_plot.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.slice_plot.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.slice_plot.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.slice_plot.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis/slice_plot.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.slice_plot.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.slice_plot.get_parser">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.slice_plot.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis/slice_plot.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.slice_plot.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.slice_plot.main">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.slice_plot.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis/slice_plot.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.slice_plot.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.slice_plot.plot_contours">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.slice_plot.</span></span><span class="sig-name descname"><span class="pre">plot_contours</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">contour</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dxy</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis/slice_plot.html#plot_contours"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.slice_plot.plot_contours" title="Link to this definition">¶</a></dt>
+<dd><p>Add contours to plot axes.</p>
+</dd></dl>
+
+</section>
+<section id="module-quick_vis">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-quick_vis" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="quick_vis.ListScriptsAction">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">quick_vis.</span></span><span class="sig-name descname"><span class="pre">ListScriptsAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option_strings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">const</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metavar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis.html#ListScriptsAction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.ListScriptsAction" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.list_scripts">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.</span></span><span class="sig-name descname"><span class="pre">list_scripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis.html#list_scripts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.list_scripts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="quick_vis.main">
+<span class="sig-prename descclassname"><span class="pre">quick_vis.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/quick_vis.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#quick_vis.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to ytScripts’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="data_extraction.html" class="btn btn-neutral float-right" title="data_extraction package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
