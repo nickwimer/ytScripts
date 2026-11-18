@@ -485,6 +485,16 @@ class ytExtractArgs(ytArgs):
                 "default": None,
                 "help": "Choice to extract the gradient of the input field.",
             },
+            "extra_fields": {
+                "type": str,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": (
+                    "Other fields to store on the isosurface, e.g. to color it by "
+                    "temperature (hdf5/xdmf formats only)."
+                ),
+            },
         }
 
         # Add arguments from dict to parser
@@ -553,6 +563,45 @@ class ytExtractArgs(ytArgs):
 
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
+
+    def line_args(self):
+        """Add arguments for extracting lines of data."""
+
+        args = {
+            "normal": {
+                "type": str,
+                "choices": ["x", "y", "z"],
+                "required": False,
+                "default": "z",
+                "help": "Axis the line runs along.",
+            },
+            "coords": {
+                "type": float,
+                "nargs": 2,
+                "required": True,
+                "default": None,
+                "help": (
+                    "Position of the line in the other two directions: (y, z) for "
+                    "a line along x, (z, x) along y, and (x, y) along z."
+                ),
+            },
+            "rm_eb": {
+                "action": "store_true",
+                "help": "Flag to explicitly remove all data in EB regions.",
+            },
+            "name": {
+                "type": str,
+                "required": False,
+                "default": "line_data",
+                "help": "Name of the output data file (.pkl).",
+            },
+        }
+
+        # Add arguments from dict to parser
+        self.add_args_from_dict(args)
+
+        # The field to extract along the line must be given
+        self.required_args.append("field")
 
 
 class ytPlotArgs(ytArgs):

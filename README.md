@@ -117,6 +117,8 @@ Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are 
 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 
+With the `hdf5`/`xdmf` formats, `--extra_fields` stores other fields on the surface so it can be colored by them, e.g. `--extra_fields temp Y(O2)`. Each is interpolated to the surface vertices from the same grid the surface was built from.
+
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
 
 ## extract_grid_info.py
@@ -126,6 +128,16 @@ Extracts grid information at each level and saves to file.
 Ex: `python data_extraction/extract_grid_info.py -p DATADIR/ -o OUTDIR/ --name FILE_NAME`
 
 Will save a pickle file of the Pandas DataFrame with grid information as a function of time and some stored metadata about the simulation.
+
+## extract_lines.py
+
+Extracts a line of data along x, y or z through every plot file, through the finest cells at each point.
+
+Ex: `python data_extraction/extract_lines.py --datapath DATADIR/ --field temp --normal x --coords 0.01 0.01 --name FILE_NAME`
+
+`--coords` places the line in the other two directions: (y, z) for a line along x, (z, x) along y, and (x, y) along z.
+
+Saves a pickle file of a Pandas DataFrame under `outdata/lines` (or `--outpath`), indexed by position along the line with one column per time. With AMR the cells along the line can change over time, so the index holds every position seen and a time has NaN where it has no cell; `df.interpolate(method="index")` fills those in if needed. The field, coordinates and units are kept in `df.attrs`.
 
 # Scripts for plotting extracted data
 

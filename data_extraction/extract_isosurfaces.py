@@ -7,7 +7,7 @@ import time
 import h5py
 import numpy as np
 from mpi4py import MPI
-from scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter, map_coordinates
 from skimage.measure import marching_cubes
 
 # from skimage.measure import mesh_surface_area
@@ -31,17 +31,45 @@ def get_base_parser():
     return get_parser().get_parser()
 
 
-def get_args(parser):
-    """Get the arguments from the parser."""
+def get_args(parser, cli_args=None):
+    """Get the arguments from the parser (cli_args defaults to sys.argv)."""
     # Parse the command line, merged with the input file if one is given
-    args = parser.get_args()
+    args = parser.get_args(cli_args)
+
+    # Only the hdf5/xdmf output has somewhere to store other fields
+    if args["extra_fields"] and args["format"] not in ("hdf5", "xdmf"):
+        parser.get_parser().error("--extra_fields needs --format hdf5 or xdmf")
 
     # Return the parsed arguments as a dict
     return args
 
 
+def sample_at_vertices(volume, verts, spacing):
+    """Interpolate a cell-centered field to isosurface vertices.
+
+    ``verts`` are the positions marching_cubes returned for an array the same shape
+    as ``volume`` with the given ``spacing`` (before any offset), so dividing by the
+    spacing gives fractional cell indices. Trilinear interpolation matches the linear
+    interpolation marching cubes uses along each cell edge.
+    """
+    indices = np.asarray(verts, dtype=np.float64) / np.asarray(spacing)
+    return map_coordinates(
+        np.asarray(volume, dtype=np.float64), indices.T, order=1, mode="nearest"
+    )
+
+
 def write_xdmf(
-    fbase, fhdf5, field, ftype, ctype, value, time, conn_shape, coord_shape, field_shape
+    fbase,
+    fhdf5,
+    field,
+    ftype,
+    ctype,
+    value,
+    time,
+    conn_shape,
+    coord_shape,
+    field_shape,
+    extra_fields=(),
 ):
     """Write the XDMF wrapper based on the hdf5 data."""
     # Create the XDMF file for writing
@@ -85,16 +113,18 @@ def write_xdmf(
         f"""\t\t\t</Geometry>\n"""
     )
 
-    # Form the Attribute block
-    xdmf_file.write(
-        f"""\t\t\t<Attribute Name="{field}" AttributeType="{ftype}" """
-        f"""Center="{ctype}">\n"""
-        f"""\t\t\t\t<DataItem Format="HDF" DataType="Float" Precision="8" """
-        f"""Dimensions="{field_shape[0]}">\n"""
-        f"""\t\t\t\t\t{fhdf5}.hdf5:/{field}\n"""
-        f"""\t\t\t\t</DataItem>\n"""
-        f"""\t\t\t</Attribute>\n"""
-    )
+    # Form an Attribute block for the isosurface field and any extra fields, which
+    # all have one value per sample point
+    for attr in [field, *extra_fields]:
+        xdmf_file.write(
+            f"""\t\t\t<Attribute Name="{attr}" AttributeType="{ftype}" """
+            f"""Center="{ctype}">\n"""
+            f"""\t\t\t\t<DataItem Format="HDF" DataType="Float" Precision="8" """
+            f"""Dimensions="{field_shape[0]}">\n"""
+            f"""\t\t\t\t\t{fhdf5}.hdf5:/{attr}\n"""
+            f"""\t\t\t\t</DataItem>\n"""
+            f"""\t\t\t</Attribute>\n"""
+        )
 
     # Ending of the Grid block
     xdmf_file.write("\t\t</Grid>\n")
@@ -108,12 +138,14 @@ def write_xdmf(
     xdmf_file.close()
 
 
-def write_hdf5(verts, samples, faces, field, fname):
+def write_hdf5(verts, samples, faces, field, fname, extra_samples=None):
     """Write the HDF5 file based on the extracted isosurface."""
     with h5py.File(fname, "w") as f:
         f.create_dataset("Conn", data=faces.astype(np.int32), dtype=np.int32)
         f.create_dataset("Coord", data=verts, dtype=np.float64)
         f.create_dataset(field, data=samples, dtype=np.float64)
+        for name, data in (extra_samples or {}).items():
+            f.create_dataset(name, data=data, dtype=np.float64)
 
     return np.shape(faces), np.shape(verts), np.shape(samples)
 
@@ -136,8 +168,12 @@ def do_isosurface_extraction(
     ds=None,
     iso_edge=None,
     do_gradient=False,
+    extra_fields=None,
 ):
     """Do the isosurface extraction according to the input parameters."""
+    # Other fields to store on the surface, skipping repeats and the field itself
+    extra_fields = [f for f in dict.fromkeys(extra_fields or []) if f != field]
+
     if outformat == "ply":
         # Create iso-surface
         surf = ds.surface(
@@ -178,11 +214,24 @@ def do_isosurface_extraction(
             all_faces_np = faces_np.reshape((-1, dep_verts))
             all_samples_np = np.array(samples)
 
+            # yt builds the same surface each time, so sample each extra field
+            # the same way as the isosurface field
+            all_extra_np = {}
+            for efield in extra_fields:
+                _, extra_samples = dregion.extract_isocontours(
+                    field=field,
+                    value=value,
+                    rescale=False,
+                    sample_values=efield,
+                )
+                all_extra_np[efield] = np.array(extra_samples)
+
         else:
 
             verts_np = np.empty((0, 3))
             faces_np = np.empty((0, 3))
             samples_np = np.empty((0))
+            extra_np = {efield: np.empty((0)) for efield in extra_fields}
 
             num_grids = len(dregion.index.grids)
 
@@ -241,6 +290,17 @@ def do_isosurface_extraction(
 
                     # area = mesh_surface_area(verts, faces)
 
+                    # Store the field's own value at each vertex: the "values" that
+                    # marching_cubes returns are only a local measure for coloring
+                    values = sample_at_vertices(g[field], verts, (dx, dy, dz))
+
+                    # Sample the extra fields at the vertices before they are moved
+                    # to physical positions
+                    grid_extra = {
+                        efield: sample_at_vertices(g[efield], verts, (dx, dy, dz))
+                        for efield in extra_fields
+                    }
+
                     # offset the physical location
                     verts += np.array(g.fcoords.min(axis=0))
 
@@ -251,6 +311,8 @@ def do_isosurface_extraction(
                     verts_np = np.append(verts_np, verts, axis=0)
                     faces_np = np.append(faces_np, faces, axis=0)
                     samples_np = np.append(samples_np, values, axis=0)
+                    for efield, esamples in grid_extra.items():
+                        extra_np[efield] = np.append(extra_np[efield], esamples)
 
                 except ValueError:
                     # Skip the regions that do not have values for the isosurface
@@ -273,6 +335,7 @@ def do_isosurface_extraction(
             all_verts = comm.gather(verts_np, root=0)
             all_faces = comm.gather(faces_np, root=0)
             all_samples = comm.gather(samples_np, root=0)
+            all_extra = comm.gather(extra_np, root=0)
 
             # Barrier before writing
             comm.barrier()
@@ -290,6 +353,14 @@ def do_isosurface_extraction(
                     all_faces_np = np.append(all_faces_np, all_faces[i], axis=0)
                     all_samples_np = np.append(all_samples_np, all_samples[i], axis=0)
 
+                # Combine the extra fields in the same rank order as the vertices
+                all_extra_np = {
+                    efield: np.concatenate(
+                        [all_extra[i][efield] for i in range(size)]
+                    ).astype(np.float64)
+                    for efield in extra_fields
+                }
+
         # Write out the hdf5 and the xdmf file
         if rank == 0:
             conn_shape, coord_shape, field_shape = write_hdf5(
@@ -298,6 +369,7 @@ def do_isosurface_extraction(
                 faces=all_faces_np,
                 field=field,
                 fname=os.path.join(outpath, f"{fname}.hdf5"),
+                extra_samples=all_extra_np,
             )
 
             write_xdmf(
@@ -311,6 +383,7 @@ def do_isosurface_extraction(
                 conn_shape=conn_shape,
                 coord_shape=coord_shape,
                 field_shape=field_shape,
+                extra_fields=extra_fields,
             )
 
     else:
@@ -519,6 +592,7 @@ def main():
             ds=ds if args["format"] == "ply" else None,
             iso_edge=args["iso_edge"],
             do_gradient=True if args["gradient"] else False,
+            extra_fields=args["extra_fields"],
         )
         if rank == 0:
             print(
