@@ -2,6 +2,7 @@ import argparse
 import os
 import pkgutil
 import subprocess
+import sys
 
 
 def list_scripts(directory):
@@ -15,7 +16,7 @@ class ListScriptsAction(argparse.Action):
             script_path = os.path.join(os.path.dirname(__file__), f"{script}.py")
             print(f"\n{script} ({script_path})")
             try:
-                subprocess.run(["python", script_path, "-h"], check=True)
+                subprocess.run([sys.executable, script_path, "-h"], check=True)
             except subprocess.CalledProcessError:
                 print(f"Failed to run --help on {script}")
         parser.exit()
@@ -41,7 +42,7 @@ def main():
         print(f"Running {args.script} script with args: {script_args}")
 
         script_path = os.path.join(os.path.dirname(__file__), f"{args.script}.py")
-        try:
-            subprocess.run(["python", script_path] + script_args, check=True)
-        except subprocess.CalledProcessError:
+        result = subprocess.run([sys.executable, script_path] + script_args)
+        if result.returncode != 0:
             print(f"Failed to run {args.script} with args: {script_args}")
+        sys.exit(result.returncode)

@@ -4,7 +4,7 @@ import copy
 import glob
 import os
 import re
-import subprocess
+import shutil
 import sys
 import tomllib
 
@@ -19,12 +19,12 @@ def is_notebook():
 
 
 def is_latex_available():
-    """Check if latex is available."""
-    try:
-        subprocess.check_output(["latex"])
-        return True
-    except FileNotFoundError:
-        return False
+    """Check if latex is available on the PATH.
+
+    Only looks up the executable. Running a bare ``latex`` starts its interactive
+    prompt and blocks waiting for input.
+    """
+    return shutil.which("latex") is not None
 
 
 def get_configs():

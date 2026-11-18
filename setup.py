@@ -29,13 +29,19 @@ setup(
     author_email="nicholas.wimer@gmail.com",
     license="MIT License",
     packages=find_packages(),
+    # Ship the default and example configuration files with the scripts
+    package_data={
+        "quick_vis": ["*.toml"],
+        "data_extraction": ["*.toml"],
+    },
     install_requires=install_requires,
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",
         "Programming Language :: Python :: 3.11",
     ],
-    python_requires=">=3.9, <3.12",
+    # tomllib is only in the standard library from 3.11
+    python_requires=">=3.11, <3.12",
     entry_points={
         "console_scripts": [
             "quick_vis = quick_vis:main",

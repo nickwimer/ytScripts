@@ -27,16 +27,8 @@ def get_base_parser():
 
 def get_args(parser):
     """Get the arguments from the parser."""
-    args = parser.parse_args()
-
-    # Get the initial set of arguments
-    init_args = parser.parse_args()
-
-    # Override the command-line arguments with the input file
-    if init_args.ifile:
-        args = parser.override_args(init_args, init_args.ifile)
-    else:
-        args = vars(init_args)
+    # Parse the command line, merged with the input file if one is given
+    args = parser.get_args()
 
     # Return the parsed arguments as a dict
     return args

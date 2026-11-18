@@ -28,16 +28,8 @@ def get_base_parser():
 
 def get_args(parser):
     """Get the arguments from the parser."""
-    args = parser.parse_args()
-
-    # Get the initial set of arguments
-    init_args = parser.parse_args()
-
-    # Override the command-line arguments with the input file
-    if init_args.ifile:
-        args = parser.override_args(init_args, init_args.ifile)
-    else:
-        args = vars(init_args)
+    # Parse the command line, merged with the input file if one is given
+    args = parser.get_args()
 
     # Return the parsed arguments as a dict
     return args
@@ -73,10 +65,13 @@ def main():
     )
 
     # Create the slice array and find indices closest to value
-    islice = np.linspace(args["min"], args["max"], args["num_slices"])
+    islice = np.linspace(
+        float(args["min"]), float(args["max"]), int(args["num_slices"])
+    )
 
     # Loop over the plt files in the data directory
-    yt.enable_parallelism()
+    if not args["no_mpi"]:
+        yt.enable_parallelism()
     for ds in ts.piter(dynamic=True):
 
         if args["field"]:

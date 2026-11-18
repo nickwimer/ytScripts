@@ -33,16 +33,8 @@ def get_base_parser():
 
 def get_args(parser):
     """Get the arguments from the parser."""
-    args = parser.parse_args()
-
-    # Get the initial set of arguments
-    init_args = parser.parse_args()
-
-    # Override the command-line arguments with the input file
-    if init_args.ifile:
-        args = parser.override_args(init_args, init_args.ifile)
-    else:
-        args = vars(init_args)
+    # Parse the command line, merged with the input file if one is given
+    args = parser.get_args()
 
     # Return the parsed arguments as a dict
     return args
@@ -483,10 +475,10 @@ def main():
         dregion = ds.all_data()
 
         # Export the isosurfaces in specified format
-        if args["value"]:
+        if args["value"] is not None:
             fname = f"""isosurface_{vis_field}_{args["value"]}_{ds.basename}"""
             value = args["value"]
-        elif args["vfunction"]:
+        elif args["vfunction"] is not None:
             vstime = args["vfunction"][0]
             vetime = args["vfunction"][2]
             vsval = args["vfunction"][1]
