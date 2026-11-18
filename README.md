@@ -248,3 +248,5 @@ Some helpful options:
 `--no_time`: Flag to remove the timestamp in the figure
 
 `--no_units`: Flag to remove all units from the plots (axes and colorbar)
+
+`--use_tex`: Flag to render the plot text with LaTeX. Off by default: it needs a working TeX installation and is slower, and a broken one can make the script wait forever with no error. Labels such as `$\rho$` render without it.

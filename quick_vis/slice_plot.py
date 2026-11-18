@@ -17,10 +17,20 @@ import matplotlib.pyplot as plt  # noqa: E402
 import ytscripts.utilities as utils  # noqa: E402
 import ytscripts.ytargs as ytargs  # noqa: E402
 
-if utils.is_latex_available():
+
+def configure_tex(use_tex):
+    """Render plot text with LaTeX, only when asked for and LaTeX is installed.
+
+    LaTeX rendering is opt-in: it is slower, and a broken TeX install can make
+    matplotlib wait forever on its luatex helper. Returns whether it is on.
+    """
+    if not use_tex:
+        return False
+    if not utils.is_latex_available():
+        print("--use_tex was given but LaTeX was not found; using standard fonts.")
+        return False
     plt.rc("text", usetex=True)
-else:
-    print("LaTeX not available, using standard font.")
+    return True
 
 
 def get_parser():
@@ -360,9 +370,8 @@ def main():
         for iname, ifunc in udf_tups:
             udf_funcs.update({iname: ifunc})
 
-    # Enable tex parsing for plots
-    if args["use_tex"]:
-        plt.rc("text", usetex=True)
+    # Render text with LaTeX only when asked for
+    configure_tex(args["use_tex"])
 
     # Make the output directory for images
     if args["outpath"]:

@@ -389,7 +389,10 @@ class ytVisArgs(ytArgs):
             },
             "use_tex": {
                 "action": "store_true",
-                "help": "Flag to use latex parser.",
+                "help": (
+                    "Render plot text with LaTeX (off by default). Needs a working "
+                    "TeX install and is slower."
+                ),
             },
         }
 
