@@ -9,6 +9,14 @@ on:
     branches:
       - main
 
+# Every run pushes to the gh-pages branch, and two at once collide: merging a PR
+# starts one run for the push to main and one for the closed PR. Run them one at
+# a time so each starts from the latest gh-pages. A waiting run never cancels the
+# one in progress (GitHub keeps only the newest waiting run).
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
