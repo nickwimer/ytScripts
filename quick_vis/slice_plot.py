@@ -48,18 +48,26 @@ def get_args(parser):
     return args
 
 
-def plot_contours(contour, ax, left_edge, dxy, color, linewidth):
-    """Add contours to plot axes."""
+def contour_lines(image, level, extent):
+    """Return the contour lines of an image in plot coordinates.
 
-    for icnt in contour:
-        ax.plot(
-            icnt[:, 1] * dxy[0] + left_edge[0],
-            icnt[:, 0] * dxy[1] + left_edge[1],
-            alpha=1.0,
-            color=color,
-            zorder=10,
-            linewidth=linewidth,
+    ``image`` is indexed [row, column] with row 0 at the bottom, and ``extent`` is
+    (left, right, bottom, top) of the whole image, as matplotlib's imshow uses. Each
+    line is an (N, 2) array of horizontal and vertical positions, measured from the
+    pixel centers.
+    """
+    image = np.asarray(image, dtype=np.float64)
+    nrows, ncols = image.shape
+    left, right, bottom, top = extent
+    dh = (right - left) / ncols
+    dv = (top - bottom) / nrows
+
+    return [
+        np.column_stack(
+            (left + (line[:, 1] + 0.5) * dh, bottom + (line[:, 0] + 0.5) * dv)
         )
+        for line in find_contours(image, level=float(level))
+    ]
 
 
 def create_slice_plot(
@@ -216,13 +224,9 @@ def create_slice_plot(
     axc.set_xlabel("")
 
     if args["contour"] is not None:
-        xres, yres, zres = np.array(ds_attributes["resolution"])
-
-        lx, ly, lz = np.array(ds_attributes["left_edge"])
-        rx, ry, rz = np.array(ds_attributes["right_edge"])
-        dx = (rx - lx) / xres
-        dy = (ry - ly) / yres
-        dz = (rz - lz) / zres
+        # Place the contours on the image as drawn: its extent covers whatever
+        # region --center, --pbox and --buff selected, in the axes units
+        extent = ax.get_images()[0].get_extent()
 
         # contour must be a multiple of three arguments
         if not len(args["contour"]) % 3 == 0:
@@ -241,39 +245,20 @@ def create_slice_plot(
                 linewidth = args["clw"][icnt]
 
             idx = icnt * 3
-            contour = find_contours(
-                image=slc.frb[args["contour"][idx]], level=args["contour"][idx + 1]
-            )
+            image = np.asarray(slc.frb[args["contour"][idx]])
+            # The plot transposes the image when its axes are swapped (normal y)
+            if args["normal"] == "y":
+                image = image.T
 
-            if args["normal"] == "x":
-                plot_contours(
-                    contour=contour,
-                    ax=ax,
-                    left_edge=[ly, lz],
-                    dxy=[dy, dz],
+            for line in contour_lines(image, args["contour"][idx + 1], extent):
+                ax.plot(
+                    line[:, 0],
+                    line[:, 1],
+                    alpha=1.0,
                     color=args["contour"][idx + 2],
+                    zorder=10,
                     linewidth=linewidth,
                 )
-            elif args["normal"] == "y":
-                plot_contours(
-                    contour=contour,
-                    ax=ax,
-                    left_edge=[lz, lx],
-                    dxy=[dz, dx],
-                    color=args["contour"][idx + 2],
-                    linewidth=linewidth,
-                )
-            elif args["normal"] == "z":
-                plot_contours(
-                    contour=contour,
-                    ax=ax,
-                    left_edge=[lx, ly],
-                    dxy=[dx, dy],
-                    color=args["contour"][idx + 2],
-                    linewidth=linewidth,
-                )
-            else:
-                sys.exit(f"""Normal {args["normal"]} is not in [x, y, z]!""")
 
     # Add grid information to the slice plot
     if args["grid_info"]:
@@ -442,11 +427,6 @@ def main():
             (args["pbox"][2] - args["pbox"][0], axes_unit),
             (args["pbox"][3] - args["pbox"][1], axes_unit),
         )
-        # Set the left edge base on the pbox
-        # pbox_left_edge = [args.pbox[0], args.pbox[1]]
-
-        if args["contour"]:
-            sys.exit("joint pbox and contour options are currently broken...")
 
     # Loop over all datasets in the time series
     if not args["no_mpi"]:

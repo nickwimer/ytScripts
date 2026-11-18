@@ -459,11 +459,17 @@ class ytExtractArgs(ytArgs):
             },
             "do_ghost": {
                 "action": "store_true",
-                "help": "Flag to get ghost cells before the iso-surface extraction.",
+                "help": (
+                    "Flag to add ghost cells around each grid, which closes the "
+                    "cracks between neighboring grids in the surface."
+                ),
             },
             "single_level": {
                 "action": "store_true",
-                "help": "Flag to only get single grid level for isosurface.",
+                "help": (
+                    "No longer has any effect: ghost cells are always built at each "
+                    "grid's own level. Kept so existing commands still run."
+                ),
             },
             "smooth": {
                 "type": float,
