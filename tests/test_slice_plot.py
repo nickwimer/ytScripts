@@ -1,8 +1,31 @@
-"""Tests for placing slice_plot contours on the drawn image."""
+"""Tests for slice_plot: LaTeX settings and placing contours on the drawn image."""
 
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 
 import quick_vis.slice_plot as sp
+
+
+def test_importing_leaves_latex_off():
+    """LaTeX must not switch on by itself, even where it is installed."""
+    assert plt.rcParams["text.usetex"] is False
+
+
+def test_latex_only_when_asked_for(monkeypatch, capsys):
+    with matplotlib.rc_context():
+        monkeypatch.setattr(sp.utils, "is_latex_available", lambda: True)
+        assert sp.configure_tex(False) is False
+        assert plt.rcParams["text.usetex"] is False
+
+        assert sp.configure_tex(True) is True
+        assert plt.rcParams["text.usetex"] is True
+
+    with matplotlib.rc_context():
+        monkeypatch.setattr(sp.utils, "is_latex_available", lambda: False)
+        assert sp.configure_tex(True) is False
+        assert plt.rcParams["text.usetex"] is False
+        assert "LaTeX was not found" in capsys.readouterr().out
 
 
 def pixel_centers(extent, shape):
