@@ -73,6 +73,14 @@ The proper order should be `black`, then `isort`, finally `flake8` to catch any 
 
 ---
 
+# Choosing plotfiles
+
+Every script that reads plotfiles takes `--datapath`, the folder holding them, and optionally `--pname` to pick some of them:
+
+- Without `--pname`, every plotfile named `plt` followed by digits (`plt00100`, `plt01264`, ...) is used. Other plotfiles a run writes alongside, such as `pltU00100` or `plt00100.old.4821`, are left out.
+- With `--pname`, any name works: give plotfile names or quoted patterns inside `--datapath`, e.g. `--pname pltReact01264` or `--pname "pltReact*"`. `--pname` takes names, not paths; the folder goes after `--datapath`.
+- Plotfiles are taken in order of the number at the end of their names, and output images are numbered by each plotfile's place in its series, so frames stay consecutive for making movies.
+
 # Scripts for Data Extractions
 
 Scripts for data extraction and manipulation are located under `data_extraction/`
@@ -195,11 +203,11 @@ This script now automatically references a list of configuration settings locate
 
 Some helpful options:
 
-`--datapath`: Path to the plot files.
+`--datapath`: Path to the folder holding the plot files (required).
 
-`--outpath`: Path to the output image directory (default to datapath/images).
+`--outpath`: Path to the output image directory (defaults to `outdata/images` in the ytScripts folder).
 
-`--pname`: Used to specify individual plot file names instead of doing all files in the datapath.
+`--pname`: Plot file names or quoted patterns inside `--datapath`, instead of every `plt<digits>` plot file there; any name works (see [Choosing plotfiles](#choosing-plotfiles)).
 
 `--field`: Name of the field for visualization.
 
