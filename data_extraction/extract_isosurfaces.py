@@ -163,7 +163,6 @@ def do_isosurface_extraction(
     size,
     do_ghost=False,
     do_yt=False,
-    single_level=False,
     smooth=None,
     ds=None,
     iso_edge=None,
@@ -242,10 +241,8 @@ def do_isosurface_extraction(
                     g, child_mask = retrieve_ghost_zones(
                         cube=g,
                         n_zones=1,
-                        fields=field,
                         ds_left_edge=ds_attributes["left_edge"],
                         ds_right_edge=ds_attributes["right_edge"],
-                        single_level=single_level,
                         do_gradient=do_gradient,
                     )
                 else:
@@ -390,106 +387,54 @@ def do_isosurface_extraction(
         sys.exit(f"Format {outformat} not in [ply, obj, hdf5, xdmf]")
 
 
-def retrieve_ghost_zones(
-    cube,
-    n_zones,
-    fields,
-    ds_left_edge,
-    ds_right_edge,
-    single_level,
-    do_gradient,
-):
+def ghost_padding(start_idx, act_dims, level_dims, n_zones):
+    """Return how many ghost cells fit below and above a grid in each direction.
 
-    # Get the cube index information
+    Ghost cells are only added where they stay inside the domain, which is
+    ``level_dims`` cells across at the grid's level.
+    """
+    start_idx = np.asarray(start_idx)
+    act_dims = np.asarray(act_dims)
+    pad_low = n_zones * (start_idx - n_zones >= 0)
+    pad_high = n_zones * (start_idx + act_dims + n_zones <= np.asarray(level_dims))
+    return pad_low.astype(int), pad_high.astype(int)
+
+
+def retrieve_ghost_zones(cube, n_zones, ds_left_edge, ds_right_edge, do_gradient):
+    """Return a grid grown by ghost cells, and its child mask padded to match.
+
+    The ghost cells come from a covering grid at the grid's own level, so the grown
+    grid keeps the original cell size and lines up with the original cells.
+
+    The padded mask is False in the ghost cells. marching_cubes only processes a cell
+    when the mask is True at the cell's upper corner, so the ghost layer below a grid
+    fills the gap to its lower neighbor (closing the crack between them) and the layer
+    above it is never used. Each gap is therefore filled once, by the grid above it.
+    """
+    dds = cube.dds
     start_idx = cube.get_global_startindex()
     act_dims = cube.ActiveDimensions
 
-    child_mask = cube.child_mask
+    # Number of cells across the domain at this grid's level
+    level_dims = np.rint(np.asarray((ds_right_edge - ds_left_edge) / dds)).astype(int)
+    pad_low, pad_high = ghost_padding(start_idx, act_dims, level_dims, n_zones)
 
-    # Define the left and right physical edges we are trying to access
-    left_phys = ds_left_edge + (start_idx - n_zones) * cube.dds
-    right_phys = left_phys + (act_dims + 2 * n_zones) * cube.dds
-
-    # Get the conditional array to determine which boundary we might cross
-    left_cond = left_phys <= ds_left_edge
-    right_cond = right_phys >= ds_right_edge
-
-    # Define the new left edge and new dimensions of the box we want
-    nl = start_idx - n_zones * np.invert(left_cond)
-    new_left_edge = nl * cube.dds + ds_left_edge
-    new_dims = (
-        act_dims + n_zones * np.invert(left_cond) + n_zones * np.invert(right_cond)
+    child_mask = np.pad(
+        cube.child_mask,
+        list(zip(pad_low, pad_high)),
+        mode="constant",
+        constant_values=False,
     )
 
-    # Append values to the child mask
-    add_left_side = start_idx - nl
-    add_right_side = (new_dims - act_dims) - add_left_side
-
-    child_mask = np.append(
-        np.full(
-            (add_left_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
-            False,
-            dtype=bool,
-        ),
-        child_mask,
-        axis=0,
-    )
-    child_mask = np.append(
-        np.full(
-            (np.shape(child_mask)[0], add_left_side[1], np.shape(child_mask)[2]),
-            False,
-            dtype=bool,
-        ),
-        child_mask,
-        axis=1,
-    )
-    child_mask = np.append(
-        np.full(
-            (np.shape(child_mask)[0], np.shape(child_mask)[1], add_left_side[2]),
-            False,
-            dtype=bool,
-        ),
-        child_mask,
-        axis=2,
-    )
-
-    child_mask = np.append(
-        child_mask,
-        np.full(
-            (add_right_side[0], np.shape(child_mask)[1], np.shape(child_mask)[2]),
-            False,
-            dtype=bool,
-        ),
-        axis=0,
-    )
-    child_mask = np.append(
-        child_mask,
-        np.full(
-            (np.shape(child_mask)[0], add_right_side[1], np.shape(child_mask)[2]),
-            False,
-            dtype=bool,
-        ),
-        axis=1,
-    )
-    child_mask = np.append(
-        child_mask,
-        np.full(
-            (np.shape(child_mask)[0], np.shape(child_mask)[1], add_right_side[2]),
-            False,
-            dtype=bool,
-        ),
-        axis=2,
-    )
-
-    # Get the new cube that defined by the new covering grid
-    cube = cube.ds.covering_grid(
-        level=cube.Level if single_level else cube.index.max_level,
-        left_edge=new_left_edge,
-        dims=new_dims,
+    # Build the grown grid at the same level as the original one
+    ghost_cube = cube.ds.covering_grid(
+        level=cube.Level,
+        left_edge=ds_left_edge + (start_idx - pad_low) * dds,
+        dims=act_dims + pad_low + pad_high,
         num_ghost_zones=n_zones if do_gradient else 0,
     )
 
-    return cube, child_mask
+    return ghost_cube, child_mask
 
 
 def main():
@@ -500,6 +445,12 @@ def main():
     # Parse the input arguments
     parser = get_parser()
     args = get_args(parser)
+
+    if args["single_level"] and rank == 0:
+        print(
+            "Note: --single_level no longer changes anything; ghost cells are "
+            "always built at each grid's own level."
+        )
 
     # Create the output directory
     if rank == 0:
@@ -587,7 +538,6 @@ def main():
             size=size,
             do_ghost=args["do_ghost"],
             do_yt=args["yt"],
-            single_level=args["single_level"],
             smooth=args["smooth"],
             ds=ds if args["format"] == "ply" else None,
             iso_edge=args["iso_edge"],

@@ -1,6 +1,5 @@
 """Utility routines used throughout ytscripts."""
 
-import copy
 import glob
 import os
 import re
@@ -280,25 +279,15 @@ def compute_elem_mass_fraction(attributes, keys=None):
                     elif elem[0] == "N":
                         spec_dict[cut_name]["N"] += num
 
-    # Compute the elemental mass fraction from the spec_dict
-    # elem_mass_frac_dict = {"C": 0, "H": 0, "O": 0, "N": 0}
-    elem_mass_frac_dict = copy.deepcopy(spec_dict)
-    for spec in spec_dict:
-        elem_mass_frac_dict[spec]["C"] += spec_dict[spec]["C"] * atomic_masses["C"]
-        elem_mass_frac_dict[spec]["H"] += spec_dict[spec]["H"] * atomic_masses["H"]
-        elem_mass_frac_dict[spec]["O"] += spec_dict[spec]["O"] * atomic_masses["O"]
-        elem_mass_frac_dict[spec]["N"] += spec_dict[spec]["N"] * atomic_masses["N"]
-
-    for spec in elem_mass_frac_dict:
-        total_mass = (
-            elem_mass_frac_dict[spec]["C"]
-            + elem_mass_frac_dict[spec]["H"]
-            + elem_mass_frac_dict[spec]["O"]
-            + elem_mass_frac_dict[spec]["N"]
-        )
-        elem_mass_frac_dict[spec]["C"] /= total_mass
-        elem_mass_frac_dict[spec]["H"] /= total_mass
-        elem_mass_frac_dict[spec]["O"] /= total_mass
-        elem_mass_frac_dict[spec]["N"] /= total_mass
+    # Mass of each element in each species, as a fraction of the species' mass
+    elem_mass_frac_dict = {}
+    for spec, counts in spec_dict.items():
+        masses = {elem: counts[elem] * mass for elem, mass in atomic_masses.items()}
+        total_mass = sum(masses.values())
+        # A species with none of these elements (e.g. AR) has no fractions to give
+        elem_mass_frac_dict[spec] = {
+            elem: (mass / total_mass if total_mass else 0.0)
+            for elem, mass in masses.items()
+        }
 
     return elem_mass_frac_dict, atomic_masses, fields

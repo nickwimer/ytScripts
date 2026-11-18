@@ -65,6 +65,21 @@ def test_extra_fields_sampled_at_vertices():
     )
 
 
+def test_ghost_padding_stays_inside_the_domain():
+    level_dims = [16, 16, 16]
+    # Interior grid: one ghost layer on every side
+    low, high = iso.ghost_padding([4, 4, 4], [8, 8, 8], level_dims, 1)
+    assert list(low) == [1, 1, 1] and list(high) == [1, 1, 1]
+
+    # Touching the low and high domain edges: no ghost cells past them
+    low, high = iso.ghost_padding([0, 4, 8], [8, 8, 8], level_dims, 1)
+    assert list(low) == [0, 1, 1] and list(high) == [1, 1, 0]
+
+    # One cell in from either edge: the ghost layer still fits (this was skipped)
+    low, high = iso.ghost_padding([1, 4, 4], [8, 8, 11], level_dims, 1)
+    assert list(low) == [1, 1, 1] and list(high) == [1, 1, 1]
+
+
 def test_extra_fields_need_hdf5_or_xdmf_output(capsys):
     parser = iso.get_parser()
     with pytest.raises(SystemExit):

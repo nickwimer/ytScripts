@@ -81,7 +81,7 @@ Scripts for data extraction and manipulation are located under `data_extraction/
 
 Extracts 2D slices along specified normal and saves to a npz for later analysis.
 
-Ex: `python data_extraction/extract_slices.py -p DATA_DIR/ --field "Y(NC12H26)" --normal x --min 0.005 --max 0.1 --num_slices 16`
+Ex: `python data_extraction/extract_slices.py --datapath DATA_DIR/ --field "Y(NC12H26)" --normal x --min 0.005 --max 0.1 --num_slices 16`
 
 This will extract all plot files contained in directory `DATA_DIR/` for the field `Y(NC12H26)`, making 16 slices starting from x = 0.005 to x = 0.1
 
@@ -97,7 +97,7 @@ The default behavior is to perform a full domain average of the quantity, but 2D
 
 NOTE: If you have EB boundaries in the domain, you should run with flag `--rm_eb` to remove the non-fluid regions from the averages.
 
-Ex: `python data_extraction/extract_averages.py -p DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
+Ex: `python data_extraction/extract_averages.py --datapath DIR/ --pname plt00001 plt00002 --name NAME --fields mag_vort`
 
 Data will be saved under `outdata/averages`, unless otherwise specified.
 
@@ -107,13 +107,13 @@ Data will be saved under `outdata/averages`, unless otherwise specified.
 
 Extracts an isosurface of specified field and value and saves to file for visualization in external program (such as ParaView or Blender).
 
-Ex: `python data_extraction/extract_isosurfaces.py -p DATADIR/ --pname plt00001 --field magvort --value 50000.0 --format xdmf`
+Ex: `python data_extraction/extract_isosurfaces.py --datapath DATADIR/ --pname plt00001 --field magvort --value 50000.0 --format xdmf`
 
 Output formats are `ply`, `obj`, `hdf5`/`xdmf`.
 
 Isosurface file will be saved under `outdata/isosurfaces`.
 
-Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are holes in the iso-surfaces.
+Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are holes in the iso-surfaces: it adds a layer of ghost cells around each grid, which closes the cracks between neighboring grids at the same refinement level. Small cracks can remain where the surface crosses from one refinement level to another.
 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 
@@ -125,7 +125,7 @@ With the `hdf5`/`xdmf` formats, `--extra_fields` stores other fields on the surf
 
 Extracts grid information at each level and saves to file.
 
-Ex: `python data_extraction/extract_grid_info.py -p DATADIR/ -o OUTDIR/ --name FILE_NAME`
+Ex: `python data_extraction/extract_grid_info.py --datapath DATADIR/ --outpath OUTDIR/ --name FILE_NAME`
 
 Will save a pickle file of the Pandas DataFrame with grid information as a function of time and some stored metadata about the simulation.
 
@@ -147,7 +147,7 @@ Scripts for plotting data that was previously extracted using files under `data_
 
 This will load in the NumPy data structures contained in the input path and make plots.
 
-Ex: `python plot_data/plot_slices.py -p outdata/ --field magvort`
+Ex: `python plot_data/plot_slices.py --datapath outdata/ --field magvort`
 
 where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`.
 
@@ -161,7 +161,7 @@ where `outdata` is the directory containing the list of `.npz` files. These imag
 
 This will load in the Pandas DataFrame and make time series plots
 
-Ex: `python plot_data/plot_averages.py -p outdata/averages/ -f NAME --field mag_vort`
+Ex: `python plot_data/plot_averages.py --datapath outdata/averages/ --fname NAME --fields mag_vort`
 
 Plots will be saved under `outdata/images/`
 
@@ -171,7 +171,7 @@ Plots will be saved under `outdata/images/`
 
 Load grid info data from pickled Pandas DataFrame and make simple plot as an example.
 
-`python plot_data/plot_grid_info.py -p DATADIR/ -o OUTDIR/ -f FILENAME`
+`python plot_data/plot_grid_info.py --datapath DATADIR/ --outpath OUTDIR/ --fname FILENAME`
 
 # Scripts for Visualization
 
@@ -183,7 +183,7 @@ These scripts are currently provided as examples and will need manual modificati
 
 This will take all `plt` files in the input directory and create 2D images subject to inputs
 
-Ex: `python quick_vis/slice_plot.py -p DATA_DIR/ --field "Y(NC12H26)" --normal x --fbounds 0 0.1`
+Ex: `python quick_vis/slice_plot.py --datapath DATA_DIR/ --field "Y(NC12H26)" --normal x --fbounds 0 0.1`
 
 This will create a 2D slice plot with x as the normal direction and bounds on field set to 0 - 0.1 in field units
 
