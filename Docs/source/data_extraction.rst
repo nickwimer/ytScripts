@@ -44,6 +44,19 @@ data\_extraction.extract\_isosurfaces module
    :undoc-members:
    :show-inheritance:
 
+data\_extraction.extract\_lines module
+--------------------------------------
+
+.. argparse::
+   :module: data_extraction.extract_lines
+   :func: get_base_parser
+   :prog: extract_lines
+
+.. automodule:: data_extraction.extract_lines
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 data\_extraction.extract\_slices module
 ---------------------------------------
 
