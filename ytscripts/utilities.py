@@ -45,25 +45,108 @@ def get_configs():
     return configs
 
 
-def get_files(datapath, pattern="plt*"):
-    """Get all the plt files in the directory."""
-    files = glob.glob(os.path.join(datapath, pattern))
-    return sorted(
-        [
-            os.path.basename(f)
-            for f in files
-            if re.match(r"plt\d+$", os.path.basename(f))
-        ]
+def is_plotfile(path):
+    """Return True if path is an AMReX plotfile, a folder holding a Header file."""
+    return os.path.isfile(os.path.join(path, "Header"))
+
+
+def split_plotfile_name(name):
+    """Split a plotfile name into its prefix and the number at its end.
+
+    "pltReact01264" gives ("pltReact", 1264); a name with no number at the end
+    gives (name, None).
+    """
+    match = re.fullmatch(r"(.*?)(\d+)", name)
+    if match:
+        return match.group(1), int(match.group(2))
+    return name, None
+
+
+def plotfile_sort_key(name):
+    """Sort plotfiles by prefix, then by the number at the end of the name.
+
+    This puts plt99999 before plt100000, which sorting by name alone does not.
+    """
+    prefix, number = split_plotfile_name(name)
+    return (prefix, -1 if number is None else number, name)
+
+
+def create_index_dict(names):
+    """Number each plotfile by its place among those named the same way.
+
+    Plotfiles that share a prefix and end in a number (plt00100, plt00200, ...) are
+    numbered 0, 1, 2, ... in order of that number, so images made from them get
+    consecutive frame numbers whichever of them are plotted. Names with no number at
+    the end are numbered among themselves.
+    """
+    families = {}
+    for name in sorted(names, key=plotfile_sort_key):
+        prefix, number = split_plotfile_name(name)
+        families.setdefault(prefix if number is not None else None, []).append(name)
+
+    return {name: i for family in families.values() for i, name in enumerate(family)}
+
+
+def find_plotfiles(datapath, pname=None, nskip=None):
+    """Find the plotfiles to load and number them for output names.
+
+    Without ``pname``, every plotfile named plt<digits> in ``datapath`` is used, so
+    other plotfiles a run writes alongside (such as pltU00100 or plt00100.old.1234)
+    are left out. With ``pname``, every plotfile matching those names or patterns is
+    used, whatever it is called. ``nskip`` keeps every (nskip + 1)th file.
+
+    Returns the paths to load, in order, and a dict numbering every plotfile in
+    ``datapath`` (see create_index_dict).
+    """
+    if not datapath:
+        raise ValueError("--datapath is needed: the folder that holds the plotfiles.")
+    datapath = os.path.expanduser(datapath)
+    if not os.path.isdir(datapath):
+        raise FileNotFoundError(f"--datapath {datapath} is not a folder.")
+
+    all_names = sorted(
+        (n for n in os.listdir(datapath) if is_plotfile(os.path.join(datapath, n))),
+        key=plotfile_sort_key,
     )
+    step = nskip + 1 if nskip else 1
 
+    if pname is None:
+        names = [n for n in all_names if re.fullmatch(r"plt\d+", n)]
+        if not names:
+            message = f"No plotfiles named plt<digits> in {datapath}."
+            if all_names:
+                prefix, number = split_plotfile_name(all_names[0])
+                hint = f"{prefix}*" if number is not None else all_names[0]
+                message += (
+                    f" Found {len(all_names)} other plotfiles, like {all_names[0]}:"
+                    f' use them with --pname "{hint}".'
+                )
+            raise FileNotFoundError(message)
+        names = names[::step]
+    else:
+        names = []
+        for pattern in pname:
+            if "/" in pattern or os.sep in pattern:
+                raise ValueError(
+                    "--pname takes plotfile names or patterns inside --datapath, not "
+                    f"paths. To use the plotfiles in {pattern}, pass --datapath "
+                    f"{pattern} instead."
+                )
+            matched = sorted(
+                (
+                    os.path.basename(path)
+                    for path in glob.glob(os.path.join(datapath, pattern))
+                    if is_plotfile(path)
+                ),
+                key=plotfile_sort_key,
+            )
+            if not matched:
+                raise FileNotFoundError(
+                    f'No plotfiles in {datapath} match --pname "{pattern}".'
+                )
+            names.extend(n for n in matched[::step] if n not in names)
 
-def create_index_dict(all_files, plt_files):
-    """Create a dictionary of the index of the plot files."""
-    index_dict = {}
-    for plt in plt_files:
-        index_dict.update({plt: all_files.index(plt)})
-
-    return index_dict
+    return [os.path.join(datapath, n) for n in names], create_index_dict(all_names)
 
 
 def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=None):
@@ -72,7 +155,8 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
 
     Parameters:
     - datapath (str): The path to the directory containing the dataset files.
-    - pname (list, optional): A list of patterns to match the dataset files.
+    - pname (list, optional): Plotfile names or glob patterns inside datapath. When
+    left out, every plotfile named plt<digits> is loaded. See find_plotfiles.
     - units_override (dict, optional): A dictionary specifying unit overrides for the
     loaded datasets. Default is None.
     - nprocs (int, optional): The number of processes to use for parallel loading.
@@ -80,51 +164,16 @@ def load_dataseries(datapath, pname=None, units_override=None, nprocs=1, nskip=N
 
     Returns:
     - ts (yt.DatasetSeries): A series of loaded datasets.
-    - index_dict (dict): A dictionary mapping file indices to their corresponding
-    dataset indices.
+    - index_dict (dict): Maps each plotfile name to its frame number among the
+    plotfiles named the same way.
     """
+    load_list, index_dict = find_plotfiles(datapath, pname=pname, nskip=nskip)
 
-    if pname is not None:
-        load_list = []
-        for pattern in pname:
-            matched_files = glob.glob(os.path.join(datapath, pattern))
-            matched_files = sorted(
-                [f for f in matched_files if re.match(r"plt\d+$", os.path.basename(f))]
-            )
-            if nskip:
-                matched_files = matched_files[:: nskip + 1]
-            load_list.extend(matched_files)
-
-        ts = yt.DatasetSeries(
-            load_list,
-            units_override=units_override,
-            parallel=nprocs,
-        )
-
-        # Find the index based on location of the plot files
-        all_files = get_files(datapath)
-
-        index_dict = create_index_dict(all_files, all_files)
-
-    else:
-        select_files = get_files(datapath)
-        if nskip:
-            load_files = select_files[0 : len(select_files) : nskip + 1]
-        else:
-            load_files = select_files
-
-        load_list = [os.path.join(datapath, x) for x in load_files]
-
-        ts = yt.DatasetSeries(
-            load_list,
-            units_override=units_override,
-            parallel=nprocs,
-        )
-
-        # Find the index based on location of the plot files
-        all_files = get_files(datapath)
-
-        index_dict = create_index_dict(all_files, select_files)
+    ts = yt.DatasetSeries(
+        load_list,
+        units_override=units_override,
+        parallel=nprocs,
+    )
 
     return ts, index_dict
 

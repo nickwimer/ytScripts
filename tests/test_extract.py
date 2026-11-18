@@ -7,6 +7,9 @@ from skimage.measure import marching_cubes
 import data_extraction.extract_isosurfaces as iso
 import data_extraction.extract_lines as lines
 
+# Every script needs --datapath; the parser only checks that it is set
+DATA = ["--datapath", "."]
+
 
 def test_lines_with_different_cells_line_up_by_position():
     """With AMR the cells along the line change between times."""
@@ -26,12 +29,12 @@ def test_lines_with_different_cells_line_up_by_position():
 def test_line_args_need_field_and_two_coords():
     parser = lines.get_parser()
     with pytest.raises(SystemExit):
-        lines.get_args(parser, ["--coords", "0", "0"])
+        lines.get_args(parser, [*DATA, "--coords", "0", "0"])
     with pytest.raises(SystemExit):
-        lines.get_args(parser, ["--field", "temp", "--coords", "0"])
+        lines.get_args(parser, [*DATA, "--field", "temp", "--coords", "0"])
 
     args = lines.get_args(
-        parser, ["--field", "temp", "--coords", "0", "-1", "--normal", "x"]
+        parser, [*DATA, "--field", "temp", "--coords", "0", "-1", "--normal", "x"]
     )
     assert args["coords"] == [0.0, -1.0]
     assert args["normal"] == "x"
@@ -83,11 +86,11 @@ def test_ghost_padding_stays_inside_the_domain():
 def test_extra_fields_need_hdf5_or_xdmf_output(capsys):
     parser = iso.get_parser()
     with pytest.raises(SystemExit):
-        iso.get_args(parser, ["--value", "1", "--extra_fields", "rho"])
+        iso.get_args(parser, [*DATA, "--value", "1", "--extra_fields", "rho"])
     assert "--extra_fields needs --format hdf5 or xdmf" in capsys.readouterr().err
 
     args = iso.get_args(
         iso.get_parser(),
-        ["--value", "1", "--format", "xdmf", "--extra_fields", "rho", "temp"],
+        [*DATA, "--value", "1", "--format", "xdmf", "--extra_fields", "rho", "temp"],
     )
     assert args["extra_fields"] == ["rho", "temp"]

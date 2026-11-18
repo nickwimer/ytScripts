@@ -114,10 +114,19 @@ class ytArgs:
             if all(args.get(arg) is None for arg in group)
         ]
         if missing:
-            self.parser.error(
+            message = (
                 "these values must be set on the command line or in the input file: "
                 + ", ".join(missing)
             )
+            # A folder given to --pname usually belongs after --datapath
+            if "--datapath" in missing and any(
+                "/" in pattern for pattern in args.get("pname") or []
+            ):
+                message += (
+                    ". --pname takes plotfile names inside --datapath; the folder "
+                    "goes after --datapath"
+                )
+            self.parser.error(message)
 
     # TODO: remove argument from dictionary instead of dealing with it in the parser
     #      need to return the updated dictionary for all functions, then update the
@@ -151,9 +160,9 @@ class ytArgs:
         args = {
             "datapath": {
                 "type": str,
-                "required": False,
+                "required": True,
                 "default": None,
-                "help": "Path to the data files.",
+                "help": "Path to the folder holding the data files.",
             },
             "outpath": {
                 "type": str,
@@ -166,7 +175,11 @@ class ytArgs:
                 "nargs": "+",
                 "required": False,
                 "default": None,
-                "help": "Name of plt files to plot (if empty, do all)",
+                "help": (
+                    "Plotfile names or quoted patterns inside --datapath, e.g. "
+                    'plt01000 or "pltReact*". Any name works. Without it, every '
+                    "plotfile named plt<digits> is used."
+                ),
             },
             "field": {
                 "type": str,
