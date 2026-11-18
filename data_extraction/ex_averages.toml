@@ -1,7 +1,9 @@
 title = "Example to extract average data"
 
-datapath = "None"
-outpath = "None"
+# TOML has no null, so leave a path out (or set it with --datapath/--outpath) rather
+# than writing "None", which would be read as a folder called None
+# datapath = "path/to/plt/files"
+# outpath = "path/to/output"
 
 fields = ["temp", "pressure", "density"]
 name = "averages"

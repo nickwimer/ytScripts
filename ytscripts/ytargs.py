@@ -4,8 +4,6 @@ import argparse
 import sys
 import tomllib
 
-from pydantic.v1.utils import deep_update
-
 from ytscripts.utilities import is_notebook
 
 
@@ -16,6 +14,16 @@ class ytArgs:
         """Initialize ytArgs."""
         self.parser = argparse.ArgumentParser()
 
+        # Values that must be set on the command line or in the input file. argparse's
+        # own "required" only looks at the command line, so these are checked after
+        # the input file has been merged in.
+        self.required_args = []
+        self.required_groups = []
+
+        # Command line given to parse_args, kept so it can be parsed again on top of
+        # the input file
+        self._cli_args = None
+
         self.io_args()
 
     def get_parser(self):
@@ -24,74 +32,92 @@ class ytArgs:
 
     def parse_args(self, args=None):
         """Return the parsed args."""
-        return (
-            self.parser.parse_args() if args is None else self.parser.parse_args(args)
-        )
+        self._cli_args = args
+        return self.parser.parse_args(args)
+
+    def get_args(self, args=None):
+        """Parse the command line, merge in the input file and return a dict."""
+        init_args = self.parse_args(args)
+        return self.override_args(init_args, init_args.ifile)
 
     def add_args_from_dict(self, args):
         """Add arguments from a dictionary."""
         for arg, properties in args.items():
+            properties = dict(properties)
+            if properties.pop("required", False):
+                self.required_args.append(arg)
+                properties["help"] = f"""{properties.get("help", "")} (required)"""
             self.parser.add_argument(f"--{arg}", **properties)
 
     def add_mutually_exclusive_args_from_dict(self, args):
-        """Add mutually exclusive arguments from a dictionary."""
-        group = self.parser.add_mutually_exclusive_group(required=True)
+        """Add mutually exclusive arguments from a dictionary (one is needed)."""
+        group = self.parser.add_mutually_exclusive_group()
         for arg, properties in args.items():
             group.add_argument(f"--{arg}", **properties)
+        self.required_groups.append(list(args))
 
     def override_args(self, init_args, input_file):
-        """Override CLI arguments with those from input file."""
+        """Merge the input file with the command line.
 
-        # Arguments that should always be treated as lists
-        list_args = {"clw"}  # contour line width list that must match contour length
-
+        The command line takes precedence over the input file, which takes precedence
+        over the parser defaults.
+        """
         if input_file:
             with open(input_file, "rb") as f:
                 input_options = tomllib.load(f)
 
-            # Now combine the two with preference to the input file
-            args = deep_update(vars(init_args), input_options)
+            # "title" only describes the input file
+            input_options.pop("title", None)
 
-            # If the code is being run in a notebook, ignore --f argument
-            if is_notebook():
-                sys_args = [arg for arg in sys.argv if not arg.startswith("--f=")]
-            else:
-                sys_args = sys.argv
+            actions = {action.dest: action for action in self.parser._actions}
+            unknown = sorted(set(input_options) - set(actions))
+            if unknown:
+                print(f"""Ignoring unknown options in {input_file}: {unknown}""")
 
-            # Update any manually specified arguments
-            indx = 0
-            while indx < len(sys_args):
-                iarg = sys_args[indx]
+            defaults = {}
+            for key, value in input_options.items():
+                if key not in actions:
+                    continue
+                # Options that take several values always hold a list
+                if actions[key].nargs in ("+", "*") and not isinstance(value, list):
+                    value = [value]
+                defaults[key] = value
 
-                if iarg.startswith("-"):
-                    user_arg = iarg.lstrip("-")
-                    values = []
-
-                    # Check if it's a boolean flag or has associated values
-                    if type(args.get(user_arg, None)) is bool:
-                        args = deep_update(args, {user_arg: True})
-                        indx += 1
-                    else:
-                        indx += 1
-                        # Collect all following values until next flag
-                        while indx < len(sys_args) and not sys_args[indx].startswith(
-                            "-"
-                        ):
-                            values.append(sys_args[indx])
-                            indx += 1
-
-                        # Determine if the argument should be a single value or list
-                        if user_arg in list_args or len(values) > 1:
-                            args = deep_update(args, {user_arg: values})
-                        else:
-                            args = deep_update(args, {user_arg: values[0]})
-                else:
-                    indx += 1
-
+            # Use the input file as the defaults and parse the command line again so
+            # anything given there still wins
+            self.parser.set_defaults(**defaults)
+            args = vars(self.parser.parse_args(self._get_cli_args()))
         else:
             args = vars(init_args)
 
+        self.check_required(args)
+
         return args
+
+    def _get_cli_args(self):
+        """Return the command line that was last parsed."""
+        if self._cli_args is not None:
+            return self._cli_args
+
+        # If the code is being run in a notebook, ignore the kernel's --f argument
+        if is_notebook():
+            return [arg for arg in sys.argv[1:] if not arg.startswith("--f=")]
+
+        return sys.argv[1:]
+
+    def check_required(self, args):
+        """Exit with a usage error if a required value is missing."""
+        missing = [f"--{arg}" for arg in self.required_args if args.get(arg) is None]
+        missing += [
+            " or ".join(f"--{arg}" for arg in group)
+            for group in self.required_groups
+            if all(args.get(arg) is None for arg in group)
+        ]
+        if missing:
+            self.parser.error(
+                "these values must be set on the command line or in the input file: "
+                + ", ".join(missing)
+            )
 
     # TODO: remove argument from dictionary instead of dealing with it in the parser
     #      need to return the updated dictionary for all functions, then update the
@@ -109,6 +135,9 @@ class ytArgs:
             if (opts and opts[0] == arg) or action.dest == arg:
                 self.parser._remove_action(action)
                 break
+
+        if arg in self.required_args:
+            self.required_args.remove(arg)
 
         for action in self.parser._action_groups:
             for group_action in action._group_actions:
@@ -368,19 +397,19 @@ class ytExtractArgs(ytArgs):
         args = {
             "min": {
                 "type": float,
-                "required": False,
+                "required": True,
                 "default": None,
                 "help": "Index of the first slice to extract in the normal direction.",
             },
             "max": {
                 "type": float,
-                "required": False,
+                "required": True,
                 "default": None,
                 "help": "Index of the last slice to extract in the normal direction.",
             },
             "num_slices": {
                 "type": int,
-                "required": False,
+                "required": True,
                 "default": None,
                 "help": "Number of slices to extract in normal direction.",
             },
@@ -470,7 +499,7 @@ class ytExtractArgs(ytArgs):
             "fields": {
                 "type": str,
                 "nargs": "+",
-                "required": False,
+                "required": True,
                 "default": None,
                 "help": "Names of the data fields to extract.",
             },
@@ -514,7 +543,7 @@ class ytExtractArgs(ytArgs):
             "name": {
                 "type": str,
                 "required": False,
-                "default": "average_data",
+                "default": "grid_info",
                 "help": "Name of the output data file (.pkl).",
             },
         }
@@ -548,7 +577,7 @@ class ytPlotArgs(ytArgs):
             "fields": {
                 "type": str,
                 "nargs": "+",
-                "required": False,
+                "required": True,
                 "default": None,
                 "help": "Names of the data fields to plot.",
             },
@@ -556,7 +585,7 @@ class ytPlotArgs(ytArgs):
                 "type": str,
                 "nargs": "+",
                 "required": False,
-                "default": "average_data",
+                "default": ["average_data"],
                 "help": "Name of the data file to load and plot (.pkl).",
             },
             "dpi": {
