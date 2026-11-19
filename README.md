@@ -97,7 +97,9 @@ Ex: `python data_extraction/extract_slices.py --datapath DATA_DIR/ --field "Y(NC
 
 This will extract all plot files contained in directory `DATA_DIR/` for the field `Y(NC12H26)`, making 16 slices starting from x = 0.005 to x = 0.1
 
-These slices will be saved in `outdata/slices/` with the following variables: `fcoords`, `normal`, `iloc`, `fields`, `slices`, and `ds_attributes` which contains all attributes specified in `utilities.py/get_attributes()`.
+`--normal` also takes a diagonal, as for [slice_plot.py](#slice_plotpy): `--normal xz` cuts planes normal to (1, 0, 1), and `--min`/`--max` are then distances from the origin along the unit normal, so each plane is (x + z)/√2 = d. Every plane must cut through the domain, strictly between the smallest and largest (x + z)/√2 in it; this is checked before any plotfile is read. Each diagonal slice covers the part of its plane inside the domain at one pixel per finest cell, with the same orientation as in `slice_plot.py` (y up and (x − z)/√2 across for `xz`).
+
+These slices will be saved in `outdata/slices/` with the following variables: `fcoords`, `normal`, `iloc`, `fields`, `slices`, and `ds_attributes` which contains all attributes specified in `utilities.py/get_attributes()`. Diagonal slices also hold `normal_vector`, `across` and `up` (unit vectors), `center` (the middle of the image), `bounds` (across_min, across_max, up_min, up_max: where the image edges sit along `across` and `up`, such as (x − z)/√2 and y for `xz`) and the axis `labels`.
 
 `python data_extraction/extract_slices.py --help` for full list of arguments.
 
@@ -105,7 +107,7 @@ These slices will be saved in `outdata/slices/` with the following variables: `f
 
 Extracts domain averaged quantities and saves in a pickled Pandas DataFrame.
 
-The default behavior is to perform a full domain average of the quantity, but 2D averages can be extracted over slices specified with a `normal` direction and corresponding `location` keyword.
+The default behavior is to perform a full domain average of the quantity, but 2D averages can be extracted over slices specified with a `normal` direction and corresponding `location` keyword. With a diagonal `normal` such as `xz`, the slice is the plane normal to (1, 0, 1) at distance `location` from the origin along the unit normal.
 
 NOTE: If you have EB boundaries in the domain, you should run with flag `--rm_eb` to remove the non-fluid regions from the averages.
 
@@ -143,11 +145,13 @@ Will save a pickle file of the Pandas DataFrame with grid information as a funct
 
 ## extract_lines.py
 
-Extracts a line of data along x, y or z through every plot file, through the finest cells at each point.
+Extracts a line of data along x, y, z or a diagonal through every plot file, through the finest cells at each point.
 
 Ex: `python data_extraction/extract_lines.py --datapath DATADIR/ --field temp --normal x --coords 0.01 0.01 --name FILE_NAME`
 
 `--coords` places the line in the other two directions: (y, z) for a line along x, (z, x) along y, and (x, y) along z.
+
+For a diagonal line, `--normal` takes a pair of axes as for [slice_plot.py](#slice_plotpy), such as `xz` for (1, 0, 1) or `x-z` for (1, 0, −1), and `--coords` takes a point (x, y, z) on the line, e.g. `--normal xz --coords 0 0.01 0`. The line runs through the whole domain, and its positions are the distance from the origin along the unit direction, (x + z)/√2 for `xz`.
 
 Saves a pickle file of a Pandas DataFrame under `outdata/lines` (or `--outpath`), indexed by position along the line with one column per time. With AMR the cells along the line can change over time, so the index holds every position seen and a time has NaN where it has no cell; `df.interpolate(method="index")` fills those in if needed. The field, coordinates and units are kept in `df.attrs`.
 
@@ -162,6 +166,8 @@ This will load in the NumPy data structures contained in the input path and make
 Ex: `python plot_data/plot_slices.py --datapath outdata/ --field magvort`
 
 where `outdata` is the directory containing the list of `.npz` files. These images will automatically be saved in `imgpath`.
+
+Diagonal slices from `extract_slices.py --normal xz` are drawn with the directions saved with them, e.g. (x − z)/√2 across and y up, at their positions along those directions; `--pbox` takes positions along them too.
 
 `python plot_data/plot_slices.py --help` for full list of arguments.
 
@@ -217,7 +223,11 @@ Some helpful options:
 
 `--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain. The image shows y across and z up for `--normal x`, x across and z up for `--normal y`, and x across and y up for `--normal z`.
 
-`--up`: Axis pointing up in the image, one of the two axes in the slice. For example, `--normal x --up y` draws z across and y up, which suits flow along +y. Without it, the image keeps the orientation given under `--normal`. An `--up` along `--normal` is an error.
+`--normal` also takes a diagonal: a pair of axes such as `xz` for the plane normal to (1, 0, 1) (also `xy` and `yz`; `x+z` and `zx` are the same as `xz`), or a signed pair such as `x-z` for (1, 0, −1). By default the axis not in the pair points up, and across is up × normal: `--normal xz` draws (x − z)/√2 across and y up, and `--normal z-x` draws (x + z)/√2 across and y up. The image covers the part of the plane inside the domain, and its axes show positions along those directions: for `--normal xz` the ticks across are values of (x − z)/√2 and those up are values of y. For example:
+
+`python quick_vis/slice_plot.py --datapath DATA_DIR/ --field HeatRelease --normal xz --fbounds 1e9 5e9`
+
+`--up`: Axis pointing up in the image, one of the two axes in the slice. For example, `--normal x --up y` draws z across and y up, which suits flow along +y. Without it, the image keeps the orientation given under `--normal`. An `--up` along `--normal` is an error. For a diagonal normal, an axis in the pair is tilted into the plane, so `--normal xz --up x` draws (x − z)/√2 up and −y across.
 
 `-c, --center`: list of floats for center coordinates if different from center specified with `normal`.
 
@@ -229,15 +239,17 @@ Some helpful options:
 
 `--plot_log`: Flag to plot the data using log values.
 
-`--grids`: Flag to turn on the grid annotations.
+`--grids`: Flag to turn on the grid annotations. yt cannot draw them on diagonal slices, so there it prints a warning and is skipped.
+
+`--cells`: Draw the cell edges, given as (linewidth alpha color). yt draws them at the wrong size on diagonal slices, so there it prints a warning and is skipped.
 
 `--grid_offset`: Float value to offset the center value to avoid grid alignment visualization issues (defaults to no offset).
 
-`--buff`: Buffer resolution for the sliceplot image for plotting, in pixels across and up. Defaults to one pixel per finest cell. Where yt has to swap the image axes (`--normal y` unless `--up x`, `--normal x --up y` and `--normal z --up x`), the buffer is made square at the larger of the two, because yt draws only part of a swapped image otherwise.
+`--buff`: Buffer resolution for the sliceplot image for plotting, in pixels across and up. Defaults to one pixel per finest cell (for a diagonal slice, per the smallest finest cell along the axes each image direction runs through). Where yt has to swap the image axes (`--normal y` unless `--up x`, `--normal x --up y` and `--normal z --up x`), the buffer is made square at the larger of the two, because yt draws only part of a swapped image otherwise.
 
 `--dpi`: dpi of the output image (default = 300).
 
-`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1), as positions across and up the image: (y0 z0 y1 z1) for `--normal x`, (x0 z0 x1 z1) for `--normal y` and (x0 y0 x1 y1) for `--normal z`. It follows `--up`, so `--normal x --up y` takes (z0 y0 z1 y1).
+`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1), as positions across and up the image: (y0 z0 y1 z1) for `--normal x`, (x0 z0 x1 z1) for `--normal y` and (x0 y0 x1 y1) for `--normal z`. It follows `--up`, so `--normal x --up y` takes (z0 y0 z1 y1). For a diagonal normal the corners are positions along the directions across and up the image, e.g. (a0 y0 a1 y1) with a = (x − z)/√2 for `--normal xz`.
 
 `--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
 

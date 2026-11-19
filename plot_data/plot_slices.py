@@ -34,6 +34,42 @@ def get_args(parser):
     return args
 
 
+# The axes across and up the image for each axis normal
+AXIS_LAYOUT = {"x": ("y", "z"), "y": ("x", "z"), "z": ("x", "y")}
+
+
+def image_layout(data, xlen, ylen):
+    """Return where the pixels of a saved slice sit and how to label them.
+
+    Returns the pixel positions across and up the image, the labels of those
+    directions, the pixel sizes across and up, and the name of the slice position.
+    Diagonal slices are placed by their positions along the directions saved with
+    them, such as (x - z)/sqrt(2) and y.
+    """
+    normal = str(data["normal"])
+    if "normal_vector" in data.files:
+        left, right, bottom, top = data["bounds"]
+        dh, dv = (right - left) / xlen, (top - bottom) / ylen
+        h = left + (np.arange(xlen) + 0.5) * dh
+        v = bottom + (np.arange(ylen) + 0.5) * dv
+        hlabel, vlabel = (f"${label}$" for label in data["labels"])
+        return h, v, hlabel, vlabel, dh, dv, f"{normal}: d"
+
+    if normal not in AXIS_LAYOUT:
+        sys.exit(f"Normal {normal} not in: [x, y, z]")
+    ds_attributes = data["ds_attributes"][()]
+    ih, iv = ("xyz".index(axis) for axis in AXIS_LAYOUT[normal])
+    h = np.linspace(
+        ds_attributes["left_edge"][ih], ds_attributes["right_edge"][ih], xlen
+    )
+    v = np.linspace(
+        ds_attributes["left_edge"][iv], ds_attributes["right_edge"][iv], ylen
+    )
+    dxyz = ds_attributes["dxyz"]
+    hlabel, vlabel = AXIS_LAYOUT[normal]
+    return h, v, hlabel, vlabel, dxyz[ih], dxyz[iv], normal
+
+
 def main():
     # Parse the input arguments
     parser = get_parser()
@@ -63,7 +99,6 @@ def main():
         ds_attributes = data["ds_attributes"][()]
         slices = data["slices"][()]
         # fields = data["fields"][()]
-        dxyz = ds_attributes["dxyz"]
 
         # Get some variables
         normal = data["normal"]
@@ -76,95 +111,36 @@ def main():
 
         # Inputs for plotting
         ylen, xlen = slices[args["field"]].shape
+        h, v, hlabel, vlabel, dh, dv, where = image_layout(data, xlen, ylen)
 
         if args["pbox"] is None:
             fx, fy = utils.get_fig_aspect_ratio(xlen, ylen, base=5)
         else:
-            if normal == "x":
-                fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[1],
-                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[2],
-                    base=3,
-                )
-            elif normal == "y":
-                fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[0],
-                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[2],
-                    base=3,
-                )
-            elif normal == "z":
-                fx, fy = utils.get_fig_aspect_ratio(
-                    xlen=(args["pbox"][2] - args["pbox"][0]) / dxyz[0],
-                    ylen=(args["pbox"][3] - args["pbox"][1]) / dxyz[1],
-                    base=3,
-                )
-            else:
-                sys.exit(f"Normal {normal} not in: [x, y, z]")
+            fx, fy = utils.get_fig_aspect_ratio(
+                xlen=(args["pbox"][2] - args["pbox"][0]) / dh,
+                ylen=(args["pbox"][3] - args["pbox"][1]) / dv,
+                base=3,
+            )
 
         # Set the figure and axes
         fig, ax = plt.subplots(1, 1, figsize=(fx, fy))
         # Set the colormap
-        cmap = plt.cm.get_cmap(args["cmap"])
+        cmap = plt.get_cmap(args["cmap"])
 
-        if normal == "x":
-            y = np.linspace(
-                ds_attributes["left_edge"][1], ds_attributes["right_edge"][1], xlen
-            )
-            z = np.linspace(
-                ds_attributes["left_edge"][2], ds_attributes["right_edge"][2], ylen
-            )
-            Y, Z = np.meshgrid(y, z, indexing="xy")
-            im = ax.pcolormesh(
-                Y,
-                Z,
-                slices[args["field"]],
-                cmap=cmap,
-                vmin=args["fbounds"][0] if args["fbounds"] else None,
-                vmax=args["fbounds"][1] if args["fbounds"] else None,
-            )
-            ax.set_xlabel(f"y ({length_unit.units})")
-            ax.set_ylabel(f"z ({length_unit.units})")
-        elif normal == "y":
-            x = np.linspace(
-                ds_attributes["left_edge"][0], ds_attributes["right_edge"][0], xlen
-            )
-            z = np.linspace(
-                ds_attributes["left_edge"][2], ds_attributes["right_edge"][2], ylen
-            )
-            X, Z = np.meshgrid(x, z, indexing="xy")
-            im = ax.pcolormesh(
-                X,
-                Z,
-                slices[args["field"]],
-                cmap=cmap,
-                vmin=args["fbounds"][0],
-                vmax=args["fbounds"][1],
-            )
-            ax.set_xlabel(f"x ({length_unit.units})")
-            ax.set_ylabel(f"z ({length_unit.units})")
-        elif normal == "z":
-            x = np.linspace(
-                ds_attributes["left_edge"][0], ds_attributes["right_edge"][0], xlen
-            )
-            y = np.linspace(
-                ds_attributes["left_edge"][1], ds_attributes["right_edge"][1], ylen
-            )
-            X, Y = np.meshgrid(x, y, indexing="xy")
-            im = ax.pcolormesh(
-                X,
-                Y,
-                slices[args["field"]],
-                cmap=cmap,
-                vmin=args["fbounds"][0],
-                vmax=args["fbounds"][1],
-            )
-            ax.set_xlabel(f"x ({length_unit.units})")
-            ax.set_ylabel(f"y ({length_unit.units})")
-        else:
-            sys.exit(f"Normal {normal} not in: [x, y, z]")
+        H, V = np.meshgrid(h, v, indexing="xy")
+        im = ax.pcolormesh(
+            H,
+            V,
+            slices[args["field"]],
+            cmap=cmap,
+            vmin=args["fbounds"][0] if args["fbounds"] else None,
+            vmax=args["fbounds"][1] if args["fbounds"] else None,
+        )
+        ax.set_xlabel(f"{hlabel} ({length_unit.units})")
+        ax.set_ylabel(f"{vlabel} ({length_unit.units})")
 
         ax.set_title(
-            f"""{normal} = {iloc:.4f} {length_unit.units}, """
+            f"""{where} = {iloc:.4f} {length_unit.units}, """
             f"""time = {float(time.in_units("ms")):.2f} ms"""
         )
         if args["pbox"]:

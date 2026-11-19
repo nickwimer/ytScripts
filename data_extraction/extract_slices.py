@@ -34,6 +34,59 @@ def get_args(parser):
     return args
 
 
+def cut_plane(ds, ds_attributes, normal, across, up_vec, distance):
+    """Cut the plane normal . r = distance and make a fixed resolution image of it.
+
+    The image covers the part of the plane inside the domain, with one pixel per
+    finest cell, ``across`` to the right and ``up_vec`` up. Returns the cutting
+    plane, the image and what places it: the unit normal, across and up vectors,
+    the image center and its bounds (across_min, across_max, up_min, up_max) as
+    positions along across and up, in code_length. Those positions are the same for
+    every slice with this normal, so the slices line up when plotted.
+    """
+    left = utils.code_length_values(ds, ds_attributes["left_edge"])
+    right = utils.code_length_values(ds, ds_attributes["right_edge"])
+    center = utils.plane_center(left, right, normal, distance)
+    (across_lo, across_hi), (up_lo, up_hi) = utils.plane_window(
+        left, right, normal, center, across, up_vec
+    )
+    # Center the image on the part of the plane inside the domain
+    center = (
+        center + (across_lo + across_hi) / 2.0 * across + (up_lo + up_hi) / 2.0 * up_vec
+    )
+    width, height = across_hi - across_lo, up_hi - up_lo
+
+    finest = utils.code_length_values(ds, ds_attributes["width"]) / np.asarray(
+        ds_attributes["resolution"], dtype=np.float64
+    )
+    resolution = (
+        utils.pixels_along(across, finest, width),
+        utils.pixels_along(up_vec, finest, height),
+    )
+
+    slc = ds.cutting(normal, center, north_vector=up_vec)
+    frb = slc.to_frb(
+        width=ds.quan(width, "code_length"),
+        height=ds.quan(height, "code_length"),
+        resolution=resolution,
+    )
+    plane = {
+        "normal_vector": normal,
+        "across": across,
+        "up": up_vec,
+        "center": center,
+        "bounds": np.array(
+            [
+                center @ across - width / 2,
+                center @ across + width / 2,
+                center @ up_vec - height / 2,
+                center @ up_vec + height / 2,
+            ]
+        ),
+    }
+    return slc, frb, plane
+
+
 def main():
 
     # Parse the input arguments
@@ -68,6 +121,24 @@ def main():
         float(args["min"]), float(args["max"]), int(args["num_slices"])
     )
 
+    # A diagonal normal gives cutting planes, at a distance along the unit normal
+    oblique = not utils.is_axis_normal(args["normal"])
+    if oblique:
+        normal, across, up_vec = utils.slice_basis(args["normal"])
+        labels = np.array(
+            [utils.direction_label(across), utils.direction_label(up_vec)]
+        )
+
+        # Every plane must cut through the domain; check before reading any plotfile
+        ds0 = ts[0]
+        left = utils.code_length_values(ds0, ds0.domain_left_edge)
+        right = utils.code_length_values(ds0, ds0.domain_right_edge)
+        try:
+            for distance in islice + args["grid_offset"]:
+                utils.plane_center(left, right, normal, distance)
+        except ValueError as err:
+            parser.get_parser().error(f"--min/--max: {err}")
+
     # Loop over the plt files in the data directory
     # Share the plotfiles over MPI only when launched with mpirun or srun
     utils.enable_parallelism(no_mpi=args["no_mpi"])
@@ -95,7 +166,13 @@ def main():
             # Do a grid offset if requested
             iloc += args["grid_offset"]
             # Create slice and fixed resolution close to the location
-            if args["normal"] == "x":
+            plane = {}
+            if oblique:
+                slc, frb, plane = cut_plane(
+                    ds, ds_attributes, normal, across, up_vec, iloc
+                )
+                plane["labels"] = labels
+            elif args["normal"] == "x":
                 slc = ds.r[iloc, :, :]
                 frb = slc.to_frb(
                     width=ds_attributes["width"][1],
@@ -144,6 +221,7 @@ def main():
                 fields=fields,
                 slices=slices,
                 ds_attributes=ds_attributes,
+                **plane,
             )
 
 

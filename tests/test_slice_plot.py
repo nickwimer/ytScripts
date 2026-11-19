@@ -310,3 +310,177 @@ def test_grid_info_is_placed_in_image_coordinates(
 
     (text,) = [t for t in ax.texts if "DOF" in t.get_text()]
     assert text.get_position() == position
+
+
+R = np.sqrt(0.5)
+
+# (--normal, --up or None, unit vector across the image, unit vector up it, its
+# labels, and the image extent as positions along those directions). The slice goes
+# through the domain center (0.5, 1, 1.5): for xz that is the plane x + z = 2, where
+# (x - z)/sqrt(2) runs from -sqrt(2) to 0 and y from 0 to 2.
+DIAGONALS = [
+    ("xz", None, (R, 0, -R), (0, 1, 0), (r"(x - z)/\sqrt{2}", "y"), (-2 * R, 0, 0, 2)),
+    ("z-x", None, (R, 0, R), (0, 1, 0), (r"(x + z)/\sqrt{2}", "y"), (R, 3 * R, 0, 2)),
+    (
+        "yz",
+        None,
+        (0, -R, R),
+        (1, 0, 0),
+        (r"(z - y)/\sqrt{2}", "x"),
+        (-1.5 * R, 2.5 * R, 0, 1),
+    ),
+    (
+        "xz",
+        "x",
+        (0, -1, 0),
+        (R, 0, -R),
+        ("-y", r"(x - z)/\sqrt{2}"),
+        (-2, 0, -2 * R, 0),
+    ),
+]
+
+
+@pytest.mark.parametrize("normal, up_arg, across, up, labels, extent", DIAGONALS)
+def test_diagonal_slices_are_drawn_across_and_up(
+    position_ds, configs, normal, up_arg, across, up, labels, extent
+):
+    for axis, a, u in zip("xyz", across, up):
+        ax = draw(position_ds, configs, orientation(normal, up_arg), f"pos_{axis}")
+        image = ax.get_images()[0]
+        np.testing.assert_allclose(image.get_extent(), extent, atol=1e-12)
+        values = np.asarray(image.get_array())
+        assert np.isfinite(values).all()
+
+        # Each position changes across and up the image as that direction says
+        for direction, part in ((1, a), (0, u)):
+            steps = np.diff(values, axis=direction)
+            if part == 0:
+                np.testing.assert_allclose(steps, 0)
+            else:
+                assert np.all(np.sign(part) * steps >= 0)
+                assert np.sign(part) * steps.sum() > 0
+
+    assert ax.get_xlabel() == f"${labels[0]}$ (cm)"
+    assert ax.get_ylabel() == f"${labels[1]}$ (cm)"
+
+
+def test_diagonal_slice_without_units_and_with_a_contour(position_ds, configs):
+    ax = draw(
+        position_ds,
+        configs,
+        ["--normal", "xz", "--no_units", "--contour", "pos_y", "1.3", "w"],
+        field="pos_x",
+    )
+    assert ax.get_xlabel() == r"$(x - z)/\sqrt{2}$"
+    assert ax.get_ylabel() == "$y$"
+
+    # pos_y = 1.3 runs straight across the image at y = 1.3
+    lines = ax.get_lines()
+    assert lines
+    cell = BBOX["y"][1] / DIMS["y"]
+    for line in lines:
+        np.testing.assert_allclose(line.get_ydata(), 1.3, atol=cell / 2)
+    assert np.ptp(np.concatenate([line.get_xdata() for line in lines])) > R
+
+
+def test_diagonal_pbox_is_positions_along_the_image(position_ds, configs):
+    """--pbox takes (x - z)/sqrt(2) across and y up for xz, like the axes show."""
+    pbox = [-1.2, 0.5, -0.2, 1.25]
+    options = ["--normal", "xz", "--pbox", *map(str, pbox)]
+    for axis, lo, hi in (
+        # On x + z = 2, x = 1 + (x - z)/2 = 1 + R (x - z)/sqrt(2)
+        ("x", 1 + R * pbox[0], 1 + R * pbox[2]),
+        ("y", pbox[1], pbox[3]),
+    ):
+        image = draw(position_ds, configs, options, f"pos_{axis}").get_images()[0]
+        np.testing.assert_allclose(
+            image.get_extent(), [pbox[0], pbox[2], pbox[1], pbox[3]]
+        )
+        values = np.asarray(image.get_array())
+        cell = (BBOX[axis][1] - BBOX[axis][0]) / DIMS[axis]
+        assert values.min() > lo - cell and values.max() < hi + cell
+
+
+def test_diagonal_image_is_blank_off_the_domain(position_ds, configs):
+    ax = draw(
+        position_ds,
+        configs,
+        # (x - z)/sqrt(2) only reaches 0, so the right half is off the domain
+        ["--normal", "xz", "--pbox", "-1", "0", "1", "2", "--rm_eb", "1"],
+        field="pos_y",
+        eb_var_name="frac_x",
+    )
+    image, cover = ax.get_images()
+    blank = ~np.isfinite(np.ma.filled(image.get_array().astype(float), np.nan))
+    assert blank.any() and not blank.all()
+    # The EB cover leaves the area off the domain alone
+    assert np.ma.getmaskarray(cover.get_array())[blank].all()
+
+
+def test_rm_eb_on_a_diagonal_slice(position_ds, configs):
+    """With frac_x as the volume fraction, the cover is where x < 0.5: the left."""
+    ax = draw(
+        position_ds,
+        configs,
+        ["--normal", "xz", "--rm_eb", "1"],
+        field="pos_x",
+        eb_var_name="frac_x",
+    )
+    image, cover = ax.get_images()
+    np.testing.assert_allclose(cover.get_extent(), image.get_extent())
+    covered = ~np.ma.getmaskarray(cover.get_array())
+    assert covered[0, 0] and not covered[0, -1]
+
+
+def test_grids_are_skipped_on_a_diagonal_slice(position_ds, configs, capsys):
+    ax = draw(position_ds, configs, ["--normal", "xz", "--grids", "0.5"], "pos_x")
+    assert ax.get_images()
+    assert "--grids is not available for diagonal slices" in capsys.readouterr().out
+
+
+def test_cells_are_skipped_on_a_diagonal_slice(position_ds, configs, capsys):
+    ax = draw(
+        position_ds,
+        configs,
+        ["--normal", "xz", "--cells", "0.002", "0.5", "k"],
+        "pos_x",
+    )
+    # Only the slice itself: no cell edge overlay
+    assert len(ax.get_images()) == 1
+    assert "--cells is not available for diagonal slices" in capsys.readouterr().out
+
+
+def test_diagonal_slice_center_is_checked_first(
+    position_ds, tmp_path, monkeypatch, capsys
+):
+    """A --center whose diagonal plane misses the domain is a usage error."""
+
+    class SeriesNotRead(list):
+        def piter(self, *args, **kwargs):
+            raise AssertionError("the plotfiles were read before the slice was checked")
+
+    monkeypatch.setattr(
+        sp.utils, "load_dataseries", lambda **kwargs: (SeriesNotRead([position_ds]), {})
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            # main() reads config.toml next to the script
+            sp.__file__,
+            *("--datapath", ".", "--field", "pos_x", "--normal", "xz"),
+            *("--center", "5", "1", "5", "--outpath", str(tmp_path)),
+        ],
+    )
+    with pytest.raises(SystemExit):
+        sp.main()
+    assert "misses the domain" in capsys.readouterr().err
+
+
+def test_contours_skip_blank_pixels():
+    extent = (0.0, 1.0, 0.0, 1.0)
+    hh, _ = pixel_centers(extent, (4, 4))
+    hh[:, -1] = np.nan
+    lines = sp.contour_lines(hh, 0.5, extent)
+    assert lines
+    for line in lines:
+        np.testing.assert_allclose(line[:, 0], 0.5)
