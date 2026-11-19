@@ -197,7 +197,15 @@ def average_parser():
 
 
 @pytest.mark.parametrize(
-    "given, kept", [("x", "x"), ("xz", "xz"), ("x+z", "xz"), ("x-z", "x-z")]
+    "given, kept",
+    [
+        ("x", "x"),
+        ("xz", "xz"),
+        ("x+z", "xz"),
+        ("zx", "xz"),
+        ("x-z", "x-z"),
+        ("z-x", "z-x"),
+    ],
 )
 def test_normal_takes_axes_and_diagonals(given, kept):
     assert slice_plot_parser().get_args([*DATA, "--normal", given])["normal"] == kept
@@ -228,7 +236,7 @@ def test_normal_from_input_file_is_checked(tmp_path, capsys, value):
 
 def test_diagonal_normal_from_input_file(tmp_path):
     ifile = write_toml(tmp_path, 'normal = "z+x"\n')
-    assert slice_plot_parser().get_args([*DATA, "--ifile", ifile])["normal"] == "zx"
+    assert slice_plot_parser().get_args([*DATA, "--ifile", ifile])["normal"] == "xz"
 
 
 def test_any_up_suits_a_diagonal_normal():

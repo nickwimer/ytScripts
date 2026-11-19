@@ -342,11 +342,17 @@ def _match_normal(name):
 
 
 def canonical_normal(name):
-    """Return a --normal value in its standard form: x+z becomes xz."""
+    """Return a --normal value in its standard form: x+z and zx become xz.
+
+    An unsigned pair names the same normal in either order, so its axes are sorted.
+    A signed pair keeps its order, since z-x points the other way from x-z.
+    """
     match = _match_normal(name)
     if match[3] is None:
         return match[1]
-    return f"""{match[1]}{"-" if match[2] == "-" else ""}{match[3]}"""
+    if match[2] == "-":
+        return f"{match[1]}-{match[3]}"
+    return "".join(sorted(match[1] + match[3]))
 
 
 def parse_normal(name):

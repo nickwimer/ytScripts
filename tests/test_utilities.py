@@ -86,7 +86,11 @@ def test_bad_normal_names(name):
 
 def test_standard_normal_names():
     assert utils.canonical_normal("x+z") == "xz"
+    # An unsigned pair is the same normal in either order, a signed pair is not
+    assert utils.canonical_normal("zx") == "xz"
+    assert utils.canonical_normal("z+y") == "yz"
     assert utils.canonical_normal("x-z") == "x-z"
+    assert utils.canonical_normal("z-x") == "z-x"
     assert utils.canonical_normal("y") == "y"
     assert utils.is_axis_normal("y")
     assert not utils.is_axis_normal("xz")

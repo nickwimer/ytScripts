@@ -223,7 +223,7 @@ Some helpful options:
 
 `--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain. The image shows y across and z up for `--normal x`, x across and z up for `--normal y`, and x across and y up for `--normal z`.
 
-`--normal` also takes a diagonal: a pair of axes such as `xz` for the plane normal to (1, 0, 1) (also `xy` and `yz`; `x+z` is the same as `xz`), or a signed pair such as `x-z` for (1, 0, −1). By default the axis not in the pair points up, and across is up × normal: `--normal xz` draws (x − z)/√2 across and y up, and `--normal z-x` draws (x + z)/√2 across and y up. The image covers the part of the plane inside the domain, and its axes are offsets from the slice center (the middle of the domain, or `--center`) along those directions. For example:
+`--normal` also takes a diagonal: a pair of axes such as `xz` for the plane normal to (1, 0, 1) (also `xy` and `yz`; `x+z` and `zx` are the same as `xz`), or a signed pair such as `x-z` for (1, 0, −1). By default the axis not in the pair points up, and across is up × normal: `--normal xz` draws (x − z)/√2 across and y up, and `--normal z-x` draws (x + z)/√2 across and y up. The image covers the part of the plane inside the domain, and its axes are offsets from the slice center (the middle of the domain, or `--center`) along those directions. For example:
 
 `python quick_vis/slice_plot.py --datapath DATA_DIR/ --field HeatRelease --normal xz --fbounds 1e9 5e9`
 
