@@ -41,7 +41,8 @@ def cut_plane(ds, ds_attributes, normal, across, up_vec, distance):
     finest cell, ``across`` to the right and ``up_vec`` up. Returns the cutting
     plane, the image and what places it: the unit normal, across and up vectors,
     the image center and its bounds (across_min, across_max, up_min, up_max) as
-    offsets from that center, in code_length.
+    positions along across and up, in code_length. Those positions are the same for
+    every slice with this normal, so the slices line up when plotted.
     """
     left = utils.code_length_values(ds, ds_attributes["left_edge"])
     right = utils.code_length_values(ds, ds_attributes["right_edge"])
@@ -74,7 +75,14 @@ def cut_plane(ds, ds_attributes, normal, across, up_vec, distance):
         "across": across,
         "up": up_vec,
         "center": center,
-        "bounds": np.array([-width / 2, width / 2, -height / 2, height / 2]),
+        "bounds": np.array(
+            [
+                center @ across - width / 2,
+                center @ across + width / 2,
+                center @ up_vec - height / 2,
+                center @ up_vec + height / 2,
+            ]
+        ),
     }
     return slc, frb, plane
 

@@ -185,7 +185,8 @@ def test_diagonal_slice_extraction(position_ds):
         position_ds, attributes, normal, across, up, 1.0
     )
     assert plane["center"] @ normal == pytest.approx(1.0)
-    np.testing.assert_allclose(plane["bounds"], (-R, R, -1, 1))
+    # On x + z = sqrt(2), x runs from 0 to 1, so (x - z)/sqrt(2) = sqrt(2) x - 1
+    np.testing.assert_allclose(plane["bounds"], (-1, np.sqrt(2) - 1, 0, 2))
 
     pos = {axis: np.asarray(frb[f"pos_{axis}"]) for axis in "xyz"}
     assert all(np.isfinite(image).all() for image in pos.values())
@@ -298,8 +299,9 @@ def test_plot_a_diagonal_slice(position_ds, tmp_path, monkeypatch):
     data = np.load(datapath / "pos_y_xz1.4142_0.npz", allow_pickle=True)
     ylen, xlen = data["slices"][()]["pos_y"].shape
     h, v, hlabel, vlabel, dh, dv, where = plot_slices.image_layout(data, xlen, ylen)
-    np.testing.assert_allclose([h[0] - dh / 2, h[-1] + dh / 2], [-R, R])
-    np.testing.assert_allclose([v[0] - dv / 2, v[-1] + dv / 2], [-1, 1])
+    # On x + z = 2, (x - z)/sqrt(2) runs from -sqrt(2) to 0 and y from 0 to 2
+    np.testing.assert_allclose([h[0] - dh / 2, h[-1] + dh / 2], [-2 * R, 0], atol=1e-12)
+    np.testing.assert_allclose([v[0] - dv / 2, v[-1] + dv / 2], [0, 2])
     assert (hlabel, vlabel, where) == (r"$(x - z)/\sqrt{2}$", "$y$", "xz: d")
 
     matplotlib.use("Agg")

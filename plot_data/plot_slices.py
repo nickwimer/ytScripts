@@ -43,8 +43,8 @@ def image_layout(data, xlen, ylen):
 
     Returns the pixel positions across and up the image, the labels of those
     directions, the pixel sizes across and up, and the name of the slice position.
-    Diagonal slices are measured from their center, along the directions saved with
-    them.
+    Diagonal slices are placed by their positions along the directions saved with
+    them, such as (x - z)/sqrt(2) and y.
     """
     normal = str(data["normal"])
     if "normal_vector" in data.files:

@@ -151,14 +151,19 @@ def create_slice_plot(
         swap = False
 
         # The part of the plane inside the domain, as offsets from the slice center
+        center = utils.code_length_values(ds, slc_center)
         (across_lo, across_hi), (up_lo, up_hi) = utils.plane_window(
             utils.code_length_values(ds, ds_attributes["left_edge"]),
             utils.code_length_values(ds, ds_attributes["right_edge"]),
             normal,
-            utils.code_length_values(ds, slc_center),
+            center,
             across,
             up_vec,
         )
+        # yt measures the image from the slice center. The axes show positions along
+        # across and up instead, such as (x - z)/sqrt(2) and y, which are these
+        # offsets plus where the center sits along each direction.
+        center_along = (float(center @ across), float(center @ up_vec))
     else:
         horizontal, vertical, swap = image_axes(args["normal"], args["up"])
 
@@ -215,10 +220,12 @@ def create_slice_plot(
 
     if args["pbox"] is not None:
         # --pbox is given across then up the image, but yt sets the window in its
-        # own order, from before the swap. Off-axis, it holds offsets from the slice
-        # center.
+        # own order, from before the swap. Off-axis, yt takes the window center as
+        # an offset from the slice center.
         if swap:
             pbox_width, pbox_center = pbox_width[::-1], pbox_center[::-1]
+        if oblique:
+            pbox_center = [c - along for c, along in zip(pbox_center, center_along)]
         slc.set_width(pbox_width)
         slc.set_center(pbox_center)
     if args["fbounds"] is not None:
@@ -302,6 +309,20 @@ def create_slice_plot(
 
     # Get the axes from the figure handle
     ax = fig.axes[0]
+
+    # Off-axis, move the image from offsets to positions along across and up, so the
+    # ticks read like the labels say
+    if oblique:
+        shift_h, shift_v = (
+            float(ds.quan(along, "code_length").to(axes_unit)) for along in center_along
+        )
+        image = ax.get_images()[0]
+        left, right, bottom, top = image.get_extent()
+        image.set_extent(
+            (left + shift_h, right + shift_h, bottom + shift_v, top + shift_v)
+        )
+        ax.set_xlim(left + shift_h, right + shift_h)
+        ax.set_ylim(bottom + shift_v, top + shift_v)
 
     axlabel_size = configs["plot_attrs"]["axes"]["labelsize"]
     ax.tick_params(axis="x", labelsize=axlabel_size)
