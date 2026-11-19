@@ -78,8 +78,23 @@ DIMS = {"x": 4, "y": 6, "z": 8}
 # The axes yt draws across and up the image, before any swap
 YT_AXES = {"x": ("y", "z"), "y": ("z", "x"), "z": ("x", "y")}
 
-# (normal, axis across the image, axis up the image)
-ORIENTATIONS = [("x", "y", "z"), ("y", "x", "z"), ("z", "x", "y")]
+# (--normal, --up or None, axis across the image, axis up the image)
+ORIENTATIONS = [
+    ("x", None, "y", "z"),
+    ("x", "z", "y", "z"),
+    ("x", "y", "z", "y"),
+    ("y", None, "x", "z"),
+    ("y", "z", "x", "z"),
+    ("y", "x", "z", "x"),
+    ("z", None, "x", "y"),
+    ("z", "y", "x", "y"),
+    ("z", "x", "y", "x"),
+]
+
+
+def orientation(normal, up_arg):
+    """Return the command line options for --normal and, if given, --up."""
+    return ["--normal", normal] + ([] if up_arg is None else ["--up", up_arg])
 
 
 @pytest.fixture(scope="module")
@@ -141,9 +156,13 @@ def draw(ds, configs, options, field, eb_var_name="vfrac"):
     return ax
 
 
-@pytest.mark.parametrize("normal, across, up", ORIENTATIONS)
-def test_image_axes(normal, across, up):
-    assert sp.image_axes(normal) == (across, up, YT_AXES[normal] != (across, up))
+@pytest.mark.parametrize("normal, up_arg, across, up", ORIENTATIONS)
+def test_image_axes(normal, up_arg, across, up):
+    assert sp.image_axes(normal, up_arg) == (
+        across,
+        up,
+        YT_AXES[normal] != (across, up),
+    )
 
 
 def test_image_axes_needs_a_coordinate_normal():
@@ -151,16 +170,60 @@ def test_image_axes_needs_a_coordinate_normal():
         sp.image_axes("w")
 
 
-@pytest.mark.parametrize("normal, across, up", ORIENTATIONS)
+def test_image_axes_up_must_be_an_axis_of_the_slice():
+    with pytest.raises(ValueError, match="y or z for normal x"):
+        sp.image_axes("x", "x")
+
+
+def test_up_defaults_to_none_and_takes_only_axes():
+    assert sp.get_parser().get_args(["--datapath", "."])["up"] is None
+    with pytest.raises(SystemExit):
+        sp.get_parser().get_args(["--datapath", ".", "--up", "w"])
+
+
+@pytest.mark.parametrize("normal", ["x", "y", "z"])
+def test_up_along_the_normal_is_a_usage_error(normal, capsys):
+    with pytest.raises(SystemExit) as error:
+        sp.get_parser().get_args(
+            ["--datapath", ".", "--normal", normal, "--up", normal]
+        )
+    assert error.value.code == 2
+    in_slice = " or ".join(axis for axis in "xyz" if axis != normal)
+    message = capsys.readouterr().err
+    assert f"--up {normal} points along --normal {normal}" in message
+    assert message.rstrip().endswith(in_slice)
+
+
+def test_up_may_come_from_the_input_file(tmp_path, capsys):
+    ifile = tmp_path / "plot.toml"
+    ifile.write_text('normal = "x"\nup = "y"\n')
+    args = sp.get_parser().get_args(["--datapath", ".", "--ifile", str(ifile)])
+    assert (args["normal"], args["up"]) == ("x", "y")
+
+    # The input file is checked too
+    ifile.write_text('normal = "z"\nup = "z"\n')
+    with pytest.raises(SystemExit):
+        sp.get_parser().get_args(["--datapath", ".", "--ifile", str(ifile)])
+    assert "--up z points along --normal z" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("normal, up_arg, across, up", ORIENTATIONS)
 def test_image_contours_and_labels_follow_the_axes(
-    position_ds, configs, normal, across, up
+    position_ds, configs, normal, up_arg, across, up
 ):
     """Draw the across position, with a contour of the up position on it."""
     level = sum(BBOX[up]) / 2
     ax = draw(
         position_ds,
         configs,
-        ["--normal", normal, "--no_units", "--contour", f"pos_{up}", str(level), "w"],
+        [
+            *orientation(normal, up_arg),
+            "--no_units",
+            "--contour",
+            f"pos_{up}",
+            str(level),
+            "w",
+        ],
         field=f"pos_{across}",
     )
 
@@ -193,14 +256,14 @@ def test_image_contours_and_labels_follow_the_axes(
     )
 
 
-@pytest.mark.parametrize("normal, across, up", ORIENTATIONS)
-def test_pbox_is_given_across_then_up(position_ds, configs, normal, across, up):
+@pytest.mark.parametrize("normal, up_arg, across, up", ORIENTATIONS)
+def test_pbox_is_given_across_then_up(position_ds, configs, normal, up_arg, across, up):
     (a0, a1), (u0, u1) = BBOX[across], BBOX[up]
     pbox = [a0 + 0.25 * (a1 - a0), u0 + 0.5 * (u1 - u0), a1, u1]
     ax = draw(
         position_ds,
         configs,
-        ["--normal", normal, "--pbox", *map(str, pbox)],
+        [*orientation(normal, up_arg), "--pbox", *map(str, pbox)],
         field=f"pos_{across}",
     )
 
@@ -212,13 +275,15 @@ def test_pbox_is_given_across_then_up(position_ds, configs, normal, across, up):
     assert values.max() < pbox[2] + cell
 
 
-@pytest.mark.parametrize("normal, across, up", ORIENTATIONS)
-def test_rm_eb_covers_the_image_as_drawn(position_ds, configs, normal, across, up):
+@pytest.mark.parametrize("normal, up_arg, across, up", ORIENTATIONS)
+def test_rm_eb_covers_the_image_as_drawn(
+    position_ds, configs, normal, up_arg, across, up
+):
     """With frac_<across> as the volume fraction, the cover is the left half."""
     ax = draw(
         position_ds,
         configs,
-        ["--normal", normal, "--rm_eb", "1"],
+        [*orientation(normal, up_arg), "--rm_eb", "1"],
         field=f"pos_{across}",
         eb_var_name=f"frac_{across}",
     )
@@ -231,15 +296,15 @@ def test_rm_eb_covers_the_image_as_drawn(position_ds, configs, normal, across, u
     assert covered[0, 0] and not covered[0, -1]
 
 
-@pytest.mark.parametrize("normal, across, up", ORIENTATIONS)
+@pytest.mark.parametrize("normal, up_arg, across, up", ORIENTATIONS)
 def test_grid_info_is_placed_in_image_coordinates(
-    position_ds, configs, normal, across, up
+    position_ds, configs, normal, up_arg, across, up
 ):
     position = (sum(BBOX[across]) / 2, sum(BBOX[up]) / 2)
     ax = draw(
         position_ds,
         configs,
-        ["--normal", normal, "--grid_info", *map(str, position), "0", "0"],
+        [*orientation(normal, up_arg), "--grid_info", *map(str, position), "0", "0"],
         field=f"pos_{across}",
     )
 

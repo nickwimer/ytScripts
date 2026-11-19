@@ -37,7 +37,7 @@ def get_parser():
     """Get the parser."""
     ytparse = ytargs.ytVisArgs()
     # Add in the arguments needed for SlicePlot
-    ytparse.orientation_args()
+    ytparse.orientation_args(up=True)
     ytparse.vis_2d_args()
     ytparse.slice_args()
 
@@ -58,18 +58,26 @@ def get_args(parser):
     return args
 
 
-def image_axes(normal):
+def image_axes(normal, up=None):
     """Return the axes drawn across and up the slice image, and whether yt swaps them.
 
     yt draws (y, z) for normal x, (z, x) for normal y and (x, y) for normal z, and
-    its swap_axes() exchanges the two. This script swaps them for normal y, so that
-    z points up there too.
+    its swap_axes() exchanges the two. ``up`` names the axis to draw up the image.
+    Without it, this script keeps yt's choice, except that it swaps the axes for
+    normal y so that z points up there too.
     """
     yt_axes = {"x": ("y", "z"), "y": ("z", "x"), "z": ("x", "y")}
     if normal not in yt_axes:
         raise ValueError(f"The normal must be x, y or z, not {normal!r}")
     horizontal, vertical = yt_axes[normal]
-    swap = normal == "y"
+    if up is None:
+        swap = normal == "y"
+    elif up in (horizontal, vertical):
+        swap = up == horizontal
+    else:
+        raise ValueError(
+            f"Up must be {horizontal} or {vertical} for normal {normal}, not {up!r}"
+        )
     if swap:
         horizontal, vertical = vertical, horizontal
     return horizontal, vertical, swap
@@ -130,7 +138,7 @@ def create_slice_plot(
         domain_volume = dx0 * dy0 * dz0 * num_cells_0
 
     # The axes drawn across and up the image
-    horizontal, vertical, swap = image_axes(args["normal"])
+    horizontal, vertical, swap = image_axes(args["normal"], args["up"])
 
     # Image resolution: one pixel per finest cell, unless --buff gives it
     if args["buff"] is not None:

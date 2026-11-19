@@ -91,6 +91,7 @@ class ytArgs:
             args = vars(init_args)
 
         self.check_required(args)
+        self.check_orientation(args)
 
         return args
 
@@ -127,6 +128,16 @@ class ytArgs:
                     "goes after --datapath"
                 )
             self.parser.error(message)
+
+    def check_orientation(self, args):
+        """Exit with a usage error if --up points along --normal."""
+        up, normal = args.get("up"), args.get("normal")
+        if up is not None and up == normal:
+            in_slice = " or ".join(axis for axis in "xyz" if axis != normal)
+            self.parser.error(
+                f"--up {up} points along --normal {normal}; it must be an axis of "
+                f"the slice: {in_slice}"
+            )
 
     # TODO: remove argument from dictionary instead of dealing with it in the parser
     #      need to return the updated dictionary for all functions, then update the
@@ -225,8 +236,11 @@ class ytArgs:
         # Add arguments from dict to parser
         self.add_args_from_dict(args)
 
-    def orientation_args(self):
-        """Add 2D slicing arguments."""
+    def orientation_args(self, up=False):
+        """Add 2D slicing arguments.
+
+        With ``up``, also add --up, which picks the axis drawn up a slice image.
+        """
 
         args = {
             "normal": {
@@ -242,6 +256,17 @@ class ytArgs:
                 "help": "Amount to offset center to avoid grid alignment vis issues.",
             },
         }
+        if up:
+            args["up"] = {
+                "type": str,
+                "choices": ["x", "y", "z"],
+                "required": False,
+                "default": None,
+                "help": (
+                    "Axis pointing up in the image, one of the two axes in the slice "
+                    "(default: z for normal x and y, y for normal z)."
+                ),
+            }
 
         # Add arguments from dict to parser
         self.add_args_from_dict(args)
