@@ -241,6 +241,8 @@ Some helpful options:
 
 `--grids`: Flag to turn on the grid annotations. yt cannot draw them on diagonal slices, so there it prints a warning and is skipped.
 
+`--cells`: Draw the cell edges, given as (linewidth alpha color). yt draws them at the wrong size on diagonal slices, so there it prints a warning and is skipped.
+
 `--grid_offset`: Float value to offset the center value to avoid grid alignment visualization issues (defaults to no offset).
 
 `--buff`: Buffer resolution for the sliceplot image for plotting, in pixels across and up. Defaults to one pixel per finest cell (for a diagonal slice, per the smallest finest cell along the axes each image direction runs through). Where yt has to swap the image axes (`--normal y` unless `--up x`, `--normal x --up y` and `--normal z --up x`), the buffer is made square at the larger of the two, because yt draws only part of a swapped image otherwise.

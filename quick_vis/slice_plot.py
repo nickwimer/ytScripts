@@ -238,8 +238,11 @@ def create_slice_plot(
         else:
             slc.annotate_grids()
 
-    # annotate the cell edges of the mesh
-    if args["cells"]:
+    # annotate the cell edges of the mesh. On an off-axis slice yt draws each cell as
+    # a box of its x and y widths, which is not the shape the plane cuts through it.
+    if args["cells"] and oblique:
+        print("--cells is not available for diagonal slices; skipping it.")
+    elif args["cells"]:
         slc.annotate_cell_edges(
             line_width=float(args["cells"][0]),
             alpha=float(args["cells"][1]),

@@ -424,6 +424,18 @@ def test_grids_are_skipped_on_a_diagonal_slice(position_ds, configs, capsys):
     assert "--grids is not available for diagonal slices" in capsys.readouterr().out
 
 
+def test_cells_are_skipped_on_a_diagonal_slice(position_ds, configs, capsys):
+    ax = draw(
+        position_ds,
+        configs,
+        ["--normal", "xz", "--cells", "0.002", "0.5", "k"],
+        "pos_x",
+    )
+    # Only the slice itself: no cell edge overlay
+    assert len(ax.get_images()) == 1
+    assert "--cells is not available for diagonal slices" in capsys.readouterr().out
+
+
 def test_contours_skip_blank_pixels():
     extent = (0.0, 1.0, 0.0, 1.0)
     hh, _ = pixel_centers(extent, (4, 4))
