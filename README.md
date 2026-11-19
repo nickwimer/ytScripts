@@ -97,7 +97,7 @@ Ex: `python data_extraction/extract_slices.py --datapath DATA_DIR/ --field "Y(NC
 
 This will extract all plot files contained in directory `DATA_DIR/` for the field `Y(NC12H26)`, making 16 slices starting from x = 0.005 to x = 0.1
 
-`--normal` also takes a diagonal, as for [slice_plot.py](#slice_plotpy): `--normal xz` cuts planes normal to (1, 0, 1), and `--min`/`--max` are then distances from the origin along the unit normal, so each plane is (x + z)/√2 = d. Each diagonal slice covers the part of its plane inside the domain at one pixel per finest cell, with the same orientation as in `slice_plot.py` (y up and (x − z)/√2 across for `xz`).
+`--normal` also takes a diagonal, as for [slice_plot.py](#slice_plotpy): `--normal xz` cuts planes normal to (1, 0, 1), and `--min`/`--max` are then distances from the origin along the unit normal, so each plane is (x + z)/√2 = d. Every plane must cut through the domain, strictly between the smallest and largest (x + z)/√2 in it; this is checked before any plotfile is read. Each diagonal slice covers the part of its plane inside the domain at one pixel per finest cell, with the same orientation as in `slice_plot.py` (y up and (x − z)/√2 across for `xz`).
 
 These slices will be saved in `outdata/slices/` with the following variables: `fcoords`, `normal`, `iloc`, `fields`, `slices`, and `ds_attributes` which contains all attributes specified in `utilities.py/get_attributes()`. Diagonal slices also hold `normal_vector`, `across` and `up` (unit vectors), `center` (the middle of the image), `bounds` (across_min, across_max, up_min, up_max as offsets from `center`) and the axis `labels`.
 

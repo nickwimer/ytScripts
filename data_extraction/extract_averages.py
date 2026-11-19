@@ -107,6 +107,18 @@ def main():
             f"""{base_attributes["derived_field_list"]}"""
         )
 
+    # A diagonal slice must cut through the domain; check before reading plotfiles
+    if args["normal"] and not utils.is_axis_normal(args["normal"]):
+        try:
+            utils.plane_center(
+                base_attributes["left_edge"].d,
+                base_attributes["right_edge"].d,
+                utils.parse_normal(args["normal"]),
+                args["location"],
+            )
+        except ValueError as err:
+            parser.get_parser().error(f"--location: {err}")
+
     # Loop over the dataseries
     # Share the plotfiles over MPI only when launched with mpirun or srun
     utils.enable_parallelism(no_mpi=args["no_mpi"])

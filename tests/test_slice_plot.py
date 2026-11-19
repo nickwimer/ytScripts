@@ -436,6 +436,32 @@ def test_cells_are_skipped_on_a_diagonal_slice(position_ds, configs, capsys):
     assert "--cells is not available for diagonal slices" in capsys.readouterr().out
 
 
+def test_diagonal_slice_center_is_checked_first(
+    position_ds, tmp_path, monkeypatch, capsys
+):
+    """A --center whose diagonal plane misses the domain is a usage error."""
+
+    class SeriesNotRead(list):
+        def piter(self, *args, **kwargs):
+            raise AssertionError("the plotfiles were read before the slice was checked")
+
+    monkeypatch.setattr(
+        sp.utils, "load_dataseries", lambda **kwargs: (SeriesNotRead([position_ds]), {})
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            # main() reads config.toml next to the script
+            sp.__file__,
+            *("--datapath", ".", "--field", "pos_x", "--normal", "xz"),
+            *("--center", "5", "1", "5", "--outpath", str(tmp_path)),
+        ],
+    )
+    with pytest.raises(SystemExit):
+        sp.main()
+    assert "misses the domain" in capsys.readouterr().err
+
+
 def test_contours_skip_blank_pixels():
     extent = (0.0, 1.0, 0.0, 1.0)
     hh, _ = pixel_centers(extent, (4, 4))

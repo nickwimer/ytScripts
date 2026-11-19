@@ -216,6 +216,63 @@ def test_diagonal_slice_average(position_ds):
     np.testing.assert_allclose(plane["pos_x"], 0.625)
 
 
+class SeriesNotRead(list):
+    """A dataset series whose plotfiles must not be looped over."""
+
+    def piter(self, *args, **kwargs):
+        raise AssertionError("the plotfiles were read before the slice was checked")
+
+
+@pytest.mark.parametrize(
+    "span, message",
+    [
+        (["--min", "0.5", "--max", "3.0"], "misses"),
+        (["--min", "0", "--max", "1"], "only touches"),
+    ],
+)
+def test_slice_distances_are_checked_first(
+    position_ds, tmp_path, monkeypatch, capsys, span, message
+):
+    """x + z spans 0 to 4 on the test domain, so the distance spans 0 to 2.83."""
+    monkeypatch.setattr(
+        utils, "load_dataseries", lambda **kwargs: (SeriesNotRead([position_ds]), {})
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "extract_slices.py",
+            *DATA,
+            *("--field", "pos_y", "--normal", "xz", "--num_slices", "3"),
+            *span,
+            *("--outpath", str(tmp_path)),
+        ],
+    )
+    with pytest.raises(SystemExit):
+        extract_slices.main()
+    err = capsys.readouterr().err
+    assert "--min/--max" in err and message in err
+    assert not list(tmp_path.iterdir())
+
+
+def test_average_location_is_checked_first(position_ds, tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(
+        utils, "load_dataseries", lambda **kwargs: (SeriesNotRead([position_ds]), {})
+    )
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "extract_averages.py",
+            *DATA,
+            *("--fields", "pos_x", "--normal", "xz", "--location", "5"),
+            *("--outpath", str(tmp_path)),
+        ],
+    )
+    with pytest.raises(SystemExit):
+        averages.main()
+    err = capsys.readouterr().err
+    assert "--location" in err and "misses the domain" in err
+
+
 def test_plot_a_diagonal_slice(position_ds, tmp_path, monkeypatch):
     normal, across, up = utils.slice_basis("xz")
     attributes = utils.get_attributes(position_ds)

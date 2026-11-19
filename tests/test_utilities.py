@@ -162,6 +162,11 @@ def test_plane_center_is_on_the_plane():
     with pytest.raises(ValueError, match="misses the domain"):
         utils.plane_center(lo, hi, normal, 4.1 * SQRT_HALF)
 
+    # At either end of x + z the plane only touches an edge of the box
+    for end in (0.0, 4.0 * SQRT_HALF):
+        with pytest.raises(ValueError, match="only touches the edge"):
+            utils.plane_center(lo, hi, normal, end)
+
 
 def test_one_pixel_per_finest_cell_along_a_direction():
     finest = (0.25, 0.5, 0.125)

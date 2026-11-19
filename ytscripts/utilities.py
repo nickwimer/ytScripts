@@ -505,16 +505,24 @@ def plane_window(left_edge, right_edge, normal, center, across, up):
 def plane_center(left_edge, right_edge, normal, distance):
     """Return the point of the plane normal . r = distance nearest the domain center.
 
-    Raises ValueError if the plane misses the domain.
+    Raises ValueError unless the plane cuts through the domain. A plane at either end
+    of the domain's span only touches an edge or a corner, which leaves no area to
+    draw, so it is refused too.
     """
     lo = np.asarray(left_edge, dtype=np.float64)
     hi = np.asarray(right_edge, dtype=np.float64)
     normal = np.asarray(normal, dtype=np.float64)
     reach = box_corners(lo, hi) @ normal
-    if not reach.min() <= distance <= reach.max():
+    near, far = reach.min(), reach.max()
+    tol = 1e-9 * (far - near)
+    if not near + tol < distance < far - tol:
+        if near - tol <= distance <= far + tol:
+            where = "only touches the edge of"
+        else:
+            where = "misses"
         raise ValueError(
-            f"The plane at distance {distance} along the normal misses the domain, "
-            f"which spans {reach.min():.6g} to {reach.max():.6g}"
+            f"The plane at distance {distance:.6g} along the normal {where} the "
+            f"domain; it must lie strictly between {near:.6g} and {far:.6g}"
         )
     domain_center = (lo + hi) / 2.0
     return domain_center + (distance - np.dot(domain_center, normal)) * normal

@@ -501,6 +501,23 @@ def main():
         # provide slight offset to avoid grid alignment vis issues
         slc_center += YTArray(args["grid_offset"], base_attributes["length_unit"])
 
+    # A diagonal slice through the center must cut through the domain; check before
+    # reading the plotfiles
+    if not utils.is_axis_normal(args["normal"]):
+        normal = utils.parse_normal(args["normal"])
+        center = utils.code_length_values(ts[0], slc_center)
+        try:
+            utils.plane_center(
+                utils.code_length_values(ts[0], base_attributes["left_edge"]),
+                utils.code_length_values(ts[0], base_attributes["right_edge"]),
+                normal,
+                float(center @ normal),
+            )
+        except ValueError as err:
+            parser.get_parser().error(
+                f"The slice through the center {tuple(center.tolist())}: {err}"
+            )
+
     # Compute the center of the image for plotting
     if args["pbox"]:
         # Set the center based on the pbox

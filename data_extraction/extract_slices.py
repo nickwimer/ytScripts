@@ -121,6 +121,16 @@ def main():
             [utils.direction_label(across), utils.direction_label(up_vec)]
         )
 
+        # Every plane must cut through the domain; check before reading any plotfile
+        ds0 = ts[0]
+        left = utils.code_length_values(ds0, ds0.domain_left_edge)
+        right = utils.code_length_values(ds0, ds0.domain_right_edge)
+        try:
+            for distance in islice + args["grid_offset"]:
+                utils.plane_center(left, right, normal, distance)
+        except ValueError as err:
+            parser.get_parser().error(f"--min/--max: {err}")
+
     # Loop over the plt files in the data directory
     # Share the plotfiles over MPI only when launched with mpirun or srun
     utils.enable_parallelism(no_mpi=args["no_mpi"])
