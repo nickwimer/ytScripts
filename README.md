@@ -50,6 +50,8 @@ after environment is created:
 
 NOTE: Most scripts can now make full use of parallel processing either over multiple datasets in a time series or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly useful when dealing with a large number of time outputs or with very large data.
 
+MPI is only started when a script is launched that way, with more than one process. A plain `python script.py` run never touches MPI and does not need `mpi4py`. `--no_mpi` keeps MPI off even under `mpirun` or `srun`.
+
 ## Documentation
 
 Documentation is provided through Sphinx under Docs. Everything necessary to build the documentation is provided in the `environment.yml` file.
@@ -121,7 +123,7 @@ Output formats are `ply`, `obj`, `hdf5`/`xdmf`.
 
 Isosurface file will be saved under `outdata/isosurfaces`.
 
-Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are holes in the iso-surfaces: it adds a layer of ghost cells around each grid, which closes the cracks between neighboring grids at the same refinement level. Small cracks can remain where the surface crosses from one refinement level to another.
+Can be run in parallel with `mpirun` or `srun` (needs `mpi4py`). Should run with `--do_ghost` if there are holes in the iso-surfaces: it adds a layer of ghost cells around each grid, which closes the cracks between neighboring grids at the same refinement level. Small cracks can remain where the surface crosses from one refinement level to another.
 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 

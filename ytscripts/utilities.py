@@ -26,6 +26,113 @@ def is_latex_available():
     return shutil.which("latex") is not None
 
 
+# Environment variables in which MPI launchers tell each process they start how
+# many processes there are and which one it is: MPICH and Intel MPI (mpirun and
+# mpiexec), Open MPI, MVAPICH, and Slurm's srun
+MPI_LAUNCH_VARS = (
+    ("PMI_SIZE", "PMI_RANK"),
+    ("OMPI_COMM_WORLD_SIZE", "OMPI_COMM_WORLD_RANK"),
+    ("MV2_COMM_WORLD_SIZE", "MV2_COMM_WORLD_RANK"),
+    ("SLURM_STEP_NUM_TASKS", "SLURM_PROCID"),
+)
+
+
+def mpi_launch_size():
+    """Return how many processes an MPI launcher started, and this one's rank.
+
+    Reads the environment the launcher sets, without starting MPI. A plain
+    ``python script.py`` run has none of it and gives (1, 0).
+    """
+    for size_var, rank_var in MPI_LAUNCH_VARS:
+        try:
+            size = int(os.environ[size_var])
+        except (KeyError, ValueError):
+            continue
+        if size > 1:
+            try:
+                rank = int(os.environ.get(rank_var, 0))
+            except ValueError:
+                rank = 0
+            return size, rank
+    return 1, 0
+
+
+def get_mpi_comm(no_mpi=False):
+    """Return the MPI communicator if this run was launched as several processes.
+
+    Returns None for a plain single-process run, without importing mpi4py, so
+    MPI is never started and mpi4py need not be installed. Also returns None
+    with no_mpi, where every process does all the work.
+    """
+    size, rank = mpi_launch_size()
+    if size == 1:
+        return None
+
+    if no_mpi:
+        if rank == 0:
+            print(
+                f"--no_mpi was given, so each of the {size} processes "
+                "will do all the work."
+            )
+        return None
+
+    try:
+        from mpi4py import MPI
+    except ImportError as err:
+        # Stop rather than have every process repeat all the work
+        if rank == 0:
+            sys.exit(
+                f"This run was launched as {size} MPI processes, but mpi4py "
+                f"could not be loaded ({err}). Install it with "
+                '"pip install mpi4py" after loading the MPI you launch with, '
+                "run without mpirun or srun, or pass --no_mpi."
+            )
+        sys.exit(1)
+
+    comm = MPI.COMM_WORLD
+    if comm.Get_size() == 1:
+        if rank == 0:
+            print(
+                f"Warning: this run was launched as {size} MPI processes, but "
+                "MPI sees only one. mpi4py was probably built with a different "
+                "MPI than the one launching it (check your loaded modules). "
+                "Each process will do all the work."
+            )
+        return None
+
+    return comm
+
+
+def enable_parallelism(no_mpi=False):
+    """Share yt's work over MPI if this run was launched as several processes.
+
+    A plain single-process run never starts MPI. Returns True if yt runs in
+    parallel.
+    """
+    comm = get_mpi_comm(no_mpi=no_mpi)
+    if comm is None:
+        return False
+    return yt.enable_parallelism(communicator=comm)
+
+
+class SerialComm:
+    """Stand-in for an MPI communicator in a single-process run."""
+
+    def Get_rank(self):
+        return 0
+
+    def Get_size(self):
+        return 1
+
+    def barrier(self):
+        pass
+
+    Barrier = barrier
+
+    def gather(self, obj, root=0):
+        return [obj]
+
+
 def get_configs():
     """Parse the configuration options from toml file."""
     cpath = os.path.abspath(os.path.join(sys.argv[0], ".."))

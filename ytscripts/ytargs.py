@@ -197,7 +197,10 @@ class ytArgs:
             },
             "no_mpi": {
                 "action": "store_true",
-                "help": "Flag to manually disable mpi features.",
+                "help": (
+                    "Never start MPI, even when launched with mpirun or srun. "
+                    "MPI is only used when launched that way."
+                ),
             },
             "nprocs": {
                 "type": int,

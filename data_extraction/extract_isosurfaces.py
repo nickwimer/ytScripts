@@ -6,7 +6,6 @@ import time
 
 import h5py
 import numpy as np
-from mpi4py import MPI
 from scipy.ndimage import gaussian_filter, map_coordinates
 from skimage.measure import marching_cubes
 
@@ -439,12 +438,16 @@ def retrieve_ghost_zones(cube, n_zones, ds_left_edge, ds_right_edge, do_gradient
 
 def main():
     """Main function for extracting isosurfaces."""
-    comm = MPI.COMM_WORLD
-    rank = comm.Get_rank()
-    size = comm.Get_size()
     # Parse the input arguments
     parser = get_parser()
     args = get_args(parser)
+
+    # Share the grids over MPI only when launched with mpirun or srun
+    comm = utils.get_mpi_comm(no_mpi=args["no_mpi"])
+    if comm is None:
+        comm = utils.SerialComm()
+    rank = comm.Get_rank()
+    size = comm.Get_size()
 
     if args["single_level"] and rank == 0:
         print(

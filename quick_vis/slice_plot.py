@@ -438,8 +438,8 @@ def main():
         )
 
     # Loop over all datasets in the time series
-    if not args["no_mpi"]:
-        yt.enable_parallelism()
+    # Share the plotfiles over MPI only when launched with mpirun or srun
+    utils.enable_parallelism(no_mpi=args["no_mpi"])
     for ds in ts.piter(dynamic=True):
         if (
             hasattr(ds.fields.boxlib, "velocityx")
