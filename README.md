@@ -215,7 +215,9 @@ Some helpful options:
 
 `--field`: Name of the field for visualization.
 
-`--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain.
+`--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain. The image shows y across and z up for `--normal x`, x across and z up for `--normal y`, and x across and y up for `--normal z`.
+
+`--up`: Axis pointing up in the image, one of the two axes in the slice. For example, `--normal x --up y` draws z across and y up, which suits flow along +y. Without it, the image keeps the orientation given under `--normal`. An `--up` along `--normal` is an error.
 
 `-c, --center`: list of floats for center coordinates if different from center specified with `normal`.
 
@@ -231,11 +233,11 @@ Some helpful options:
 
 `--grid_offset`: Float value to offset the center value to avoid grid alignment visualization issues (defaults to no offset).
 
-`--buff`: Buffer resolution for the sliceplot image for plotting.
+`--buff`: Buffer resolution for the sliceplot image for plotting, in pixels across and up. Defaults to one pixel per finest cell. Where yt has to swap the image axes (`--normal y` unless `--up x`, `--normal x --up y` and `--normal z --up x`), the buffer is made square at the larger of the two, because yt draws only part of a swapped image otherwise.
 
 `--dpi`: dpi of the output image (default = 300).
 
-`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
+`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1), as positions across and up the image: (y0 z0 y1 z1) for `--normal x`, (x0 z0 x1 z1) for `--normal y` and (x0 y0 x1 y1) for `--normal z`. It follows `--up`, so `--normal x --up y` takes (z0 y0 z1 y1).
 
 `--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
 
@@ -243,7 +245,7 @@ Some helpful options:
 
 `--pickle`: Optional flag to dump the image as a pickle file for later manipulation/customization.
 
-`--grid_info`: Add a text box to the slice plot with information about the grids in the simulation. Inputs are: `xloc`, `yloc`, `min_level`, and `max_level`, where the first two inputs define the location of the text box and the second two inputs define the level range for information in the text box.
+`--grid_info`: Add a text box to the slice plot with information about the grids in the simulation. Inputs are: `xloc`, `yloc`, `min_level`, and `max_level`, where the first two inputs define the location of the text box (positions across and up the image, in its axis units, so they follow `--up` like `--pbox`) and the second two inputs define the level range for information in the text box.
 
 `--rm_eb`: Optional flag to remove the EB boundary from the plot as defined by `vfrac` field in the dataset. Takes a float to specify the color between `[0=white, 1=black]`.
 
