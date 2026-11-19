@@ -97,11 +97,15 @@ def contour_lines(image, level, extent):
     dh = (right - left) / ncols
     dv = (top - bottom) / nrows
 
+    # Pixels off the domain of an off-axis slice hold NaN; keep contours out of them
+    finite = np.isfinite(image)
+    mask = None if finite.all() else finite
+
     return [
         np.column_stack(
             (left + (line[:, 1] + 0.5) * dh, bottom + (line[:, 0] + 0.5) * dv)
         )
-        for line in find_contours(image, level=float(level))
+        for line in find_contours(image, level=float(level), mask=mask)
     ]
 
 
@@ -137,12 +141,38 @@ def create_slice_plot(
             num_cells_0 = float(np.prod(ds_attributes["dimensions"]))
         domain_volume = dx0 * dy0 * dz0 * num_cells_0
 
-    # The axes drawn across and up the image
-    horizontal, vertical, swap = image_axes(args["normal"], args["up"])
+    # The axes drawn across and up the image. A diagonal normal gives an off-axis
+    # slice, turned by north_vector rather than swapped.
+    oblique = not utils.is_axis_normal(args["normal"])
+    if oblique:
+        normal, across, up_vec = utils.slice_basis(args["normal"], args["up"])
+        horizontal = utils.direction_label(across)
+        vertical = utils.direction_label(up_vec)
+        swap = False
+
+        # The part of the plane inside the domain, as offsets from the slice center
+        (across_lo, across_hi), (up_lo, up_hi) = utils.plane_window(
+            utils.code_length_values(ds, ds_attributes["left_edge"]),
+            utils.code_length_values(ds, ds_attributes["right_edge"]),
+            normal,
+            utils.code_length_values(ds, slc_center),
+            across,
+            up_vec,
+        )
+    else:
+        horizontal, vertical, swap = image_axes(args["normal"], args["up"])
 
     # Image resolution: one pixel per finest cell, unless --buff gives it
     if args["buff"] is not None:
         buff_size = tuple(args["buff"])
+    elif oblique:
+        finest = utils.code_length_values(ds, ds_attributes["width"]) / np.asarray(
+            ds_attributes["resolution"], dtype=np.float64
+        )
+        buff_size = (
+            utils.pixels_along(across, finest, across_hi - across_lo),
+            utils.pixels_along(up_vec, finest, up_hi - up_lo),
+        )
     else:
         resolution = dict(zip("xyz", ds_attributes["resolution"]))
         buff_size = (resolution[horizontal], resolution[vertical])
@@ -152,21 +182,41 @@ def create_slice_plot(
         buff_size = (max(buff_size),) * 2
 
     # Plot the field
-    slc = yt.SlicePlot(
-        ds=ds,
-        normal=args["normal"],
-        fields=vis_field,
-        center=slc_center,
-        buff_size=buff_size,
-    )
-    if swap:
-        slc.swap_axes()
+    if oblique:
+        slc = yt.SlicePlot(
+            ds=ds,
+            normal=normal,
+            fields=vis_field,
+            center=slc_center,
+            north_vector=up_vec,
+            width=(
+                (across_hi - across_lo, "code_length"),
+                (up_hi - up_lo, "code_length"),
+            ),
+            buff_size=buff_size,
+        )
+        # Off-axis images are measured from the slice center; move the window onto
+        # the domain
+        slc.set_center(((across_lo + across_hi) / 2.0, (up_lo + up_hi) / 2.0))
+    else:
+        slc = yt.SlicePlot(
+            ds=ds,
+            normal=args["normal"],
+            fields=vis_field,
+            center=slc_center,
+            buff_size=buff_size,
+        )
+        if swap:
+            slc.swap_axes()
     slc.set_axes_unit(axes_unit)
+    # Off-axis, native measures the image from the slice center rather than from the
+    # middle of the window
     slc.set_origin("native")
 
     if args["pbox"] is not None:
         # --pbox is given across then up the image, but yt sets the window in its
-        # own order, from before the swap
+        # own order, from before the swap. Off-axis, it holds offsets from the slice
+        # center.
         if swap:
             pbox_width, pbox_center = pbox_width[::-1], pbox_center[::-1]
         slc.set_width(pbox_width)
@@ -175,7 +225,9 @@ def create_slice_plot(
         slc.set_zlim(vis_field, args["fbounds"][0], args["fbounds"][1])
     if not args["no_time"]:
         slc.annotate_timestamp(draw_inset_box=True)
-    if args["grids"]:
+    if args["grids"] and oblique:
+        print("--grids is not available for diagonal slices; skipping it.")
+    elif args["grids"]:
         if len(args["grids"]) > 0:
             slc.annotate_grids(
                 alpha=args["grids"][0],
@@ -220,6 +272,10 @@ def create_slice_plot(
         xlabel, ylabel = (vertical, horizontal) if swap else (horizontal, vertical)
         slc.set_xlabel(f"${xlabel}$")
         slc.set_ylabel(f"${ylabel}$")
+    elif oblique:
+        # yt would call these "Image x" and "Image y"
+        slc.set_xlabel(f"${horizontal}$ ({axes_unit})")
+        slc.set_ylabel(f"${vertical}$ ({axes_unit})")
 
     # Override the colorbar label
     if vis_field in configs["vis_field_attrs"] and not args["no_units"]:
@@ -347,9 +403,10 @@ def create_slice_plot(
             # Lay the cover out like the slice image
             if swap:
                 vfrac = vfrac.T
+            # Cover non-fluid cells, but not the area off the domain (NaN)
             m_vfrac = np.ma.array(
                 args["rm_eb"] * np.ones(np.shape(vfrac)),
-                mask=(vfrac > 0.5),
+                mask=(vfrac > 0.5) | ~np.isfinite(vfrac),
                 fill_value=np.nan,
             )
             ax.imshow(

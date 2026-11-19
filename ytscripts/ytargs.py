@@ -4,7 +4,15 @@ import argparse
 import sys
 import tomllib
 
-from ytscripts.utilities import is_notebook
+from ytscripts.utilities import NORMAL_FORMS, canonical_normal, is_notebook
+
+
+def normal_type(value):
+    """Check a --normal value for argparse and return it in its standard form."""
+    try:
+        return canonical_normal(value)
+    except ValueError as err:
+        raise argparse.ArgumentTypeError(str(err)) from None
 
 
 class ytArgs:
@@ -130,8 +138,17 @@ class ytArgs:
             self.parser.error(message)
 
     def check_orientation(self, args):
-        """Exit with a usage error if --up points along --normal."""
-        up, normal = args.get("up"), args.get("normal")
+        """Exit with a usage error for a bad --normal, or --up along --normal."""
+        normal = args.get("normal")
+        if normal is not None:
+            # Values from the input file that are not text skip argparse's check
+            try:
+                args["normal"] = normal = canonical_normal(normal)
+            except ValueError as err:
+                self.parser.error(f"argument --normal: {err}")
+
+        # An axis tilts into a diagonal plane, so only an axis normal can hold --up
+        up = args.get("up")
         if up is not None and up == normal:
             in_slice = " or ".join(axis for axis in "xyz" if axis != normal)
             self.parser.error(
@@ -247,10 +264,10 @@ class ytArgs:
 
         args = {
             "normal": {
-                "type": str,
+                "type": normal_type,
                 "required": False,
                 "default": "z",
-                "help": "Normal direction for the slice plot.",
+                "help": f"Normal direction for the slice: {NORMAL_FORMS}.",
             },
             "grid_offset": {
                 "type": float,
@@ -267,7 +284,9 @@ class ytArgs:
                 "default": None,
                 "help": (
                     "Axis pointing up in the image, one of the two axes in the slice "
-                    "(default: z for normal x and y, y for normal z)."
+                    "(default: z for normal x and y, y for normal z). For a diagonal "
+                    "normal the default is the axis not in it, e.g. y for xz, and "
+                    "an axis not in the plane is tilted into it."
                 ),
             }
 
@@ -443,13 +462,19 @@ class ytExtractArgs(ytArgs):
                 "type": float,
                 "required": True,
                 "default": None,
-                "help": "Index of the first slice to extract in the normal direction.",
+                "help": (
+                    "Position of the first slice along the normal. For a diagonal "
+                    "normal, the distance from the origin along the unit normal."
+                ),
             },
             "max": {
                 "type": float,
                 "required": True,
                 "default": None,
-                "help": "Index of the last slice to extract in the normal direction.",
+                "help": (
+                    "Position of the last slice along the normal. For a diagonal "
+                    "normal, the distance from the origin along the unit normal."
+                ),
             },
             "num_slices": {
                 "type": int,
@@ -570,18 +595,22 @@ class ytExtractArgs(ytArgs):
                 "help": "Name of the output data file (.pkl).",
             },
             "normal": {
-                "type": str,
-                "choices": ["x", "y", "z"],
+                "type": normal_type,
                 "required": False,
                 "default": None,
-                "help": "Option to perform 2D slice (defaults to domain average).",
+                "help": (
+                    "Option to average over a 2D slice with this normal (defaults to "
+                    f"domain average): {NORMAL_FORMS}."
+                ),
             },
             "location": {
                 "type": float,
                 "required": False,
                 "default": None,
                 "help": (
-                    "Physical location to perform the 2D slice (if normal is defined)."
+                    "Physical location to perform the 2D slice (if normal is defined). "
+                    "For a diagonal normal, the distance from the origin along the "
+                    "unit normal."
                 ),
             },
             "rm_eb": {
@@ -619,20 +648,23 @@ class ytExtractArgs(ytArgs):
 
         args = {
             "normal": {
-                "type": str,
-                "choices": ["x", "y", "z"],
+                "type": normal_type,
                 "required": False,
                 "default": "z",
-                "help": "Axis the line runs along.",
+                "help": (
+                    "Direction the line runs along: x, y or z, a pair of axes such "
+                    "as xz for (1, 0, 1), or a signed pair such as x-z for (1, 0, -1)."
+                ),
             },
             "coords": {
                 "type": float,
-                "nargs": 2,
+                "nargs": "+",
                 "required": True,
                 "default": None,
                 "help": (
                     "Position of the line in the other two directions: (y, z) for "
-                    "a line along x, (z, x) along y, and (x, y) along z."
+                    "a line along x, (z, x) along y, and (x, y) along z. For a "
+                    "diagonal line, a point (x, y, z) on it."
                 ),
             },
             "rm_eb": {

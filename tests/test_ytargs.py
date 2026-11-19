@@ -187,3 +187,53 @@ def test_plot_averages_default_file_name_is_a_list():
 def test_required_options_say_so_in_help():
     help_text = extract_slices_parser().get_parser().format_help()
     assert "(required)" in help_text
+
+
+def average_parser():
+    """Build the parser used by data_extraction/extract_averages.py."""
+    parser = ytargs.ytExtractArgs()
+    parser.average_args()
+    return parser
+
+
+@pytest.mark.parametrize(
+    "given, kept", [("x", "x"), ("xz", "xz"), ("x+z", "xz"), ("x-z", "x-z")]
+)
+def test_normal_takes_axes_and_diagonals(given, kept):
+    assert slice_plot_parser().get_args([*DATA, "--normal", given])["normal"] == kept
+    args = extract_slices_parser().get_args(
+        [*DATA, "--normal", given, "--min", "0", "--max", "1", "--num_slices", "2"]
+    )
+    assert args["normal"] == kept
+    args = average_parser().get_args(
+        [*DATA, "--fields", "temp", "--normal", given, "--location", "1"]
+    )
+    assert args["normal"] == kept
+
+
+@pytest.mark.parametrize("bad", ["w", "xx", "xw", "x-", "-x", "xyz"])
+def test_bad_normal_is_a_usage_error(bad, capsys):
+    with pytest.raises(SystemExit):
+        slice_plot_parser().get_args([*DATA, f"--normal={bad}"])
+    assert "pair of different axes" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize("value", ['"xw"', "1"])
+def test_normal_from_input_file_is_checked(tmp_path, capsys, value):
+    ifile = write_toml(tmp_path, f"normal = {value}\n")
+    with pytest.raises(SystemExit):
+        slice_plot_parser().get_args([*DATA, "--ifile", ifile])
+    assert "--normal" in capsys.readouterr().err
+
+
+def test_diagonal_normal_from_input_file(tmp_path):
+    ifile = write_toml(tmp_path, 'normal = "z+x"\n')
+    assert slice_plot_parser().get_args([*DATA, "--ifile", ifile])["normal"] == "zx"
+
+
+def test_any_up_suits_a_diagonal_normal():
+    parser = ytargs.ytVisArgs()
+    parser.orientation_args(up=True)
+    for up in "xyz":
+        args = parser.get_args([*DATA, "--normal", "xz", "--up", up])
+        assert (args["normal"], args["up"]) == ("xz", up)

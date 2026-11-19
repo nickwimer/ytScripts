@@ -1,4 +1,4 @@
-"""Extracts axis-aligned lines of data from plot files and saves them."""
+"""Extracts lines of data along an axis or a diagonal from plot files and saves them."""
 
 import os
 import sys
@@ -32,12 +32,71 @@ def get_args(parser, cli_args=None):
     # Parse the command line, merged with the input file if one is given
     args = parser.get_args(cli_args)
 
-    # The line is fixed by its position in the other two directions
-    if not isinstance(args["coords"], list) or len(args["coords"]) != 2:
-        parser.get_parser().error("--coords needs exactly two values")
+    # A line along an axis is fixed by its position in the other two directions, a
+    # diagonal line by a point on it
+    if utils.is_axis_normal(args["normal"]):
+        ncoords, what = 2, "two values"
+    else:
+        ncoords, what = 3, "three values, a point (x, y, z) on the line,"
+    if not isinstance(args["coords"], list) or len(args["coords"]) != ncoords:
+        parser.get_parser().error(
+            f"""--coords needs {what} for --normal {args["normal"]}"""
+        )
 
     # Return the parsed arguments as a dict
     return args
+
+
+def line_ends(left_edge, right_edge, direction, point):
+    """Return where the line through point along direction enters and leaves a box.
+
+    Raises ValueError if the line misses the box.
+    """
+    lo = np.asarray(left_edge, dtype=np.float64)
+    hi = np.asarray(right_edge, dtype=np.float64)
+    direction = np.asarray(direction, dtype=np.float64)
+    point = np.asarray(point, dtype=np.float64)
+
+    t_in, t_out = -np.inf, np.inf
+    for i in range(3):
+        if abs(direction[i]) < 1e-12:
+            if not lo[i] <= point[i] <= hi[i]:
+                t_in, t_out = np.inf, -np.inf
+            continue
+        t1, t2 = sorted(
+            ((lo[i] - point[i]) / direction[i], (hi[i] - point[i]) / direction[i])
+        )
+        t_in, t_out = max(t_in, t1), min(t_out, t2)
+    if not t_in < t_out:
+        raise ValueError(f"The line through {tuple(point)} misses the domain")
+    return point + t_in * direction, point + t_out * direction
+
+
+def take_line(ds, normal, coords, data_source=None):
+    """Return the positions along a line and the cells it passes through.
+
+    Along an axis the positions are that coordinate of the cells. Along a diagonal
+    they are the distance from the origin along the unit direction of the middle of
+    each cell's stretch of the line, so normal . r for points on the line.
+    """
+    if utils.is_axis_normal(normal):
+        ray = ds.ortho_ray(
+            axis="xyz".index(normal), coords=coords, data_source=data_source
+        )
+        return ray[normal], ray
+
+    direction = utils.parse_normal(normal)
+    start, end = line_ends(
+        utils.code_length_values(ds, ds.domain_left_edge),
+        utils.code_length_values(ds, ds.domain_right_edge),
+        direction,
+        coords,
+    )
+    ray = ds.ray(start, end, data_source=data_source)
+    length = np.linalg.norm(end - start)
+    middle = (np.asarray(ray["t"]) + np.asarray(ray["dts"]) / 2.0) * length
+    positions = ds.arr(start @ direction + middle, "code_length").to(ray["x"].units)
+    return positions, ray
 
 
 def lines_to_dataframe(lines, normal):
@@ -110,7 +169,17 @@ def main():
             f"""{base_attributes["derived_field_list"]}"""
         )
 
-    axis = {"x": 0, "y": 1, "z": 2}[args["normal"]]
+    # A diagonal line must pass through the domain
+    if not utils.is_axis_normal(args["normal"]):
+        try:
+            line_ends(
+                base_attributes["left_edge"].d,
+                base_attributes["right_edge"].d,
+                utils.parse_normal(args["normal"]),
+                args["coords"],
+            )
+        except ValueError as err:
+            parser.get_parser().error(str(err))
 
     # Loop over the dataseries
     # Share the plotfiles over MPI only when launched with mpirun or srun
@@ -127,9 +196,10 @@ def main():
         else:
             data_source = None
 
-        # Take a line of the data through the finest cells along the axis
-        ray = ds.ortho_ray(axis=axis, coords=args["coords"], data_source=data_source)
-        positions = ray[args["normal"]]
+        # Take a line of the data through the finest cells
+        positions, ray = take_line(
+            ds, args["normal"], args["coords"], data_source=data_source
+        )
         values = ray[args["field"]]
 
         # Send the units with the data, since under MPI the root does no work

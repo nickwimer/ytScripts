@@ -318,6 +318,213 @@ def get_attributes(ds):
     return ds_dict
 
 
+AXIS_VECTORS = {
+    "x": np.array([1.0, 0.0, 0.0]),
+    "y": np.array([0.0, 1.0, 0.0]),
+    "z": np.array([0.0, 0.0, 1.0]),
+}
+
+# One axis (x), an axis pair (xz, or x+z) or a signed pair (x-z)
+NORMAL_PATTERN = re.compile(r"([xyz])(?:([+-]?)([xyz]))?")
+
+NORMAL_FORMS = (
+    "x, y or z, a pair of different axes such as xz (normal (1, 0, 1)), "
+    "or a signed pair such as x-z (normal (1, 0, -1))"
+)
+
+
+def _match_normal(name):
+    """Return the regex match for a --normal value, or raise ValueError."""
+    match = NORMAL_PATTERN.fullmatch(name) if isinstance(name, str) else None
+    if match is None or match[1] == match[3]:
+        raise ValueError(f"The normal must be {NORMAL_FORMS}, not {name!r}")
+    return match
+
+
+def canonical_normal(name):
+    """Return a --normal value in its standard form: x+z becomes xz."""
+    match = _match_normal(name)
+    if match[3] is None:
+        return match[1]
+    return f"""{match[1]}{"-" if match[2] == "-" else ""}{match[3]}"""
+
+
+def parse_normal(name):
+    """Return the unit normal vector named by a --normal value."""
+    match = _match_normal(name)
+    normal = AXIS_VECTORS[match[1]].copy()
+    if match[3] is not None:
+        sign = -1.0 if match[2] == "-" else 1.0
+        normal += sign * AXIS_VECTORS[match[3]]
+    return normal / np.linalg.norm(normal)
+
+
+def is_axis_normal(name):
+    """Return whether a --normal value is one of the coordinate axes."""
+    return canonical_normal(name) in AXIS_VECTORS
+
+
+def default_up(name):
+    """Return the axis drawn up a slice image by default.
+
+    z for normal x and y, y for normal z, and the axis left out of a pair, so y for
+    xz and x-z.
+    """
+    name = canonical_normal(name)
+    if name in AXIS_VECTORS:
+        return {"x": "z", "y": "z", "z": "y"}[name]
+    return next(axis for axis in "xyz" if axis not in name)
+
+
+def slice_basis(name, up=None):
+    """Return the unit normal and the unit vectors across and up a slice image.
+
+    ``up`` names the axis to draw up the image (default from default_up()). An
+    axis that is not in the plane is tilted into it, so for normal xz, up x points
+    along (x - z)/sqrt(2). Across is up x normal, as in yt's off-axis slices, so
+    across, up and the normal form a right-handed set.
+    """
+    normal = parse_normal(name)
+    if up is None:
+        up = default_up(name)
+    if up not in AXIS_VECTORS:
+        raise ValueError(f"Up must be x, y or z, not {up!r}")
+    up_vec = AXIS_VECTORS[up] - np.dot(AXIS_VECTORS[up], normal) * normal
+    if np.linalg.norm(up_vec) < 1e-8:
+        raise ValueError(f"Up {up} points along the normal {name}")
+    up_vec /= np.linalg.norm(up_vec)
+    across = np.cross(up_vec, normal)
+    return normal, across, up_vec
+
+
+def direction_label(vector):
+    """Return a math-text label for a direction, such as (x - z)/\\sqrt{2}."""
+    vector = np.asarray(vector, dtype=np.float64)
+    terms = [(axis, value) for axis, value in zip("xyz", vector) if abs(value) > 1e-8]
+    if len(terms) == 1:
+        axis, value = terms[0]
+        return axis if value > 0 else f"-{axis}"
+
+    magnitudes = np.array([abs(value) for _, value in terms])
+    equal = np.allclose(magnitudes, magnitudes[0])
+    prefix = ""
+    if equal:
+        if all(value < 0 for _, value in terms):
+            # -(x + z) reads better than (-x - z)
+            prefix = "-"
+            terms = [(axis, -value) for axis, value in terms]
+        else:
+            # Lead with a positive term: (z - y) rather than (-y + z)
+            terms.sort(key=lambda term: term[1] < 0)
+    label = ""
+    for i, (axis, value) in enumerate(terms):
+        coeff = "" if equal else f"{abs(value):.3g}"
+        if i == 0:
+            label += f"""{"-" if value < 0 else ""}{coeff}{axis}"""
+        else:
+            label += f""" {"-" if value < 0 else "+"} {coeff}{axis}"""
+    if equal:
+        scale = 1.0 / magnitudes[0] ** 2
+        root = f"{scale:.0f}" if np.isclose(scale, round(scale)) else f"{scale:.3g}"
+        return rf"{prefix}({label})/\sqrt{{{root}}}"
+    return label
+
+
+def code_length_values(ds, value):
+    """Return a position or length as plain floats in code_length."""
+    if hasattr(value, "units"):
+        return np.asarray(
+            ds.arr(np.asarray(value.d), str(value.units)).to("code_length").d,
+            dtype=np.float64,
+        )
+    return np.asarray(value, dtype=np.float64)
+
+
+def box_corners(left_edge, right_edge):
+    """Return the 8 corners of a box as an (8, 3) array."""
+    lo = np.asarray(left_edge, dtype=np.float64)
+    hi = np.asarray(right_edge, dtype=np.float64)
+    return np.array(
+        [
+            [(lo, hi)[i][0], (lo, hi)[j][1], (lo, hi)[k][2]]
+            for i in (0, 1)
+            for j in (0, 1)
+            for k in (0, 1)
+        ]
+    )
+
+
+def plane_box_points(left_edge, right_edge, normal, point):
+    """Return the corners of the polygon where a plane cuts a box.
+
+    The plane holds ``point`` and has the unit ``normal``. Raises ValueError if it
+    misses the box.
+    """
+    normal = np.asarray(normal, dtype=np.float64)
+    corners = box_corners(left_edge, right_edge)
+    dist = corners @ normal - np.dot(np.asarray(point, dtype=np.float64), normal)
+    tol = 1e-12 * max(1.0, np.abs(corners).max())
+
+    points = [corner for corner, d in zip(corners, dist) if abs(d) <= tol]
+    # The edges of the box join corners that differ in one coordinate
+    for a in range(8):
+        for b in range(a + 1, 8):
+            if bin(a ^ b).count("1") != 1:
+                continue
+            if (dist[a] < -tol and dist[b] > tol) or (dist[a] > tol and dist[b] < -tol):
+                frac = dist[a] / (dist[a] - dist[b])
+                points.append(corners[a] + frac * (corners[b] - corners[a]))
+    if not points:
+        raise ValueError("The slice plane does not cut the domain")
+    return np.array(points)
+
+
+def plane_window(left_edge, right_edge, normal, center, across, up):
+    """Return the part of a slice plane inside the domain, around its center.
+
+    The plane goes through ``center`` with the unit ``normal``. Returns
+    ((across_min, across_max), (up_min, up_max)), as offsets from ``center`` along
+    the unit vectors ``across`` and ``up``.
+    """
+    center = np.asarray(center, dtype=np.float64)
+    offsets = plane_box_points(left_edge, right_edge, normal, center) - center
+    along_across = offsets @ np.asarray(across, dtype=np.float64)
+    along_up = offsets @ np.asarray(up, dtype=np.float64)
+    return (
+        (along_across.min(), along_across.max()),
+        (along_up.min(), along_up.max()),
+    )
+
+
+def plane_center(left_edge, right_edge, normal, distance):
+    """Return the point of the plane normal . r = distance nearest the domain center.
+
+    Raises ValueError if the plane misses the domain.
+    """
+    lo = np.asarray(left_edge, dtype=np.float64)
+    hi = np.asarray(right_edge, dtype=np.float64)
+    normal = np.asarray(normal, dtype=np.float64)
+    reach = box_corners(lo, hi) @ normal
+    if not reach.min() <= distance <= reach.max():
+        raise ValueError(
+            f"The plane at distance {distance} along the normal misses the domain, "
+            f"which spans {reach.min():.6g} to {reach.max():.6g}"
+        )
+    domain_center = (lo + hi) / 2.0
+    return domain_center + (distance - np.dot(domain_center, normal)) * normal
+
+
+def pixels_along(direction, finest_dxyz, length):
+    """Return how many pixels give one per finest cell over a length along a direction.
+
+    The pixel is the size of the smallest finest cell along the axes the direction
+    has a part along.
+    """
+    direction = np.asarray(direction, dtype=np.float64)
+    sizes = [float(dx) for dx, part in zip(finest_dxyz, direction) if abs(part) > 1e-8]
+    return max(1, int(np.ceil(length / min(sizes) - 1e-6)))
+
+
 def get_fig_aspect_ratio(xlen, ylen, base=5):
     """Get the aspect ratio to fit the data."""
 

@@ -39,6 +39,25 @@ def get_args(parser):
     return args
 
 
+def slice_data(ds, data, normal, location):
+    """Return the part of data on the slice plane with this normal at location.
+
+    For an axis normal the plane is axis = location; for a diagonal normal it is
+    normal . r = location, with the unit normal.
+    """
+    if utils.is_axis_normal(normal):
+        return ds.slice(axis="xyz".index(normal), coord=location, data_source=data)
+
+    unit_normal = utils.parse_normal(normal)
+    center = utils.plane_center(
+        utils.code_length_values(ds, ds.domain_left_edge),
+        utils.code_length_values(ds, ds.domain_right_edge),
+        unit_normal,
+        location,
+    )
+    return ds.cutting(unit_normal, center, data_source=data)
+
+
 def main():
     # Parse the input arguments
     parser = get_parser()
@@ -88,9 +107,6 @@ def main():
             f"""{base_attributes["derived_field_list"]}"""
         )
 
-    # define normal dict
-    norm_dict = {"x": 0, "y": 1, "z": 2}
-
     # Loop over the dataseries
     # Share the plotfiles over MPI only when launched with mpirun or srun
     utils.enable_parallelism(no_mpi=args["no_mpi"])
@@ -108,9 +124,7 @@ def main():
 
         # Slice the data if requested
         if args["normal"]:
-            data = ds.slice(
-                axis=norm_dict[args["normal"]], coord=args["location"], data_source=data
-            )
+            data = slice_data(ds, data, args["normal"], args["location"])
 
         # Loop over the specified variables
         tmp_data = {}

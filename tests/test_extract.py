@@ -1,11 +1,17 @@
-"""Tests for the line and isosurface extraction helpers."""
+"""Tests for the slice, average, line and isosurface extraction helpers."""
 
+import matplotlib
 import numpy as np
 import pytest
+import yt
 from skimage.measure import marching_cubes
 
+import data_extraction.extract_averages as averages
 import data_extraction.extract_isosurfaces as iso
 import data_extraction.extract_lines as lines
+import data_extraction.extract_slices as extract_slices
+import plot_data.plot_slices as plot_slices
+import ytscripts.utilities as utils
 
 # Every script needs --datapath; the parser only checks that it is set
 DATA = ["--datapath", "."]
@@ -38,6 +44,22 @@ def test_line_args_need_field_and_two_coords():
     )
     assert args["coords"] == [0.0, -1.0]
     assert args["normal"] == "x"
+
+
+def test_diagonal_line_args_need_a_point(capsys):
+    parser = lines.get_parser()
+    with pytest.raises(SystemExit):
+        lines.get_args(
+            parser, [*DATA, "--field", "temp", "--coords", "0", "1", "--normal", "xz"]
+        )
+    assert "--coords needs three values" in capsys.readouterr().err
+
+    args = lines.get_args(
+        lines.get_parser(),
+        [*DATA, "--field", "temp", "--coords", "0", "1", "2", "--normal", "x-z"],
+    )
+    assert args["coords"] == [0.0, 1.0, 2.0]
+    assert args["normal"] == "x-z"
 
 
 def test_line_coords_from_input_file_must_be_two_values(tmp_path):
@@ -94,3 +116,148 @@ def test_extra_fields_need_hdf5_or_xdmf_output(capsys):
         [*DATA, "--value", "1", "--format", "xdmf", "--extra_fields", "rho", "temp"],
     )
     assert args["extra_fields"] == ["rho", "temp"]
+
+
+# Each axis of the test domain has its own length
+BBOX = {"x": (0.0, 1.0), "y": (0.0, 2.0), "z": (0.0, 3.0)}
+DIMS = {"x": 4, "y": 6, "z": 8}
+R = np.sqrt(0.5)
+
+
+@pytest.fixture(scope="module")
+def position_ds():
+    """Return a uniform grid whose fields pos_x, pos_y and pos_z hold the position."""
+    centers = [
+        lo + (np.arange(DIMS[axis]) + 0.5) * (hi - lo) / DIMS[axis]
+        for axis, (lo, hi) in BBOX.items()
+    ]
+    data = {
+        f"pos_{axis}": (pos, "")
+        for axis, pos in zip("xyz", np.meshgrid(*centers, indexing="ij"))
+    }
+    data["unity"] = (np.ones(tuple(DIMS.values())), "")
+    return yt.load_uniform_grid(
+        data,
+        tuple(DIMS.values()),
+        length_unit="cm",
+        bbox=np.array(list(BBOX.values())),
+    )
+
+
+def test_line_ends_clip_to_the_box():
+    start, end = lines.line_ends((0, 0, 0), (1, 2, 3), (R, 0, R), (0.5, 1.0, 1.5))
+    np.testing.assert_allclose(start, (0, 1, 1), atol=1e-12)
+    np.testing.assert_allclose(end, (1, 1, 2), atol=1e-12)
+
+    with pytest.raises(ValueError, match="misses the domain"):
+        lines.line_ends((0, 0, 0), (1, 2, 3), (R, 0, R), (0.5, 5.0, 1.5))
+    with pytest.raises(ValueError, match="misses the domain"):
+        lines.line_ends((0, 0, 0), (1, 2, 3), (R, 0, -R), (5.0, 1.0, 5.0))
+
+
+def test_diagonal_line_positions_are_distances_along_it(position_ds):
+    positions, ray = lines.take_line(position_ds, "xz", [0.5, 1.0, 1.5])
+    positions = np.asarray(positions)
+    # From (0, 1, 1) to (1, 1, 2): (x + z)/sqrt(2) runs from 1/sqrt(2) to 3/sqrt(2)
+    assert positions.min() > R and positions.max() < 3 * R
+    # Each cell holds the line where it passes: x and z rise along it, y stays
+    order = np.argsort(positions)
+    for axis in "xz":
+        assert np.all(np.diff(np.asarray(ray[f"pos_{axis}"])[order]) >= 0)
+    np.testing.assert_allclose(ray["pos_y"], 7 / 6)
+    np.testing.assert_allclose(
+        positions,
+        R * (np.asarray(ray["pos_x"]) + np.asarray(ray["pos_z"])),
+        atol=np.hypot(0.125, 0.1875) + 1e-9,
+    )
+
+
+def test_axis_line_is_unchanged(position_ds):
+    positions, ray = lines.take_line(position_ds, "x", [1.0, 1.5])
+    np.testing.assert_allclose(positions, [0.125, 0.375, 0.625, 0.875])
+    np.testing.assert_allclose(ray["pos_x"], positions)
+
+
+def test_diagonal_slice_extraction(position_ds):
+    normal, across, up = utils.slice_basis("xz")
+    attributes = utils.get_attributes(position_ds)
+    _, frb, plane = extract_slices.cut_plane(
+        position_ds, attributes, normal, across, up, 1.0
+    )
+    assert plane["center"] @ normal == pytest.approx(1.0)
+    np.testing.assert_allclose(plane["bounds"], (-R, R, -1, 1))
+
+    pos = {axis: np.asarray(frb[f"pos_{axis}"]) for axis in "xyz"}
+    assert all(np.isfinite(image).all() for image in pos.values())
+    # Rows run up (y), columns across ((x - z)/sqrt(2)), all on x + z = sqrt(2)
+    assert np.all(np.diff(pos["y"], axis=0) >= 0) and pos["y"][-1, 0] > pos["y"][0, 0]
+    np.testing.assert_allclose(np.diff(pos["y"], axis=1), 0)
+    assert np.all(np.diff(pos["x"] - pos["z"], axis=1) >= 0)
+    np.testing.assert_allclose(R * (pos["x"] + pos["z"]), 1.0, atol=0.3)
+
+    with pytest.raises(ValueError, match="misses the domain"):
+        extract_slices.cut_plane(position_ds, attributes, normal, across, up, 3.0)
+
+
+def test_diagonal_slice_average(position_ds):
+    data = position_ds.all_data()
+    plane = averages.slice_data(position_ds, data, "xz", 2.0 * R)
+    weight = ("index", "cell_volume")
+    assert float(plane.mean("unity", weight=weight)) == pytest.approx(1.0)
+    # x + z is about 2 on the plane, and y covers its whole range
+    assert float(plane.mean("pos_y", weight=weight)) == pytest.approx(1.0)
+    x_plus_z = float(plane.mean("pos_x", weight=weight)) + float(
+        plane.mean("pos_z", weight=weight)
+    )
+    assert x_plus_z == pytest.approx(2.0, abs=0.2)
+
+    # An axis normal is a plain slice
+    plane = averages.slice_data(position_ds, data, "x", 0.6)
+    np.testing.assert_allclose(plane["pos_x"], 0.625)
+
+
+def test_plot_a_diagonal_slice(position_ds, tmp_path, monkeypatch):
+    normal, across, up = utils.slice_basis("xz")
+    attributes = utils.get_attributes(position_ds)
+    _, frb, plane = extract_slices.cut_plane(
+        position_ds, attributes, normal, across, up, 2.0 * R
+    )
+    plane["labels"] = np.array(
+        [utils.direction_label(across), utils.direction_label(up)]
+    )
+    datapath = tmp_path / "slices"
+    datapath.mkdir()
+    np.savez(
+        datapath / "pos_y_xz1.4142_0.npz",
+        fcoords=np.zeros((1, 3)),
+        normal="xz",
+        iloc=2.0 * R,
+        fields="pos_y",
+        slices={"pos_y": frb["pos_y"]},
+        ds_attributes=attributes,
+        **plane,
+    )
+
+    data = np.load(datapath / "pos_y_xz1.4142_0.npz", allow_pickle=True)
+    ylen, xlen = data["slices"][()]["pos_y"].shape
+    h, v, hlabel, vlabel, dh, dv, where = plot_slices.image_layout(data, xlen, ylen)
+    np.testing.assert_allclose([h[0] - dh / 2, h[-1] + dh / 2], [-R, R])
+    np.testing.assert_allclose([v[0] - dv / 2, v[-1] + dv / 2], [-1, 1])
+    assert (hlabel, vlabel, where) == (r"$(x - z)/\sqrt{2}$", "$y$", "xz: d")
+
+    matplotlib.use("Agg")
+    outpath = tmp_path / "images"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "plot_slices.py",
+            "--datapath",
+            str(datapath),
+            "--outpath",
+            str(outpath),
+            "--field",
+            "pos_y",
+        ],
+    )
+    plot_slices.main()
+    assert (outpath / "pos_y_xz1.4142_0.png").exists()
