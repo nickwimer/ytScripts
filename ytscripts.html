@@ -1,0 +1,644 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ytscripts package &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="udfs package" href="udfs.html" />
+    <link rel="prev" title="plot_data package" href="plot_data.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="plot_data.html">plot_data package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ytscripts package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ytscripts.utilities">ytscripts.utilities module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.SerialComm"><code class="docutils literal notranslate"><span class="pre">SerialComm</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.utilities.SerialComm.Barrier"><code class="docutils literal notranslate"><span class="pre">SerialComm.Barrier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.utilities.SerialComm.Get_rank"><code class="docutils literal notranslate"><span class="pre">SerialComm.Get_rank()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.utilities.SerialComm.Get_size"><code class="docutils literal notranslate"><span class="pre">SerialComm.Get_size()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.utilities.SerialComm.barrier"><code class="docutils literal notranslate"><span class="pre">SerialComm.barrier()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.utilities.SerialComm.gather"><code class="docutils literal notranslate"><span class="pre">SerialComm.gather()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.box_corners"><code class="docutils literal notranslate"><span class="pre">box_corners()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.canonical_normal"><code class="docutils literal notranslate"><span class="pre">canonical_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.code_length_values"><code class="docutils literal notranslate"><span class="pre">code_length_values()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.compute_elem_mass_fraction"><code class="docutils literal notranslate"><span class="pre">compute_elem_mass_fraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.create_index_dict"><code class="docutils literal notranslate"><span class="pre">create_index_dict()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.default_up"><code class="docutils literal notranslate"><span class="pre">default_up()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.define_velocity_fields"><code class="docutils literal notranslate"><span class="pre">define_velocity_fields()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.direction_label"><code class="docutils literal notranslate"><span class="pre">direction_label()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.enable_parallelism"><code class="docutils literal notranslate"><span class="pre">enable_parallelism()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.find_plotfiles"><code class="docutils literal notranslate"><span class="pre">find_plotfiles()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.get_attributes"><code class="docutils literal notranslate"><span class="pre">get_attributes()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.get_configs"><code class="docutils literal notranslate"><span class="pre">get_configs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.get_fig_aspect_ratio"><code class="docutils literal notranslate"><span class="pre">get_fig_aspect_ratio()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.get_gradient_field"><code class="docutils literal notranslate"><span class="pre">get_gradient_field()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.get_mpi_comm"><code class="docutils literal notranslate"><span class="pre">get_mpi_comm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.is_axis_normal"><code class="docutils literal notranslate"><span class="pre">is_axis_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.is_latex_available"><code class="docutils literal notranslate"><span class="pre">is_latex_available()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.is_notebook"><code class="docutils literal notranslate"><span class="pre">is_notebook()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.is_plotfile"><code class="docutils literal notranslate"><span class="pre">is_plotfile()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.load_dataseries"><code class="docutils literal notranslate"><span class="pre">load_dataseries()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.mpi_launch_size"><code class="docutils literal notranslate"><span class="pre">mpi_launch_size()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.parse_normal"><code class="docutils literal notranslate"><span class="pre">parse_normal()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.pixels_along"><code class="docutils literal notranslate"><span class="pre">pixels_along()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.plane_box_points"><code class="docutils literal notranslate"><span class="pre">plane_box_points()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.plane_center"><code class="docutils literal notranslate"><span class="pre">plane_center()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.plane_window"><code class="docutils literal notranslate"><span class="pre">plane_window()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.plotfile_sort_key"><code class="docutils literal notranslate"><span class="pre">plotfile_sort_key()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.slice_basis"><code class="docutils literal notranslate"><span class="pre">slice_basis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.utilities.split_plotfile_name"><code class="docutils literal notranslate"><span class="pre">split_plotfile_name()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ytscripts.ytargs">ytscripts.ytargs module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.normal_type"><code class="docutils literal notranslate"><span class="pre">normal_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.ytAnalysisArgs"><code class="docutils literal notranslate"><span class="pre">ytAnalysisArgs</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytAnalysisArgs.mixture_fraction"><code class="docutils literal notranslate"><span class="pre">ytAnalysisArgs.mixture_fraction()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.ytArgs"><code class="docutils literal notranslate"><span class="pre">ytArgs</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.add_args_from_dict"><code class="docutils literal notranslate"><span class="pre">ytArgs.add_args_from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.add_mutually_exclusive_args_from_dict"><code class="docutils literal notranslate"><span class="pre">ytArgs.add_mutually_exclusive_args_from_dict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.check_orientation"><code class="docutils literal notranslate"><span class="pre">ytArgs.check_orientation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.check_required"><code class="docutils literal notranslate"><span class="pre">ytArgs.check_required()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.get_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.get_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.get_parser"><code class="docutils literal notranslate"><span class="pre">ytArgs.get_parser()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.io_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.io_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.orientation_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.orientation_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.override_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.override_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.parse_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.parse_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.remove_arg"><code class="docutils literal notranslate"><span class="pre">ytArgs.remove_arg()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytArgs.vis_2d_args"><code class="docutils literal notranslate"><span class="pre">ytArgs.vis_2d_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs.average_args"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs.average_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs.grid_args"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs.grid_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs.isosurface_args"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs.isosurface_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs.line_args"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs.line_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytExtractArgs.slice_args"><code class="docutils literal notranslate"><span class="pre">ytExtractArgs.slice_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.ytPlotArgs"><code class="docutils literal notranslate"><span class="pre">ytPlotArgs</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytPlotArgs.average_args"><code class="docutils literal notranslate"><span class="pre">ytPlotArgs.average_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytPlotArgs.grid_args"><code class="docutils literal notranslate"><span class="pre">ytPlotArgs.grid_args()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytPlotArgs.slice_args"><code class="docutils literal notranslate"><span class="pre">ytPlotArgs.slice_args()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#ytscripts.ytargs.ytVisArgs"><code class="docutils literal notranslate"><span class="pre">ytVisArgs</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ytscripts.ytargs.ytVisArgs.slice_args"><code class="docutils literal notranslate"><span class="pre">ytVisArgs.slice_args()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ytscripts">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">ytscripts package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/ytscripts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ytscripts-package">
+<h1>ytscripts package<a class="headerlink" href="#ytscripts-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="module-ytscripts.utilities">
+<span id="ytscripts-utilities-module"></span><h2>ytscripts.utilities module<a class="headerlink" href="#module-ytscripts.utilities" title="Link to this heading">¶</a></h2>
+<p>Utility routines used throughout ytscripts.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">SerialComm</span></span><a class="reference internal" href="_modules/ytscripts/utilities.html#SerialComm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.SerialComm" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Stand-in for an MPI communicator in a single-process run.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm.Barrier">
+<span class="sig-name descname"><span class="pre">Barrier</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ytscripts.utilities.SerialComm.Barrier" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm.Get_rank">
+<span class="sig-name descname"><span class="pre">Get_rank</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#SerialComm.Get_rank"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.SerialComm.Get_rank" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm.Get_size">
+<span class="sig-name descname"><span class="pre">Get_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#SerialComm.Get_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.SerialComm.Get_size" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm.barrier">
+<span class="sig-name descname"><span class="pre">barrier</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#SerialComm.barrier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.SerialComm.barrier" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.utilities.SerialComm.gather">
+<span class="sig-name descname"><span class="pre">gather</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">root</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#SerialComm.gather"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.SerialComm.gather" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.box_corners">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">box_corners</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_edge</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#box_corners"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.box_corners" title="Link to this definition">¶</a></dt>
+<dd><p>Return the 8 corners of a box as an (8, 3) array.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.canonical_normal">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">canonical_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#canonical_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.canonical_normal" title="Link to this definition">¶</a></dt>
+<dd><p>Return a –normal value in its standard form: x+z and zx become xz.</p>
+<p>An unsigned pair names the same normal in either order, so its axes are sorted.
+A signed pair keeps its order, since z-x points the other way from x-z.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.code_length_values">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">code_length_values</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#code_length_values"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.code_length_values" title="Link to this definition">¶</a></dt>
+<dd><p>Return a position or length as plain floats in code_length.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.compute_elem_mass_fraction">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">compute_elem_mass_fraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keys</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#compute_elem_mass_fraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.compute_elem_mass_fraction" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the elem mass fraction for streams.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.create_index_dict">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">create_index_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">names</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#create_index_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.create_index_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Number each plotfile by its place among those named the same way.</p>
+<p>Plotfiles that share a prefix and end in a number (plt00100, plt00200, …) are
+numbered 0, 1, 2, … in order of that number, so images made from them get
+consecutive frame numbers whichever of them are plotted. Names with no number at
+the end are numbered among themselves.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.default_up">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">default_up</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#default_up"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.default_up" title="Link to this definition">¶</a></dt>
+<dd><p>Return the axis drawn up a slice image by default.</p>
+<p>z for normal x and y, y for normal z, and the axis left out of a pair, so y for
+xz and x-z.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.define_velocity_fields">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">define_velocity_fields</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#define_velocity_fields"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.define_velocity_fields" title="Link to this definition">¶</a></dt>
+<dd><p>Add some velocity fields.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.direction_label">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">direction_label</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vector</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#direction_label"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.direction_label" title="Link to this definition">¶</a></dt>
+<dd><p>Return a math-text label for a direction, such as (x - z)/sqrt{2}.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.enable_parallelism">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">enable_parallelism</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_mpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#enable_parallelism"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.enable_parallelism" title="Link to this definition">¶</a></dt>
+<dd><p>Share yt’s work over MPI if this run was launched as several processes.</p>
+<p>A plain single-process run never starts MPI. Returns True if yt runs in
+parallel.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.find_plotfiles">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">find_plotfiles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#find_plotfiles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.find_plotfiles" title="Link to this definition">¶</a></dt>
+<dd><p>Find the plotfiles to load and number them for output names.</p>
+<p>Without <code class="docutils literal notranslate"><span class="pre">pname</span></code>, every plotfile named plt&lt;digits&gt; in <code class="docutils literal notranslate"><span class="pre">datapath</span></code> is used, so
+other plotfiles a run writes alongside (such as pltU00100 or plt00100.old.1234)
+are left out. With <code class="docutils literal notranslate"><span class="pre">pname</span></code>, every plotfile matching those names or patterns is
+used, whatever it is called. <code class="docutils literal notranslate"><span class="pre">nskip</span></code> keeps every (nskip + 1)th file.</p>
+<p>Returns the paths to load, in order, and a dict numbering every plotfile in
+<code class="docutils literal notranslate"><span class="pre">datapath</span></code> (see create_index_dict).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.get_attributes">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">get_attributes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#get_attributes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.get_attributes" title="Link to this definition">¶</a></dt>
+<dd><p>Gets commonly used attributes from the dataset and stores in dict.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.get_configs">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">get_configs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#get_configs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.get_configs" title="Link to this definition">¶</a></dt>
+<dd><p>Parse the configuration options from toml file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.get_fig_aspect_ratio">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">get_fig_aspect_ratio</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xlen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ylen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#get_fig_aspect_ratio"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.get_fig_aspect_ratio" title="Link to this definition">¶</a></dt>
+<dd><p>Get the aspect ratio to fit the data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.get_gradient_field">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">get_gradient_field</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grad_type</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#get_gradient_field"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.get_gradient_field" title="Link to this definition">¶</a></dt>
+<dd><p>Add the gradient field and return new field name.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.get_mpi_comm">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">get_mpi_comm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">no_mpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#get_mpi_comm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.get_mpi_comm" title="Link to this definition">¶</a></dt>
+<dd><p>Return the MPI communicator if this run was launched as several processes.</p>
+<p>Returns None for a plain single-process run, without importing mpi4py, so
+MPI is never started and mpi4py need not be installed. Also returns None
+with no_mpi, where every process does all the work.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.is_axis_normal">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">is_axis_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#is_axis_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.is_axis_normal" title="Link to this definition">¶</a></dt>
+<dd><p>Return whether a –normal value is one of the coordinate axes.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.is_latex_available">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">is_latex_available</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#is_latex_available"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.is_latex_available" title="Link to this definition">¶</a></dt>
+<dd><p>Check if latex is available on the PATH.</p>
+<p>Only looks up the executable. Running a bare <code class="docutils literal notranslate"><span class="pre">latex</span></code> starts its interactive
+prompt and blocks waiting for input.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.is_notebook">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">is_notebook</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#is_notebook"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.is_notebook" title="Link to this definition">¶</a></dt>
+<dd><p>Check if the script is running in a Jupyter notebook.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.is_plotfile">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">is_plotfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#is_plotfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.is_plotfile" title="Link to this definition">¶</a></dt>
+<dd><p>Return True if path is an AMReX plotfile, a folder holding a Header file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.load_dataseries">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">load_dataseries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datapath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">units_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nprocs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nskip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#load_dataseries"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.load_dataseries" title="Link to this definition">¶</a></dt>
+<dd><p>Load a series of datasets from files in a given directory.</p>
+<p>Parameters:
+- datapath (str): The path to the directory containing the dataset files.
+- pname (list, optional): Plotfile names or glob patterns inside datapath. When
+left out, every plotfile named plt&lt;digits&gt; is loaded. See find_plotfiles.
+- units_override (dict, optional): A dictionary specifying unit overrides for the
+loaded datasets. Default is None.
+- nprocs (int, optional): The number of processes to use for parallel loading.
+- nskip (int, optional): The number of files to skip between loaded datasets.</p>
+<p>Returns:
+- ts (yt.DatasetSeries): A series of loaded datasets.
+- index_dict (dict): Maps each plotfile name to its frame number among the
+plotfiles named the same way.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.mpi_launch_size">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">mpi_launch_size</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#mpi_launch_size"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.mpi_launch_size" title="Link to this definition">¶</a></dt>
+<dd><p>Return how many processes an MPI launcher started, and this one’s rank.</p>
+<p>Reads the environment the launcher sets, without starting MPI. A plain
+<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">script.py</span></code> run has none of it and gives (1, 0).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.parse_normal">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">parse_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#parse_normal"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.parse_normal" title="Link to this definition">¶</a></dt>
+<dd><p>Return the unit normal vector named by a –normal value.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.pixels_along">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">pixels_along</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finest_dxyz</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#pixels_along"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.pixels_along" title="Link to this definition">¶</a></dt>
+<dd><p>Return how many pixels give one per finest cell over a length along a direction.</p>
+<p>The pixel is the size of the smallest finest cell along the axes the direction
+has a part along.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.plane_box_points">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">plane_box_points</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#plane_box_points"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.plane_box_points" title="Link to this definition">¶</a></dt>
+<dd><p>Return the corners of the polygon where a plane cuts a box.</p>
+<p>The plane holds <code class="docutils literal notranslate"><span class="pre">point</span></code> and has the unit <code class="docutils literal notranslate"><span class="pre">normal</span></code>. Raises ValueError if it
+misses the box.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.plane_center">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">plane_center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#plane_center"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.plane_center" title="Link to this definition">¶</a></dt>
+<dd><p>Return the point of the plane normal . r = distance nearest the domain center.</p>
+<p>Raises ValueError unless the plane cuts through the domain. A plane at either end
+of the domain’s span only touches an edge or a corner, which leaves no area to
+draw, so it is refused too.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.plane_window">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">plane_window</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">center</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">across</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#plane_window"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.plane_window" title="Link to this definition">¶</a></dt>
+<dd><p>Return the part of a slice plane inside the domain, around its center.</p>
+<p>The plane goes through <code class="docutils literal notranslate"><span class="pre">center</span></code> with the unit <code class="docutils literal notranslate"><span class="pre">normal</span></code>. Returns
+((across_min, across_max), (up_min, up_max)), as offsets from <code class="docutils literal notranslate"><span class="pre">center</span></code> along
+the unit vectors <code class="docutils literal notranslate"><span class="pre">across</span></code> and <code class="docutils literal notranslate"><span class="pre">up</span></code>.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.plotfile_sort_key">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">plotfile_sort_key</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#plotfile_sort_key"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.plotfile_sort_key" title="Link to this definition">¶</a></dt>
+<dd><p>Sort plotfiles by prefix, then by the number at the end of the name.</p>
+<p>This puts plt99999 before plt100000, which sorting by name alone does not.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.slice_basis">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">slice_basis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#slice_basis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.slice_basis" title="Link to this definition">¶</a></dt>
+<dd><p>Return the unit normal and the unit vectors across and up a slice image.</p>
+<p><code class="docutils literal notranslate"><span class="pre">up</span></code> names the axis to draw up the image (default from default_up()). An
+axis that is not in the plane is tilted into it, so for normal xz, up x points
+along (x - z)/sqrt(2). Across is up x normal, as in yt’s off-axis slices, so
+across, up and the normal form a right-handed set.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.utilities.split_plotfile_name">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.utilities.</span></span><span class="sig-name descname"><span class="pre">split_plotfile_name</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/utilities.html#split_plotfile_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.utilities.split_plotfile_name" title="Link to this definition">¶</a></dt>
+<dd><p>Split a plotfile name into its prefix and the number at its end.</p>
+<p>“pltReact01264” gives (“pltReact”, 1264); a name with no number at the end
+gives (name, None).</p>
+</dd></dl>
+
+</section>
+<section id="module-ytscripts.ytargs">
+<span id="ytscripts-ytargs-module"></span><h2>ytscripts.ytargs module<a class="headerlink" href="#module-ytscripts.ytargs" title="Link to this heading">¶</a></h2>
+<p>Argument Parser classes for common arguments.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="ytscripts.ytargs.normal_type">
+<span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">normal_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#normal_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.normal_type" title="Link to this definition">¶</a></dt>
+<dd><p>Check a –normal value for argparse and return it in its standard form.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytAnalysisArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">ytAnalysisArgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytAnalysisArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytAnalysisArgs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ytscripts.ytargs.ytArgs" title="ytscripts.ytargs.ytArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ytArgs</span></code></a></p>
+<p>Class to interface with custom data analysis functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytAnalysisArgs.mixture_fraction">
+<span class="sig-name descname"><span class="pre">mixture_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytAnalysisArgs.mixture_fraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytAnalysisArgs.mixture_fraction" title="Link to this definition">¶</a></dt>
+<dd><p>Add in arguments for analyzing mixture fraction data.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">ytArgs</span></span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Base class with standard inputs for yt scripts.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.add_args_from_dict">
+<span class="sig-name descname"><span class="pre">add_args_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.add_args_from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.add_args_from_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments from a dictionary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.add_mutually_exclusive_args_from_dict">
+<span class="sig-name descname"><span class="pre">add_mutually_exclusive_args_from_dict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.add_mutually_exclusive_args_from_dict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.add_mutually_exclusive_args_from_dict" title="Link to this definition">¶</a></dt>
+<dd><p>Add mutually exclusive arguments from a dictionary (one is needed).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.check_orientation">
+<span class="sig-name descname"><span class="pre">check_orientation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.check_orientation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.check_orientation" title="Link to this definition">¶</a></dt>
+<dd><p>Exit with a usage error for a bad –normal, or –up along –normal.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.check_required">
+<span class="sig-name descname"><span class="pre">check_required</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.check_required"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.check_required" title="Link to this definition">¶</a></dt>
+<dd><p>Exit with a usage error if a required value is missing.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.get_args">
+<span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Parse the command line, merge in the input file and return a dict.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.get_parser">
+<span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Return the parser.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.io_args">
+<span class="sig-name descname"><span class="pre">io_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.io_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.io_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add I/O arguments.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.orientation_args">
+<span class="sig-name descname"><span class="pre">orientation_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">up</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.orientation_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.orientation_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add 2D slicing arguments.</p>
+<p>With <code class="docutils literal notranslate"><span class="pre">up</span></code>, also add –up, which picks the axis drawn up a slice image.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.override_args">
+<span class="sig-name descname"><span class="pre">override_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">init_args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">input_file</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.override_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.override_args" title="Link to this definition">¶</a></dt>
+<dd><p>Merge the input file with the command line.</p>
+<p>The command line takes precedence over the input file, which takes precedence
+over the parser defaults.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.parse_args">
+<span class="sig-name descname"><span class="pre">parse_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.parse_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.parse_args" title="Link to this definition">¶</a></dt>
+<dd><p>Return the parsed args.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.remove_arg">
+<span class="sig-name descname"><span class="pre">remove_arg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.remove_arg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.remove_arg" title="Link to this definition">¶</a></dt>
+<dd><p>Remove argument from parser.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytArgs.vis_2d_args">
+<span class="sig-name descname"><span class="pre">vis_2d_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytArgs.vis_2d_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytArgs.vis_2d_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add 2D visualization arguments.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">ytExtractArgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ytscripts.ytargs.ytArgs" title="ytscripts.ytargs.ytArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ytArgs</span></code></a></p>
+<p>Class to interface with custom data extraction functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs.average_args">
+<span class="sig-name descname"><span class="pre">average_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs.average_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs.average_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for extracting averages.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs.grid_args">
+<span class="sig-name descname"><span class="pre">grid_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs.grid_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs.grid_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for extracting grid info.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs.isosurface_args">
+<span class="sig-name descname"><span class="pre">isosurface_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs.isosurface_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs.isosurface_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for extracting iso-surfaces.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs.line_args">
+<span class="sig-name descname"><span class="pre">line_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs.line_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs.line_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for extracting lines of data.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytExtractArgs.slice_args">
+<span class="sig-name descname"><span class="pre">slice_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytExtractArgs.slice_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytExtractArgs.slice_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for extract slices routine.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytPlotArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">ytPlotArgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytPlotArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytPlotArgs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ytscripts.ytargs.ytArgs" title="ytscripts.ytargs.ytArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ytArgs</span></code></a></p>
+<p>Class to interface with custom plot functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytPlotArgs.average_args">
+<span class="sig-name descname"><span class="pre">average_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytPlotArgs.average_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytPlotArgs.average_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for plotting averages.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytPlotArgs.grid_args">
+<span class="sig-name descname"><span class="pre">grid_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytPlotArgs.grid_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytPlotArgs.grid_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for plotting grid info.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytPlotArgs.slice_args">
+<span class="sig-name descname"><span class="pre">slice_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytPlotArgs.slice_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytPlotArgs.slice_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for plotting slices.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytVisArgs">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">ytscripts.ytargs.</span></span><span class="sig-name descname"><span class="pre">ytVisArgs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytVisArgs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytVisArgs" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#ytscripts.ytargs.ytArgs" title="ytscripts.ytargs.ytArgs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ytArgs</span></code></a></p>
+<p>Class to interface with standard yt visualization functions.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="ytscripts.ytargs.ytVisArgs.slice_args">
+<span class="sig-name descname"><span class="pre">slice_args</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/ytscripts/ytargs.html#ytVisArgs.slice_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#ytscripts.ytargs.ytVisArgs.slice_args" title="Link to this definition">¶</a></dt>
+<dd><p>Add arguments for SlicePlot.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ytscripts">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-ytscripts" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="plot_data.html" class="btn btn-neutral float-left" title="plot_data package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="udfs.html" class="btn btn-neutral float-right" title="udfs package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

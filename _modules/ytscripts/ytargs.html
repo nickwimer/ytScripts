@@ -1,0 +1,989 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ytscripts.ytargs &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ytscripts.ytargs</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ytscripts.ytargs</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Argument Parser classes for common arguments."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tomllib</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">NORMAL_FORMS</span><span class="p">,</span> <span class="n">canonical_normal</span><span class="p">,</span> <span class="n">is_notebook</span>
+
+
+<div class="viewcode-block" id="normal_type">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.normal_type">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">normal_type</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Check a --normal value for argparse and return it in its standard form."""</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">canonical_normal</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentTypeError</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span> <span class="kn">from</span><span class="w"> </span><span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="ytArgs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ytArgs</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Base class with standard inputs for yt scripts."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize ytArgs."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+
+        <span class="c1"># Values that must be set on the command line or in the input file. argparse's</span>
+        <span class="c1"># own "required" only looks at the command line, so these are checked after</span>
+        <span class="c1"># the input file has been merged in.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_groups</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Command line given to parse_args, kept so it can be parsed again on top of</span>
+        <span class="c1"># the input file</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cli_args</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">io_args</span><span class="p">()</span>
+
+<div class="viewcode-block" id="ytArgs.get_parser">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.get_parser">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the parser."""</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.parse_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.parse_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">parse_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the parsed args."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cli_args</span> <span class="o">=</span> <span class="n">args</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.get_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.get_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Parse the command line, merge in the input file and return a dict."""</span>
+        <span class="n">init_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">override_args</span><span class="p">(</span><span class="n">init_args</span><span class="p">,</span> <span class="n">init_args</span><span class="o">.</span><span class="n">ifile</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.add_args_from_dict">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.add_args_from_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_args_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments from a dictionary."""</span>
+        <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">properties</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">properties</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">properties</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"required"</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                <span class="n">properties</span><span class="p">[</span><span class="s2">"help"</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"help"</span><span class="p">,</span><span class="w"> </span><span class="s2">""</span><span class="p">)</span><span class="si">}</span><span class="s2"> (required)"""</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.add_mutually_exclusive_args_from_dict">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.add_mutually_exclusive_args_from_dict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_mutually_exclusive_args_from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add mutually exclusive arguments from a dictionary (one is needed)."""</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">add_mutually_exclusive_group</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">arg</span><span class="p">,</span> <span class="n">properties</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">group</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.override_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.override_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">override_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">init_args</span><span class="p">,</span> <span class="n">input_file</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Merge the input file with the command line.</span>
+
+<span class="sd">        The command line takes precedence over the input file, which takes precedence</span>
+<span class="sd">        over the parser defaults.</span>
+<span class="sd">        """</span>
+        <span class="k">if</span> <span class="n">input_file</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">input_file</span><span class="p">,</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">input_options</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+            <span class="c1"># "title" only describes the input file</span>
+            <span class="n">input_options</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">"title"</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="n">actions</span> <span class="o">=</span> <span class="p">{</span><span class="n">action</span><span class="o">.</span><span class="n">dest</span><span class="p">:</span> <span class="n">action</span> <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">_actions</span><span class="p">}</span>
+            <span class="n">unknown</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">input_options</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">actions</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">unknown</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""Ignoring unknown options in </span><span class="si">{</span><span class="n">input_file</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">unknown</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+
+            <span class="n">defaults</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">actions</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="c1"># Options that take several values always hold a list</span>
+                <span class="k">if</span> <span class="n">actions</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">nargs</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"+"</span><span class="p">,</span> <span class="s2">"*"</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+                <span class="n">defaults</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+            <span class="c1"># Use the input file as the defaults and parse the command line again so</span>
+            <span class="c1"># anything given there still wins</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">(</span><span class="o">**</span><span class="n">defaults</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_cli_args</span><span class="p">()))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="nb">vars</span><span class="p">(</span><span class="n">init_args</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_required</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_orientation</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">args</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_cli_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Return the command line that was last parsed."""</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cli_args</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cli_args</span>
+
+        <span class="c1"># If the code is being run in a notebook, ignore the kernel's --f argument</span>
+        <span class="k">if</span> <span class="n">is_notebook</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">arg</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"--f="</span><span class="p">)]</span>
+
+        <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+<div class="viewcode-block" id="ytArgs.check_required">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.check_required">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_required</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Exit with a usage error if a required value is missing."""</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"--</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span> <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">missing</span> <span class="o">+=</span> <span class="p">[</span>
+            <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--</span><span class="si">{</span><span class="n">arg</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">group</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_groups</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">group</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">"these values must be set on the command line or in the input file: "</span>
+                <span class="o">+</span> <span class="s2">", "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="c1"># A folder given to --pname usually belongs after --datapath</span>
+            <span class="k">if</span> <span class="s2">"--datapath"</span> <span class="ow">in</span> <span class="n">missing</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span>
+                <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">pattern</span> <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"pname"</span><span class="p">)</span> <span class="ow">or</span> <span class="p">[]</span>
+            <span class="p">):</span>
+                <span class="n">message</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="s2">". --pname takes plotfile names inside --datapath; the folder "</span>
+                    <span class="s2">"goes after --datapath"</span>
+                <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.check_orientation">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.check_orientation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">check_orientation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Exit with a usage error for a bad --normal, or --up along --normal."""</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"normal"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">normal</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Values from the input file that are not text skip argparse's check</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span> <span class="o">=</span> <span class="n">normal</span> <span class="o">=</span> <span class="n">canonical_normal</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"argument --normal: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+        <span class="c1"># An axis tilts into a diagonal plane, so only an axis normal can hold --up</span>
+        <span class="n">up</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"up"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">up</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">up</span> <span class="o">==</span> <span class="n">normal</span><span class="p">:</span>
+            <span class="n">in_slice</span> <span class="o">=</span> <span class="s2">" or "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">axis</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="s2">"xyz"</span> <span class="k">if</span> <span class="n">axis</span> <span class="o">!=</span> <span class="n">normal</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"--up </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2"> points along --normal </span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2">; it must be an axis of "</span>
+                <span class="sa">f</span><span class="s2">"the slice: </span><span class="si">{</span><span class="n">in_slice</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span></div>
+
+
+    <span class="c1"># TODO: remove argument from dictionary instead of dealing with it in the parser</span>
+    <span class="c1">#      need to return the updated dictionary for all functions, then update the</span>
+    <span class="c1">#      parser at the end (or in the main script)</span>
+    <span class="c1"># def remove_arg_from_dict(self, args, rm_arg):</span>
+    <span class="c1">#     """Remove argument from dictionary."""</span>
+    <span class="c1">#     if rm_arg in args:</span>
+    <span class="c1">#         del args[rm_arg]</span>
+    <span class="c1">#     return args</span>
+
+<div class="viewcode-block" id="ytArgs.remove_arg">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.remove_arg">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">remove_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Remove argument from parser."""</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">_actions</span><span class="p">:</span>
+            <span class="n">opts</span> <span class="o">=</span> <span class="n">action</span><span class="o">.</span><span class="n">option_strings</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">opts</span> <span class="ow">and</span> <span class="n">opts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">arg</span><span class="p">)</span> <span class="ow">or</span> <span class="n">action</span><span class="o">.</span><span class="n">dest</span> <span class="o">==</span> <span class="n">arg</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">_remove_action</span><span class="p">(</span><span class="n">action</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parser</span><span class="o">.</span><span class="n">_action_groups</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group_action</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">_group_actions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">group_action</span><span class="o">.</span><span class="n">dest</span> <span class="o">==</span> <span class="n">arg</span><span class="p">:</span>
+                    <span class="n">action</span><span class="o">.</span><span class="n">_group_actions</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">group_action</span><span class="p">)</span>
+                    <span class="k">return</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.io_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.io_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">io_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add I/O arguments."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"datapath"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Path to the folder holding the data files."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"outpath"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Path to the output directory."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"pname"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Plotfile names or quoted patterns inside --datapath, e.g. "</span>
+                    <span class="s1">'plt01000 or "pltReact*". Any name works. Without it, every '</span>
+                    <span class="s2">"plotfile named plt&lt;digits&gt; is used."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"field"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the field for visualization."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"SI"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to set the units to SI (default is cgs)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"verbose"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to turn on various statements."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"no_mpi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Never start MPI, even when launched with mpirun or srun. "</span>
+                    <span class="s2">"MPI is only used when launched that way."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"nprocs"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Number of processors to devote to each file when operating in"</span>
+                    <span class="s2">"parallel mode"</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"nskip"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"""Skip every "nskip" entries in "pname" list."""</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"ifile"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Path to the input file for configuring plots."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.orientation_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.orientation_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">orientation_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add 2D slicing arguments.</span>
+
+<span class="sd">        With ``up``, also add --up, which picks the axis drawn up a slice image.</span>
+<span class="sd">        """</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"normal"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="n">normal_type</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"z"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Normal direction for the slice: </span><span class="si">{</span><span class="n">NORMAL_FORMS</span><span class="si">}</span><span class="s2">."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"grid_offset"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Amount to offset center to avoid grid alignment vis issues."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">up</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="s2">"up"</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"choices"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">],</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Axis pointing up in the image, one of the two axes in the slice "</span>
+                    <span class="s2">"(default: z for normal x and y, y for normal z). For a diagonal "</span>
+                    <span class="s2">"normal the default is the axis not in it, e.g. y for xz, and "</span>
+                    <span class="s2">"an axis not in the plane is tilted into it."</span>
+                <span class="p">),</span>
+            <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytArgs.vis_2d_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytArgs.vis_2d_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">vis_2d_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add 2D visualization arguments."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"cmap"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"dusk"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Colormap for the 2D plot."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"dpi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"dpi of the output image (default = 300)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"pbox"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Bounding box of the plot specified by the two corners "</span>
+                    <span class="s2">"(x0 y0 x1 y1), as positions across and up the image."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"fbounds"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Bounds for the colorbar."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ytVisArgs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytVisArgs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ytVisArgs</span><span class="p">(</span><span class="n">ytArgs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Class to interface with standard yt visualization functions."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize ytVisArgs."""</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ytVisArgs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ytVisArgs.slice_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytVisArgs.slice_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slice_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for SlicePlot."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"center"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Coordinate list for center of slice plot (x, y, z)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"plot_log"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Plot in log values."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"grids"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Options to specify annotate grids (alpha, min_level, max_level, "</span>
+                    <span class="s2">"linewidth)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"cells"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Options to specify annotate cells (linewidth, alpha, color)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"buff"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Buffer for the SlicePlot image for plotting."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"contour"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Name of contour field, value, and color to plot on top of slice."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"clw"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Linewidth for each of the contour lines."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"pickle"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to store image as pickle for later manipulation."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"grid_info"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Add text box with grid information (xloc, yloc, min_lev, max_lev)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"rm_eb"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Float value to plot non-fluid using binary cmap [0, 1]."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"gradient"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"choices"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="s2">"magnitude"</span><span class="p">],</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Choice to visualize the gradient of the input field."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"no_time"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to remove the timestamp."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"no_units"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to remove all units from plots."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"add_udf"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of user defined functions file (located in udfs/)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"use_tex"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Render plot text with LaTeX (off by default). Needs a working "</span>
+                    <span class="s2">"TeX install and is slower."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ytExtractArgs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ytExtractArgs</span><span class="p">(</span><span class="n">ytArgs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Class to interface with custom data extraction functions."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize ytExtractArgs."""</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ytExtractArgs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ytExtractArgs.slice_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs.slice_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slice_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for extract slices routine."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"min"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Position of the first slice along the normal. For a diagonal "</span>
+                    <span class="s2">"normal, the distance from the origin along the unit normal."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"max"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Position of the last slice along the normal. For a diagonal "</span>
+                    <span class="s2">"normal, the distance from the origin along the unit normal."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"num_slices"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Number of slices to extract in normal direction."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"gradient"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"choices"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="s2">"magnitude"</span><span class="p">],</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Choice to extract the gradient of the input field."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytExtractArgs.isosurface_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs.isosurface_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">isosurface_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for extracting iso-surfaces."""</span>
+
+        <span class="n">val_args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"value"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Value of the iso surface to extract."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"vfunction"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Value of the iso surface to extract as a function "</span>
+                    <span class="s2">"(start_time; start_value; end_time; end_value)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"format"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"ply"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Output format of the iso-surface."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"yt"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Flag to enable yt iso-surface extraction when outputting in "</span>
+                    <span class="s2">"hdf5/xdmf format only (default to faster, custom routine)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"do_ghost"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Flag to add ghost cells around each grid, which closes the "</span>
+                    <span class="s2">"cracks between neighboring grids in the surface."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"single_level"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"No longer has any effect: ghost cells are always built at each "</span>
+                    <span class="s2">"grid's own level. Kept so existing commands still run."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"smooth"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Smoothing value to apply to field before isosurface extract"</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"iso_edge"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Physical box inside which we extract isosurfaces."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"gradient"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"choices"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">,</span> <span class="s2">"magnitude"</span><span class="p">],</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Choice to extract the gradient of the input field."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"extra_fields"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Other fields to store on the isosurface, e.g. to color it by "</span>
+                    <span class="s2">"temperature (hdf5/xdmf formats only)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="c1"># Add mutually exclusive arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_mutually_exclusive_args_from_dict</span><span class="p">(</span><span class="n">val_args</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytExtractArgs.average_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs.average_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">average_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for extracting averages."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"fields"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Names of the data fields to extract."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"average_data"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the output data file (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"normal"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="n">normal_type</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Option to average over a 2D slice with this normal (defaults to "</span>
+                    <span class="sa">f</span><span class="s2">"domain average): </span><span class="si">{</span><span class="n">NORMAL_FORMS</span><span class="si">}</span><span class="s2">."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"location"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Physical location to perform the 2D slice (if normal is defined). "</span>
+                    <span class="s2">"For a diagonal normal, the distance from the origin along the "</span>
+                    <span class="s2">"unit normal."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"rm_eb"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to explicitly remove all data in EB regions."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># remove potentially conflicting arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytExtractArgs.grid_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs.grid_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">grid_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for extracting grid info."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"grid_info"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the output data file (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># remove potentially conflicting arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytExtractArgs.line_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytExtractArgs.line_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">line_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for extracting lines of data."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"normal"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="n">normal_type</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"z"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Direction the line runs along: x, y or z, a pair of axes such "</span>
+                    <span class="s2">"as xz for (1, 0, 1), or a signed pair such as x-z for (1, 0, -1)."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"coords"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="p">(</span>
+                    <span class="s2">"Position of the line in the other two directions: (y, z) for "</span>
+                    <span class="s2">"a line along x, (z, x) along y, and (x, y) along z. For a "</span>
+                    <span class="s2">"diagonal line, a point (x, y, z) on it."</span>
+                <span class="p">),</span>
+            <span class="p">},</span>
+            <span class="s2">"rm_eb"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to explicitly remove all data in EB regions."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"line_data"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the output data file (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># The field to extract along the line must be given</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ytPlotArgs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytPlotArgs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ytPlotArgs</span><span class="p">(</span><span class="n">ytArgs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Class to interface with custom plot functions."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize ytPlotArgs."""</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ytPlotArgs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># remove unused arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"pname"</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"SI"</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ytPlotArgs.slice_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytPlotArgs.slice_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">slice_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for plotting slices."""</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vis_2d_args</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="ytPlotArgs.average_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytPlotArgs.average_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">average_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for plotting averages."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"fields"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Names of the data fields to plot."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"fname"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"nargs"</span><span class="p">:</span> <span class="s2">"+"</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"average_data"</span><span class="p">],</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the data file to load and plot (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"dpi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"dpi of the output image (default = 300)."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># remove potentially conflicting arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ytPlotArgs.grid_args">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytPlotArgs.grid_args">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">grid_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add arguments for plotting grid info."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"fname"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"grid_info"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the data file to load and plot (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"dpi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"dpi of the output image (default = 300)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"ptype"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"choices"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"line"</span><span class="p">,</span> <span class="s2">"pie"</span><span class="p">,</span> <span class="s2">"bar"</span><span class="p">],</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"line"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"type of plot to make."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># remove potentially conflicting arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="ytAnalysisArgs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytAnalysisArgs">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ytAnalysisArgs</span><span class="p">(</span><span class="n">ytArgs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Class to interface with custom data analysis functions."""</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Initialize ytAnalysisArgs."""</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ytAnalysisArgs</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ytAnalysisArgs.mixture_fraction">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.ytargs.ytAnalysisArgs.mixture_fraction">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">mixture_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Add in arguments for analyzing mixture fraction data."""</span>
+
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"name"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="s2">"mixture_average"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Name of the output data file (.pkl)."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"rm_eb"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"store_true"</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Flag to explicitly remove all data in EB regions."</span><span class="p">,</span>
+            <span class="p">},</span>
+            <span class="s2">"nbins"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"required"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                <span class="s2">"type"</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+                <span class="s2">"default"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                <span class="s2">"help"</span><span class="p">:</span> <span class="s2">"Number of bins to use for the mixture fraction averaging."</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add arguments from dict to parser</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_args_from_dict</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># remove potentially conflicting arguments from base class</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_arg</span><span class="p">(</span><span class="s2">"field"</span><span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

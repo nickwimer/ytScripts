@@ -1,0 +1,285 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>plot_data.plot_slices &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../plot_data.html">plot_data</a></li>
+      <li class="breadcrumb-item active">plot_data.plot_slices</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for plot_data.plot_slices</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Load slices from npz and plot."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.ytargs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../plot_data.html#plot_data.plot_slices.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the parser."""</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytPlotArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments for the plot slices</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">slice_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../plot_data.html#plot_data.plot_slices.get_base_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the base level parser primarily for documentation."""</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../plot_data.html#plot_data.plot_slices.get_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the arguments from the parser."""</span>
+    <span class="c1"># Parse the command line, merged with the input file if one is given</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_args</span><span class="p">()</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<span class="c1"># The axes across and up the image for each axis normal</span>
+<span class="n">AXIS_LAYOUT</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">),</span> <span class="s2">"y"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">),</span> <span class="s2">"z"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)}</span>
+
+
+<div class="viewcode-block" id="image_layout">
+<a class="viewcode-back" href="../../plot_data.html#plot_data.plot_slices.image_layout">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">image_layout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xlen</span><span class="p">,</span> <span class="n">ylen</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return where the pixels of a saved slice sit and how to label them.</span>
+
+<span class="sd">    Returns the pixel positions across and up the image, the labels of those</span>
+<span class="sd">    directions, the pixel sizes across and up, and the name of the slice position.</span>
+<span class="sd">    Diagonal slices are placed by their positions along the directions saved with</span>
+<span class="sd">    them, such as (x - z)/sqrt(2) and y.</span>
+<span class="sd">    """</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="s2">"normal_vector"</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"bounds"</span><span class="p">]</span>
+        <span class="n">dh</span><span class="p">,</span> <span class="n">dv</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span> <span class="o">/</span> <span class="n">xlen</span><span class="p">,</span> <span class="p">(</span><span class="n">top</span> <span class="o">-</span> <span class="n">bottom</span><span class="p">)</span> <span class="o">/</span> <span class="n">ylen</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">left</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">xlen</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dh</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">bottom</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ylen</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dv</span>
+        <span class="n">hlabel</span><span class="p">,</span> <span class="n">vlabel</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">$"</span> <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">hlabel</span><span class="p">,</span> <span class="n">vlabel</span><span class="p">,</span> <span class="n">dh</span><span class="p">,</span> <span class="n">dv</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2">: d"</span>
+
+    <span class="k">if</span> <span class="n">normal</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AXIS_LAYOUT</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Normal </span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2"> not in: [x, y, z]"</span><span class="p">)</span>
+    <span class="n">ds_attributes</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"ds_attributes"</span><span class="p">][()]</span>
+    <span class="n">ih</span><span class="p">,</span> <span class="n">iv</span> <span class="o">=</span> <span class="p">(</span><span class="s2">"xyz"</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="n">AXIS_LAYOUT</span><span class="p">[</span><span class="n">normal</span><span class="p">])</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">][</span><span class="n">ih</span><span class="p">],</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">][</span><span class="n">ih</span><span class="p">],</span> <span class="n">xlen</span>
+    <span class="p">)</span>
+    <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">][</span><span class="n">iv</span><span class="p">],</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">][</span><span class="n">iv</span><span class="p">],</span> <span class="n">ylen</span>
+    <span class="p">)</span>
+    <span class="n">dxyz</span> <span class="o">=</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"dxyz"</span><span class="p">]</span>
+    <span class="n">hlabel</span><span class="p">,</span> <span class="n">vlabel</span> <span class="o">=</span> <span class="n">AXIS_LAYOUT</span><span class="p">[</span><span class="n">normal</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">hlabel</span><span class="p">,</span> <span class="n">vlabel</span><span class="p">,</span> <span class="n">dxyz</span><span class="p">[</span><span class="n">ih</span><span class="p">],</span> <span class="n">dxyz</span><span class="p">[</span><span class="n">iv</span><span class="p">],</span> <span class="n">normal</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../plot_data.html#plot_data.plot_slices.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Create the output directory</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]:</span>
+        <span class="n">imgpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">imgpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../outdata"</span><span class="p">,</span> <span class="s2">"images"</span><span class="p">))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">imgpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Get list of files in the data directory</span>
+    <span class="n">files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">]))</span>
+
+    <span class="c1"># Loop over files, plot and save images</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+
+        <span class="c1"># Load the data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">],</span> <span class="n">fname</span><span class="p">),</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Print out the variables in the dataset</span>
+        <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="s2">"verbose"</span><span class="p">]:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""The variables contained in this file are: </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">files</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+
+        <span class="c1"># Unpack the dicts</span>
+        <span class="n">ds_attributes</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"ds_attributes"</span><span class="p">][()]</span>
+        <span class="n">slices</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"slices"</span><span class="p">][()]</span>
+        <span class="c1"># fields = data["fields"][()]</span>
+
+        <span class="c1"># Get some variables</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span>
+        <span class="n">iloc</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">"iloc"</span><span class="p">]</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"time"</span><span class="p">]</span>
+        <span class="n">length_unit</span> <span class="o">=</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"length_unit"</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">"fields"</span><span class="p">]:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span><span class="si">}</span><span class="s2"> not in </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s2">"fields"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+
+        <span class="c1"># Inputs for plotting</span>
+        <span class="n">ylen</span><span class="p">,</span> <span class="n">xlen</span> <span class="o">=</span> <span class="n">slices</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]]</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">hlabel</span><span class="p">,</span> <span class="n">vlabel</span><span class="p">,</span> <span class="n">dh</span><span class="p">,</span> <span class="n">dv</span><span class="p">,</span> <span class="n">where</span> <span class="o">=</span> <span class="n">image_layout</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">xlen</span><span class="p">,</span> <span class="n">ylen</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_fig_aspect_ratio</span><span class="p">(</span><span class="n">xlen</span><span class="p">,</span> <span class="n">ylen</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_fig_aspect_ratio</span><span class="p">(</span>
+                <span class="n">xlen</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">dh</span><span class="p">,</span>
+                <span class="n">ylen</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="n">dv</span><span class="p">,</span>
+                <span class="n">base</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Set the figure and axes</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">fx</span><span class="p">,</span> <span class="n">fy</span><span class="p">))</span>
+        <span class="c1"># Set the colormap</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"cmap"</span><span class="p">])</span>
+
+        <span class="n">H</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s2">"xy"</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span>
+            <span class="n">H</span><span class="p">,</span>
+            <span class="n">V</span><span class="p">,</span>
+            <span class="n">slices</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]],</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">hlabel</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">length_unit</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">vlabel</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">length_unit</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> = </span><span class="si">{</span><span class="n">iloc</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">length_unit</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">, """</span>
+            <span class="sa">f</span><span class="s2">"""time = </span><span class="si">{</span><span class="nb">float</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">in_units</span><span class="p">(</span><span class="s2">"ms"</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2"> ms"""</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s2">"equal"</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">imgpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">normal</span><span class="si">}{</span><span class="n">iloc</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">.png"""</span>
+            <span class="p">),</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"dpi"</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
