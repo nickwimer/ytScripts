@@ -269,7 +269,7 @@ class ytArgs:
                 "default": None,
                 "help": (
                     "Bounding box of the plot specified by the two corners "
-                    "(x0 y0 x1 y1)."
+                    "(x0 y0 x1 y1), as positions across and up the image."
                 ),
             },
             "fbounds": {

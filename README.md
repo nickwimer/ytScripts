@@ -211,7 +211,7 @@ Some helpful options:
 
 `--field`: Name of the field for visualization.
 
-`--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain.
+`--normal`: Normal direction for the slice plot. Slice will be taken in the middle of the domain. The image shows y across and z up for `--normal x`, x across and z up for `--normal y`, and x across and y up for `--normal z`.
 
 `-c, --center`: list of floats for center coordinates if different from center specified with `normal`.
 
@@ -227,11 +227,11 @@ Some helpful options:
 
 `--grid_offset`: Float value to offset the center value to avoid grid alignment visualization issues (defaults to no offset).
 
-`--buff`: Buffer resolution for the sliceplot image for plotting.
+`--buff`: Buffer resolution for the sliceplot image for plotting, in pixels across and up. Defaults to one pixel per finest cell. Where yt has to swap the image axes (`--normal y`), the buffer is made square at the larger of the two, because yt draws only part of a swapped image otherwise.
 
 `--dpi`: dpi of the output image (default = 300).
 
-`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1).
+`--pbox`: Bounding box for the output image specified by the two corners of a rectangle (x0 y0 x1 y1), as positions across and up the image: (y0 z0 y1 z1) for `--normal x`, (x0 z0 x1 z1) for `--normal y` and (x0 y0 x1 y1) for `--normal z`.
 
 `--contour`: Plot a contour line (color=`COLOR`) of `FIELD` with `VALUE` on top of 2D slice. Specified like: `--contour FIELD VALUE COLOR`.
 

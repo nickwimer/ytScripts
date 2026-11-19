@@ -58,6 +58,23 @@ def get_args(parser):
     return args
 
 
+def image_axes(normal):
+    """Return the axes drawn across and up the slice image, and whether yt swaps them.
+
+    yt draws (y, z) for normal x, (z, x) for normal y and (x, y) for normal z, and
+    its swap_axes() exchanges the two. This script swaps them for normal y, so that
+    z points up there too.
+    """
+    yt_axes = {"x": ("y", "z"), "y": ("z", "x"), "z": ("x", "y")}
+    if normal not in yt_axes:
+        raise ValueError(f"The normal must be x, y or z, not {normal!r}")
+    horizontal, vertical = yt_axes[normal]
+    swap = normal == "y"
+    if swap:
+        horizontal, vertical = vertical, horizontal
+    return horizontal, vertical, swap
+
+
 def contour_lines(image, level, extent):
     """Return the contour lines of an image in plot coordinates.
 
@@ -112,16 +129,19 @@ def create_slice_plot(
             num_cells_0 = float(np.prod(ds_attributes["dimensions"]))
         domain_volume = dx0 * dy0 * dz0 * num_cells_0
 
-    # Get the image slice resolution
-    slc_res = {
-        "x": (ds_attributes["resolution"][1], ds_attributes["resolution"][2]),
-        "y": (ds_attributes["resolution"][2], ds_attributes["resolution"][0]),
-        "z": (ds_attributes["resolution"][0], ds_attributes["resolution"][1]),
-    }
+    # The axes drawn across and up the image
+    horizontal, vertical, swap = image_axes(args["normal"])
 
-    if args["normal"] == "y":
-        max_res = max(ds_attributes["resolution"][2], ds_attributes["resolution"][0])
-        slc_res["y"] = (max_res, max_res)
+    # Image resolution: one pixel per finest cell, unless --buff gives it
+    if args["buff"] is not None:
+        buff_size = tuple(args["buff"])
+    else:
+        resolution = dict(zip("xyz", ds_attributes["resolution"]))
+        buff_size = (resolution[horizontal], resolution[vertical])
+    # yt 4.3 draws only part of the image when it swaps the axes of a buffer that is
+    # not square
+    if swap:
+        buff_size = (max(buff_size),) * 2
 
     # Plot the field
     slc = yt.SlicePlot(
@@ -129,16 +149,18 @@ def create_slice_plot(
         normal=args["normal"],
         fields=vis_field,
         center=slc_center,
-        buff_size=(
-            tuple(args["buff"]) if args["buff"] is not None else slc_res[args["normal"]]
-        ),
+        buff_size=buff_size,
     )
-    if args["normal"] == "y":
+    if swap:
         slc.swap_axes()
     slc.set_axes_unit(axes_unit)
     slc.set_origin("native")
 
     if args["pbox"] is not None:
+        # --pbox is given across then up the image, but yt sets the window in its
+        # own order, from before the swap
+        if swap:
+            pbox_width, pbox_center = pbox_width[::-1], pbox_center[::-1]
         slc.set_width(pbox_width)
         slc.set_center(pbox_center)
     if args["fbounds"] is not None:
@@ -178,7 +200,6 @@ def create_slice_plot(
 
     # Remove the units
     if args["no_units"]:
-        norm_dict = {"x": ["y", "z"], "y": ["x", "z"], "z": ["x", "y"]}
         slc.set_colorbar_label(
             field=vis_field,
             label=(
@@ -187,8 +208,10 @@ def create_slice_plot(
                 else vis_field
             ),
         )
-        slc.set_xlabel(f"""${norm_dict[args["normal"]][0]}$""")
-        slc.set_ylabel(f"""${norm_dict[args["normal"]][1]}$""")
+        # yt labels its own axes from before the swap, then swaps the labels too
+        xlabel, ylabel = (vertical, horizontal) if swap else (horizontal, vertical)
+        slc.set_xlabel(f"${xlabel}$")
+        slc.set_ylabel(f"${ylabel}$")
 
     # Override the colorbar label
     if vis_field in configs["vis_field_attrs"] and not args["no_units"]:
@@ -233,11 +256,11 @@ def create_slice_plot(
         )
     axc.set_xlabel("")
 
-    if args["contour"] is not None:
-        # Place the contours on the image as drawn: its extent covers whatever
-        # region --center, --pbox and --buff selected, in the axes units
-        extent = ax.get_images()[0].get_extent()
+    # The slice image as drawn: its extent covers whatever region --center, --pbox
+    # and --buff selected, in the axes units. Contours and the EB cover go on it.
+    extent = ax.get_images()[0].get_extent()
 
+    if args["contour"] is not None:
         # contour must be a multiple of three arguments
         if not len(args["contour"]) % 3 == 0:
             sys.exit(
@@ -256,8 +279,9 @@ def create_slice_plot(
 
             idx = icnt * 3
             image = np.asarray(slc.frb[args["contour"][idx]])
-            # The plot transposes the image when its axes are swapped (normal y)
-            if args["normal"] == "y":
+            # The buffer keeps yt's own axes; the plot transposes it when they are
+            # swapped
+            if swap:
                 image = image.T
 
             for line in contour_lines(image, args["contour"][idx + 1], extent):
@@ -308,28 +332,13 @@ def create_slice_plot(
     # Remove the EB boundary defined by vfrac < 0.5 (rm_eb is the fill color, and
     # 0 is a valid choice)
     if args["rm_eb"] is not None:
-        if args["pbox"]:
-            extent = [
-                args["pbox"][0],
-                args["pbox"][2],
-                args["pbox"][1],
-                args["pbox"][3],
-            ]
-        else:
-            lx, ly, lz = np.array(ds_attributes["left_edge"])
-            rx, ry, rz = np.array(ds_attributes["right_edge"])
-
-            if args["normal"] == "x":
-                extent = [ly, ry, lz, rz]
-            elif args["normal"] == "y":
-                extent = [lz, rz, lx, rx]
-            elif args["normal"] == "z":
-                extent = [lx, rx, ly, ry]
-
         if udf_funcs and "rm_eb" in udf_funcs:
             ax = udf_funcs["rm_eb"](ax)
         else:
             vfrac = slc.frb[("boxlib", eb_var_name)].to_ndarray()
+            # Lay the cover out like the slice image
+            if swap:
+                vfrac = vfrac.T
             m_vfrac = np.ma.array(
                 args["rm_eb"] * np.ones(np.shape(vfrac)),
                 mask=(vfrac > 0.5),
