@@ -4,7 +4,6 @@ import os
 import sys
 
 import numpy as np
-import yt
 
 sys.path.append(os.path.abspath(os.path.join(sys.argv[0], "../../")))
 import ytscripts.utilities as utils  # noqa: E402
@@ -70,8 +69,8 @@ def main():
     )
 
     # Loop over the plt files in the data directory
-    if not args["no_mpi"]:
-        yt.enable_parallelism()
+    # Share the plotfiles over MPI only when launched with mpirun or srun
+    utils.enable_parallelism(no_mpi=args["no_mpi"])
     for ds in ts.piter(dynamic=True):
 
         if args["field"]:

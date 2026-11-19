@@ -113,8 +113,8 @@ def main():
     axis = {"x": 0, "y": 1, "z": 2}[args["normal"]]
 
     # Loop over the dataseries
-    if not args["no_mpi"]:
-        yt.enable_parallelism()
+    # Share the plotfiles over MPI only when launched with mpirun or srun
+    utils.enable_parallelism(no_mpi=args["no_mpi"])
     lines = {}
     for sto, ds in ts.piter(storage=lines, dynamic=True):
         sto.result_id = float(ds.current_time)

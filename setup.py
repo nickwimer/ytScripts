@@ -12,7 +12,6 @@ install_requires = [
     "isort",
     "flake8",
     "lxml",
-    "mpi4py",
     "pyvalem",
     "sphinx",
     "sphinx_rtd_theme",
@@ -35,6 +34,9 @@ setup(
         "data_extraction": ["*.toml"],
     },
     install_requires=install_requires,
+    # Only needed to run in parallel with mpirun or srun. It builds against the
+    # MPI found when installing, so it is not installed by default.
+    extras_require={"mpi": ["mpi4py"]},
     classifiers=[
         "Development Status :: 1 - Planning",
         "Intended Audience :: Science/Research",

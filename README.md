@@ -28,9 +28,11 @@ or directly through github:
 pip install --upgrade git+https://github.com/nickwimer/ytScripts.git
 ```
 
-NOTE: The pip install will try to install `mpi4py` which will result in an error if there
-are no MPI libraries installed on your system. First make sure that the MPI libraries are
-properly installed.
+NOTE: `mpi4py` is only needed to run in parallel with `mpirun` or `srun`, so the pip install
+leaves it out. To run in parallel, install it as well with `pip install --upgrade ".[mpi]"`
+(or `pip install mpi4py`). It builds against the MPI libraries it finds, which must be the
+same MPI you launch with: on a cluster, load the MPI module first, both before installing
+and before running.
 
 ---
 
@@ -49,6 +51,8 @@ after environment is created:
 `conda activate ytscripts`
 
 NOTE: Most scripts can now make full use of parallel processing either over multiple datasets in a time series or through domain decomposition (depending on the application). Just submit using `mpirun -np X` (or system equivalent). This is particularly useful when dealing with a large number of time outputs or with very large data.
+
+MPI is only started when a script is launched that way, with more than one process. A plain `python script.py` run never touches MPI and does not need `mpi4py`. `--no_mpi` keeps MPI off even under `mpirun` or `srun`.
 
 ## Documentation
 
@@ -121,7 +125,7 @@ Output formats are `ply`, `obj`, `hdf5`/`xdmf`.
 
 Isosurface file will be saved under `outdata/isosurfaces`.
 
-Can be run in parallel with `mpi4py`. Should run with `--do_ghost` if there are holes in the iso-surfaces: it adds a layer of ghost cells around each grid, which closes the cracks between neighboring grids at the same refinement level. Small cracks can remain where the surface crosses from one refinement level to another.
+Can be run in parallel with `mpirun` or `srun` (needs `mpi4py`). Should run with `--do_ghost` if there are holes in the iso-surfaces: it adds a layer of ghost cells around each grid, which closes the cracks between neighboring grids at the same refinement level. Small cracks can remain where the surface crosses from one refinement level to another.
 
 Can use `--yt` to compare the built in iso-surface extraction with the custom version. `yt` version is not parallelized.
 

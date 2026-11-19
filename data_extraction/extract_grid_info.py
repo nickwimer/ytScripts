@@ -72,8 +72,8 @@ def main():
         print(f"""The fields in this dataset are: {base_attributes["field_list"]}""")
 
     # Loop over the dataseries
-    if not args["no_mpi"]:
-        yt.enable_parallelism()
+    # Share the plotfiles over MPI only when launched with mpirun or srun
+    utils.enable_parallelism(no_mpi=args["no_mpi"])
     data_dict = {}
     for sto, ds in ts.piter(storage=data_dict, dynamic=True):
         sto.result_id = float(ds.current_time)
