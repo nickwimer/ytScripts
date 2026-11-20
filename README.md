@@ -145,7 +145,7 @@ Only the finest cell at each location is kept, so no location is counted twice. 
 
 Output formats are `pkl` (default), a pickle file of a Pandas DataFrame with one row per cell and the field, threshold, time and units in `df.attrs`, or `hdf5`/`xdmf`, which also write an XDMF wrapper so ParaView shows the cells as points.
 
-Files are saved under `outdata/threshold` (or `--outpath`), one per plot file.
+Files are saved under `outdata/threshold` (or `--outpath`), one per plot file. `plot_data/plot_threshold.py` plots the `pkl` files in 3D.
 
 `--max` also keeps only the cells below a value, `--bounds xlo ylo zlo xhi yhi zhi` keeps only the cells with centers inside a box, `--vfunction` changes the threshold with time as for `extract_isosurfaces.py`, and `--gradient` thresholds the gradient of the field.
 
@@ -208,6 +208,18 @@ Plots will be saved under `outdata/images/`
 Load grid info data from pickled Pandas DataFrame and make simple plot as an example.
 
 `python plot_data/plot_grid_info.py --datapath DATADIR/ --outpath OUTDIR/ --fname FILENAME`
+
+## plot_threshold.py
+
+Load the cells saved by `extract_threshold.py` (`pkl` format) and plot them in 3D as points colored by a field.
+
+Ex: `python plot_data/plot_threshold.py --datapath outdata/threshold/ --field temp --up y`
+
+Plots every `threshold_*.pkl` file in `--datapath`, or only those named with `--fname`, and saves the images under `outdata/images/` (or `--outpath`). Without `--field` the points are colored by the thresholded field.
+
+`--up` picks the axis drawn up and `--view ELEV AZIM` the camera angle. `--bounds xlo ylo zlo xhi yhi zhi` plots only the cells inside a box. `--fbounds`, `--plot_log` and `--cmap` set the colors. The axes are drawn to the same scale, and coarser cells are drawn as larger points than the finest ones (`--psize`). Files with more than `--max_points` cells (default 500000) are randomly thinned to that many so the plot stays quick.
+
+`python plot_data/plot_threshold.py --help` for full list of arguments.
 
 # Scripts for Visualization
 

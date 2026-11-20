@@ -43,6 +43,19 @@ plot\_data.plot\_slices module
    :undoc-members:
    :show-inheritance:
 
+plot\_data.plot\_threshold module
+---------------------------------
+
+.. argparse::
+   :module: plot_data.plot_threshold
+   :func: get_base_parser
+   :prog: plot_threshold
+
+.. automodule:: plot_data.plot_threshold
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

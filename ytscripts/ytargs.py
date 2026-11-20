@@ -840,6 +840,87 @@ class ytPlotArgs(ytArgs):
         # remove potentially conflicting arguments from base class
         self.remove_arg("field")
 
+    def threshold_args(self):
+        """Add arguments for plotting the cells above a threshold in 3D."""
+
+        args = {
+            "fname": {
+                "type": str,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": (
+                    "Names of the data files to load and plot (.pkl). Defaults to "
+                    "every threshold_*.pkl file in --datapath."
+                ),
+            },
+            "cmap": {
+                "type": str,
+                "required": False,
+                "default": "dusk",
+                "help": "Colormap for the points.",
+            },
+            "dpi": {
+                "type": int,
+                "required": False,
+                "default": 300,
+                "help": "dpi of the output image (default = 300).",
+            },
+            "fbounds": {
+                "type": float,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": "Bounds for the colorbar.",
+            },
+            "plot_log": {
+                "action": "store_true",
+                "help": "Flag to color the points on a log scale.",
+            },
+            "bounds": {
+                "type": float,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": (
+                    "Physical box (xlo ylo zlo xhi yhi zhi) to plot, by the cell "
+                    "centers (defaults to the box around all the cells)."
+                ),
+            },
+            "up": {
+                "type": str,
+                "choices": ["x", "y", "z"],
+                "required": False,
+                "default": "z",
+                "help": "Axis pointing up in the image.",
+            },
+            "view": {
+                "type": float,
+                "nargs": "+",
+                "required": False,
+                "default": [30.0, -60.0],
+                "help": "Elevation and azimuth of the camera in degrees.",
+            },
+            "psize": {
+                "type": float,
+                "required": False,
+                "default": 1.0,
+                "help": (
+                    "Marker size of the finest cells; coarser cells are drawn "
+                    "larger by their size."
+                ),
+            },
+            "max_points": {
+                "type": int,
+                "required": False,
+                "default": 500000,
+                "help": "Randomly pick this many cells to plot if there are more.",
+            },
+        }
+
+        # Add arguments from dict to parser
+        self.add_args_from_dict(args)
+
 
 class ytAnalysisArgs(ytArgs):
     """Class to interface with custom data analysis functions."""

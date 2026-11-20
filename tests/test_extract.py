@@ -1,4 +1,5 @@
-"""Tests for the slice, average, line, isosurface and threshold extraction helpers."""
+"""Tests for the slice, average, line, isosurface and threshold extraction helpers
+and the plots of what they extract."""
 
 import h5py
 import matplotlib
@@ -14,6 +15,7 @@ import data_extraction.extract_lines as lines
 import data_extraction.extract_slices as extract_slices
 import data_extraction.extract_threshold as threshold
 import plot_data.plot_slices as plot_slices
+import plot_data.plot_threshold as plot_threshold
 import ytscripts.utilities as utils
 
 # Every script needs --datapath; the parser only checks that it is set
@@ -478,3 +480,88 @@ def test_threshold_hdf5_and_xdmf_output(amr_ds, tmp_path):
     assert f'NumberOfElements="{len(coords)}"' in xmf
     for name in ("Coord", "dds", "Level", "heat", "temp"):
         assert f"cells.hdf5:/{name}" in xmf
+
+
+@pytest.mark.parametrize(
+    "extra, message",
+    [
+        (["--fbounds", "1"], "--fbounds needs two values"),
+        (["--view", "10"], "--view needs two values"),
+        (["--bounds", "0", "0", "0", "1"], "--bounds needs six"),
+        (["--bounds", "0", "0", "0", "1", "-1", "1"], "each low value below"),
+        (["--max_points", "0"], "--max_points must be at least 1"),
+    ],
+)
+def test_plot_threshold_args_are_checked(capsys, extra, message):
+    with pytest.raises(SystemExit):
+        plot_threshold.get_args(plot_threshold.get_parser(), [*DATA, *extra])
+    assert message in capsys.readouterr().err
+
+
+def test_plot_threshold_cells_and_axes():
+    df = pd.DataFrame(
+        {
+            "x": [0.0, 1.0, 2.0, 3.0],
+            "y": [0.0, 0.0, 1.0, 1.0],
+            "z": [0.0, 0.0, 0.0, 2.0],
+            "dx": [0.5, 0.25, 0.25, 0.5],
+            "dy": [0.5, 0.25, 0.25, 0.5],
+            "dz": [0.5, 0.25, 0.25, 0.5],
+        }
+    )
+    inside = plot_threshold.select_cells(df, bounds=(0.5, -1, -1, 2.5, 2, 2))
+    assert list(inside["x"]) == [1.0, 2.0]
+    assert len(plot_threshold.select_cells(df, max_points=3)) == 3
+
+    np.testing.assert_allclose(plot_threshold.marker_sizes(df, 2.0), [8, 2, 2, 8])
+    limits = plot_threshold.axis_limits(df)
+    np.testing.assert_allclose(limits, [(-0.25, 3.25), (-0.25, 1.25), (-0.25, 2.25)])
+    assert plot_threshold.axis_limits(df, (0, 1, 2, 3, 4, 5)) == [
+        (0, 3),
+        (1, 4),
+        (2, 5),
+    ]
+
+
+def test_plot_threshold_from_extracted_cells(amr_ds, tmp_path, monkeypatch, capsys):
+    datapath = tmp_path / "threshold"
+    datapath.mkdir()
+    threshold.do_threshold_extraction(
+        dregion=amr_ds.all_data(),
+        ds_attributes=utils.get_attributes(amr_ds),
+        outformat="pkl",
+        field="heat",
+        value=1.5,
+        outpath=str(datapath),
+        fname="threshold_heat_1.5_test",
+        comm=utils.SerialComm(),
+        rank=0,
+        size=1,
+        extra_fields=["temp"],
+    )
+
+    matplotlib.use("Agg")
+    outpath = tmp_path / "images"
+    for extra in ([], ["--field", "temp", "--plot_log", "--up", "y"]):
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "plot_threshold.py",
+                *("--datapath", str(datapath), "--outpath", str(outpath)),
+                *("--dpi", "50", "--max_points", "100"),
+                *extra,
+            ],
+        )
+        plot_threshold.main()
+
+    assert sorted(p.name for p in outpath.iterdir()) == [
+        "threshold_heat_1.5_test_heat_3d.png",
+        "threshold_heat_1.5_test_temp_3d.png",
+    ]
+    assert "Plotting 100 of the" in capsys.readouterr().out
+
+    monkeypatch.setattr(
+        "sys.argv", ["plot_threshold.py", "--datapath", str(tmp_path / "images")]
+    )
+    with pytest.raises(SystemExit, match="No threshold_"):
+        plot_threshold.main()
