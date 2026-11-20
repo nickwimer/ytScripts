@@ -70,6 +70,19 @@ data\_extraction.extract\_slices module
    :undoc-members:
    :show-inheritance:
 
+data\_extraction.extract\_threshold module
+------------------------------------------
+
+.. argparse::
+   :module: data_extraction.extract_threshold
+   :func: get_base_parser
+   :prog: extract_threshold
+
+.. automodule:: data_extraction.extract_threshold
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 
