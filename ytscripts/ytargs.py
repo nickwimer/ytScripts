@@ -685,6 +685,82 @@ class ytExtractArgs(ytArgs):
         # The field to extract along the line must be given
         self.required_args.append("field")
 
+    def threshold_args(self):
+        """Add arguments for extracting the cells above a threshold value."""
+
+        val_args = {
+            "value": {
+                "type": float,
+                "help": "Keep the cells where the field is above this value.",
+            },
+            "vfunction": {
+                "type": float,
+                "nargs": "+",
+                "help": (
+                    "Threshold value as a function of time "
+                    "(start_time; start_value; end_time; end_value)."
+                ),
+            },
+        }
+
+        args = {
+            "max": {
+                "type": float,
+                "required": False,
+                "default": None,
+                "help": "Only keep the cells where the field is also below this value.",
+            },
+            "format": {
+                "type": str,
+                "choices": ["pkl", "hdf5", "xdmf"],
+                "required": False,
+                "default": "pkl",
+                "help": (
+                    "Output format: a pickled pandas DataFrame (pkl), or hdf5 with an "
+                    "xdmf wrapper (xdmf) for viewing the cells as points in ParaView."
+                ),
+            },
+            "extra_fields": {
+                "type": str,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": "Other fields to save in the kept cells, e.g. temp Y(OH).",
+            },
+            "bounds": {
+                "type": float,
+                "nargs": "+",
+                "required": False,
+                "default": None,
+                "help": (
+                    "Physical box (xlo ylo zlo xhi yhi zhi) to keep cells inside of, "
+                    "by the cell centers."
+                ),
+            },
+            "gradient": {
+                "type": str,
+                "choices": ["x", "y", "z", "magnitude"],
+                "required": False,
+                "default": None,
+                "help": "Choice to threshold on the gradient of the input field.",
+            },
+            "yt": {
+                "action": "store_true",
+                "help": (
+                    "Flag to use the yt cut_region instead of the faster, custom "
+                    "routine (yt version is not parallelized)."
+                ),
+            },
+        }
+
+        # Add arguments from dict to parser
+        self.add_args_from_dict(args)
+        # Add mutually exclusive arguments from dict to parser
+        self.add_mutually_exclusive_args_from_dict(val_args)
+
+        # The field to threshold must be given
+        self.required_args.append("field")
+
 
 class ytPlotArgs(ytArgs):
     """Class to interface with custom plot functions."""

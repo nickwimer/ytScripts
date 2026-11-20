@@ -135,6 +135,24 @@ With the `hdf5`/`xdmf` formats, `--extra_fields` stores other fields on the surf
 
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
 
+## extract_threshold.py
+
+Extracts every cell where a field is above a threshold value and saves the cells for later analysis and visualization.
+
+Ex: `python data_extraction/extract_threshold.py --datapath DATADIR/ --pname plt00001 --field HeatRelease --value 1e9 --extra_fields temp "Y(OH)"`
+
+Only the finest cell at each location is kept, so no location is counted twice. Each cell is saved with its center (`x`, `y`, `z`), size (`dx`, `dy`, `dz`), `level`, the field and any `--extra_fields`; the cell size gives the cell volume for integrating over the kept cells.
+
+Output formats are `pkl` (default), a pickle file of a Pandas DataFrame with one row per cell and the field, threshold, time and units in `df.attrs`, or `hdf5`/`xdmf`, which also write an XDMF wrapper so ParaView shows the cells as points.
+
+Files are saved under `outdata/threshold` (or `--outpath`), one per plot file.
+
+`--max` also keeps only the cells below a value, `--bounds xlo ylo zlo xhi yhi zhi` keeps only the cells with centers inside a box, `--vfunction` changes the threshold with time as for `extract_isosurfaces.py`, and `--gradient` thresholds the gradient of the field.
+
+Can be run in parallel with `mpirun` or `srun` (needs `mpi4py`). Can use `--yt` to compare with yt's `cut_region`, which is not parallelized.
+
+`python data_extraction/extract_threshold.py --help` for full list of arguments.
+
 ## extract_grid_info.py
 
 Extracts grid information at each level and saves to file.
