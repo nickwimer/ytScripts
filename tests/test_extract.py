@@ -560,8 +560,15 @@ def test_plot_threshold_from_extracted_cells(amr_ds, tmp_path, monkeypatch, caps
     ]
     assert "Plotting 100 of the" in capsys.readouterr().out
 
+    # Without --outpath, main() would make outdata/images next to the working
+    # directory, outside tmp_path
     monkeypatch.setattr(
-        "sys.argv", ["plot_threshold.py", "--datapath", str(tmp_path / "images")]
+        "sys.argv",
+        [
+            "plot_threshold.py",
+            *("--datapath", str(tmp_path / "images")),
+            *("--outpath", str(tmp_path / "no_images")),
+        ],
     )
     with pytest.raises(SystemExit, match="No threshold_"):
         plot_threshold.main()
