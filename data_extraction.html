@@ -1,0 +1,935 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_extraction package &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="plot_data package" href="plot_data.html" />
+    <link rel="prev" title="quick_vis package" href="quick_vis.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">data_extraction package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-averages-module">data_extraction.extract_averages module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_averages-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_averages.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_averages.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_averages.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_averages.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_averages.slice_data"><code class="docutils literal notranslate"><span class="pre">slice_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-grid-info-module">data_extraction.extract_grid_info module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_grid_info-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_grid_info.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_grid_info.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_grid_info.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_grid_info.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-isosurfaces-module">data_extraction.extract_isosurfaces module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_isosurfaces-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.do_isosurface_extraction"><code class="docutils literal notranslate"><span class="pre">do_isosurface_extraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.ghost_padding"><code class="docutils literal notranslate"><span class="pre">ghost_padding()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.retrieve_ghost_zones"><code class="docutils literal notranslate"><span class="pre">retrieve_ghost_zones()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.sample_at_vertices"><code class="docutils literal notranslate"><span class="pre">sample_at_vertices()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.write_hdf5"><code class="docutils literal notranslate"><span class="pre">write_hdf5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_isosurfaces.write_xdmf"><code class="docutils literal notranslate"><span class="pre">write_xdmf()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-lines-module">data_extraction.extract_lines module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_lines-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.line_ends"><code class="docutils literal notranslate"><span class="pre">line_ends()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.lines_to_dataframe"><code class="docutils literal notranslate"><span class="pre">lines_to_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_lines.take_line"><code class="docutils literal notranslate"><span class="pre">take_line()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-slices-module">data_extraction.extract_slices module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_slices-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_slices.cut_plane"><code class="docutils literal notranslate"><span class="pre">cut_plane()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_slices.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_slices.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_slices.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_slices.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#data-extraction-extract-threshold-module">data_extraction.extract_threshold module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extract_threshold-named-arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.cells_to_dataframe"><code class="docutils literal notranslate"><span class="pre">cells_to_dataframe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.concatenate_cells"><code class="docutils literal notranslate"><span class="pre">concatenate_cells()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.do_threshold_extraction"><code class="docutils literal notranslate"><span class="pre">do_threshold_extraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.empty_cells"><code class="docutils literal notranslate"><span class="pre">empty_cells()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.get_args"><code class="docutils literal notranslate"><span class="pre">get_args()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.get_base_parser"><code class="docutils literal notranslate"><span class="pre">get_base_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.get_parser"><code class="docutils literal notranslate"><span class="pre">get_parser()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.get_units"><code class="docutils literal notranslate"><span class="pre">get_units()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.threshold_mask"><code class="docutils literal notranslate"><span class="pre">threshold_mask()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.threshold_value"><code class="docutils literal notranslate"><span class="pre">threshold_value()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.write_hdf5"><code class="docutils literal notranslate"><span class="pre">write_hdf5()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.write_xdmf"><code class="docutils literal notranslate"><span class="pre">write_xdmf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.extract_threshold.yt_threshold_cells"><code class="docutils literal notranslate"><span class="pre">yt_threshold_cells()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-data_extraction">Module contents</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.ListScriptsAction"><code class="docutils literal notranslate"><span class="pre">ListScriptsAction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.list_scripts"><code class="docutils literal notranslate"><span class="pre">list_scripts()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#data_extraction.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">data_extraction package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/data_extraction.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="data-extraction-package">
+<h1>data_extraction package<a class="headerlink" href="#data-extraction-package" title="Link to this heading">¶</a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading">¶</a></h2>
+</section>
+<section id="data-extraction-extract-averages-module">
+<h2>data_extraction.extract_averages module<a class="headerlink" href="#data-extraction-extract-averages-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_averages"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_averages</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">fields</span> <span class="n">FIELDS</span> <span class="p">[</span><span class="n">FIELDS</span> <span class="o">...</span><span class="p">]]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">name</span> <span class="n">NAME</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">normal</span> <span class="n">NORMAL</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">location</span> <span class="n">LOCATION</span><span class="p">]</span>
+                        <span class="p">[</span><span class="o">--</span><span class="n">rm_eb</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="extract_averages-named-arguments">
+<span id="data_extraction.extract_averages-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_averages-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--fields</kbd></dt>
+<dd><p>Names of the data fields to extract. (required)</p>
+</dd>
+<dt><kbd>--name</kbd></dt>
+<dd><p>Name of the output data file (.pkl).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'average_data'</span></code></p>
+</dd>
+<dt><kbd>--normal</kbd></dt>
+<dd><p>Option to average over a 2D slice with this normal (defaults to domain average): x, y or z, a pair of different axes such as xz (normal (1, 0, 1)), or a signed pair such as x-z (normal (1, 0, -1)).</p>
+</dd>
+<dt><kbd>--location</kbd></dt>
+<dd><p>Physical location to perform the 2D slice (if normal is defined). For a diagonal normal, the distance from the origin along the unit normal.</p>
+</dd>
+<dt><kbd>--rm_eb</kbd></dt>
+<dd><p>Flag to explicitly remove all data in EB regions.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_averages">Extracts domain averaged quantities and saves for plotting.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_averages.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_averages.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_averages.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_averages.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_averages.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_averages.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_averages.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_averages.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_averages.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_averages.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_averages.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_averages.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_averages.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_averages.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_averages.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_averages.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_averages.slice_data">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_averages.</span></span><span class="sig-name descname"><span class="pre">slice_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_averages.html#slice_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_averages.slice_data" title="Link to this definition">¶</a></dt>
+<dd><p>Return the part of data on the slice plane with this normal at location.</p>
+<p>For an axis normal the plane is axis = location; for a diagonal normal it is
+normal . r = location, with the unit normal.</p>
+</dd></dl>
+
+</section>
+<section id="data-extraction-extract-grid-info-module">
+<h2>data_extraction.extract_grid_info module<a class="headerlink" href="#data-extraction-extract-grid-info-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_grid_info"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_grid_info</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">name</span> <span class="n">NAME</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="extract_grid_info-named-arguments">
+<span id="data_extraction.extract_grid_info-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_grid_info-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--name</kbd></dt>
+<dd><p>Name of the output data file (.pkl).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'grid_info'</span></code></p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_grid_info">Extracts grid information at each level and saves to file.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_grid_info.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_grid_info.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_grid_info.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_grid_info.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_grid_info.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_grid_info.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_grid_info.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_grid_info.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_grid_info.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_grid_info.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_grid_info.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_grid_info.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_grid_info.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_grid_info.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main function for grid info extraction.</p>
+</dd></dl>
+
+</section>
+<section id="data-extraction-extract-isosurfaces-module">
+<h2>data_extraction.extract_isosurfaces module<a class="headerlink" href="#data-extraction-extract-isosurfaces-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_isosurfaces"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_isosurfaces</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">format</span> <span class="n">FORMAT</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">yt</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">do_ghost</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">single_level</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">smooth</span> <span class="n">SMOOTH</span><span class="p">]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">iso_edge</span> <span class="n">ISO_EDGE</span> <span class="p">[</span><span class="n">ISO_EDGE</span> <span class="o">...</span><span class="p">]]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">gradient</span> <span class="p">{</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">magnitude</span><span class="p">}]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">extra_fields</span> <span class="n">EXTRA_FIELDS</span> <span class="p">[</span><span class="n">EXTRA_FIELDS</span> <span class="o">...</span><span class="p">]]</span>
+                           <span class="p">[</span><span class="o">--</span><span class="n">value</span> <span class="n">VALUE</span> <span class="o">|</span> <span class="o">--</span><span class="n">vfunction</span> <span class="n">VFUNCTION</span> <span class="p">[</span><span class="n">VFUNCTION</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="extract_isosurfaces-named-arguments">
+<span id="data_extraction.extract_isosurfaces-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_isosurfaces-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--format</kbd></dt>
+<dd><p>Output format of the iso-surface.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'ply'</span></code></p>
+</dd>
+<dt><kbd>--yt</kbd></dt>
+<dd><p>Flag to enable yt iso-surface extraction when outputting in hdf5/xdmf format only (default to faster, custom routine).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--do_ghost</kbd></dt>
+<dd><p>Flag to add ghost cells around each grid, which closes the cracks between neighboring grids in the surface.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--single_level</kbd></dt>
+<dd><p>No longer has any effect: ghost cells are always built at each grid’s own level. Kept so existing commands still run.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--smooth</kbd></dt>
+<dd><p>Smoothing value to apply to field before isosurface extract</p>
+</dd>
+<dt><kbd>--iso_edge</kbd></dt>
+<dd><p>Physical box inside which we extract isosurfaces.</p>
+</dd>
+<dt><kbd>--gradient</kbd></dt>
+<dd><p>Possible choices: x, y, z, magnitude</p>
+<p>Choice to extract the gradient of the input field.</p>
+</dd>
+<dt><kbd>--extra_fields</kbd></dt>
+<dd><p>Other fields to store on the isosurface, e.g. to color it by temperature (hdf5/xdmf formats only).</p>
+</dd>
+<dt><kbd>--value</kbd></dt>
+<dd><p>Value of the iso surface to extract.</p>
+</dd>
+<dt><kbd>--vfunction</kbd></dt>
+<dd><p>Value of the iso surface to extract as a function (start_time; start_value; end_time; end_value).</p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_isosurfaces">Extracts iso-surfaces from plot files and saves.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.do_isosurface_extraction">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">do_isosurface_extraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dregion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outformat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_ghost</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_yt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smooth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iso_edge</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_gradient</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#do_isosurface_extraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.do_isosurface_extraction" title="Link to this definition">¶</a></dt>
+<dd><p>Do the isosurface extraction according to the input parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser (cli_args defaults to sys.argv).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.ghost_padding">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">ghost_padding</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_idx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">act_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level_dims</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_zones</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#ghost_padding"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.ghost_padding" title="Link to this definition">¶</a></dt>
+<dd><p>Return how many ghost cells fit below and above a grid in each direction.</p>
+<p>Ghost cells are only added where they stay inside the domain, which is
+<code class="docutils literal notranslate"><span class="pre">level_dims</span></code> cells across at the grid’s level.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main function for extracting isosurfaces.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.retrieve_ghost_zones">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">retrieve_ghost_zones</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cube</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_zones</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_right_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_gradient</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#retrieve_ghost_zones"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.retrieve_ghost_zones" title="Link to this definition">¶</a></dt>
+<dd><p>Return a grid grown by ghost cells, and its child mask padded to match.</p>
+<p>The ghost cells come from a covering grid at the grid’s own level, so the grown
+grid keeps the original cell size and lines up with the original cells.</p>
+<p>The padded mask is False in the ghost cells. marching_cubes only processes a cell
+when the mask is True at the cell’s upper corner, so the ghost layer below a grid
+fills the gap to its lower neighbor (closing the crack between them) and the layer
+above it is never used. Each gap is therefore filled once, by the grid above it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.sample_at_vertices">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">sample_at_vertices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spacing</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#sample_at_vertices"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.sample_at_vertices" title="Link to this definition">¶</a></dt>
+<dd><p>Interpolate a cell-centered field to isosurface vertices.</p>
+<p><code class="docutils literal notranslate"><span class="pre">verts</span></code> are the positions marching_cubes returned for an array the same shape
+as <code class="docutils literal notranslate"><span class="pre">volume</span></code> with the given <code class="docutils literal notranslate"><span class="pre">spacing</span></code> (before any offset), so dividing by the
+spacing gives fractional cell indices. Trilinear interpolation matches the linear
+interpolation marching cubes uses along each cell edge.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.write_hdf5">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">write_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">samples</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#write_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.write_hdf5" title="Link to this definition">¶</a></dt>
+<dd><p>Write the HDF5 file based on the extracted isosurface.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_isosurfaces.write_xdmf">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_isosurfaces.</span></span><span class="sig-name descname"><span class="pre">write_xdmf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fbase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fhdf5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ftype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctype</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conn_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_isosurfaces.html#write_xdmf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_isosurfaces.write_xdmf" title="Link to this definition">¶</a></dt>
+<dd><p>Write the XDMF wrapper based on the hdf5 data.</p>
+</dd></dl>
+
+</section>
+<section id="data-extraction-extract-lines-module">
+<h2>data_extraction.extract_lines module<a class="headerlink" href="#data-extraction-extract-lines-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_lines"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_lines</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">normal</span> <span class="n">NORMAL</span><span class="p">]</span>
+                     <span class="p">[</span><span class="o">--</span><span class="n">coords</span> <span class="n">COORDS</span> <span class="p">[</span><span class="n">COORDS</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">rm_eb</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">name</span> <span class="n">NAME</span><span class="p">]</span>
+</pre></div>
+</div>
+<section id="extract_lines-named-arguments">
+<span id="data_extraction.extract_lines-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_lines-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--normal</kbd></dt>
+<dd><p>Direction the line runs along: x, y or z, a pair of axes such as xz for (1, 0, 1), or a signed pair such as x-z for (1, 0, -1).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">z</span></code></p>
+</dd>
+<dt><kbd>--coords</kbd></dt>
+<dd><p>Position of the line in the other two directions: (y, z) for a line along x, (z, x) along y, and (x, y) along z. For a diagonal line, a point (x, y, z) on it. (required)</p>
+</dd>
+<dt><kbd>--rm_eb</kbd></dt>
+<dd><p>Flag to explicitly remove all data in EB regions.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--name</kbd></dt>
+<dd><p>Name of the output data file (.pkl).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'line_data'</span></code></p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_lines">Extracts lines of data along an axis or a diagonal from plot files and saves them.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser (cli_args defaults to sys.argv).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.line_ends">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">line_ends</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">left_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_edge</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">point</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#line_ends"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.line_ends" title="Link to this definition">¶</a></dt>
+<dd><p>Return where the line through point along direction enters and leaves a box.</p>
+<p>Raises ValueError if the line misses the box.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.lines_to_dataframe">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">lines_to_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#lines_to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.lines_to_dataframe" title="Link to this definition">¶</a></dt>
+<dd><p>Combine the line from each time into one table.</p>
+<p><code class="docutils literal notranslate"><span class="pre">lines</span></code> maps each time to <code class="docutils literal notranslate"><span class="pre">(positions,</span> <span class="pre">values,</span> <span class="pre">...)</span></code>. With AMR the cells
+along the line can change from one time to the next, so each line keeps its own
+positions. The table is indexed by every position seen at any time, sorted, with
+one column per time and NaN where that time has no cell at that position.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.main" title="Link to this definition">¶</a></dt>
+<dd><p>Extract a line of data along an axis for each plot file.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_lines.take_line">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_lines.</span></span><span class="sig-name descname"><span class="pre">take_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_source</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_lines.html#take_line"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_lines.take_line" title="Link to this definition">¶</a></dt>
+<dd><p>Return the positions along a line and the cells it passes through.</p>
+<p>Along an axis the positions are that coordinate of the cells. Along a diagonal
+they are the distance from the origin along the unit direction of the middle of
+each cell’s stretch of the line, so normal . r for points on the line.</p>
+</dd></dl>
+
+</section>
+<section id="data-extraction-extract-slices-module">
+<h2>data_extraction.extract_slices module<a class="headerlink" href="#data-extraction-extract-slices-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_slices"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_slices</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">normal</span> <span class="n">NORMAL</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">grid_offset</span> <span class="n">GRID_OFFSET</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">min</span> <span class="n">MIN</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">max</span> <span class="n">MAX</span><span class="p">]</span>
+                      <span class="p">[</span><span class="o">--</span><span class="n">num_slices</span> <span class="n">NUM_SLICES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">gradient</span> <span class="p">{</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">magnitude</span><span class="p">}]</span>
+</pre></div>
+</div>
+<section id="extract_slices-named-arguments">
+<span id="data_extraction.extract_slices-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_slices-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--normal</kbd></dt>
+<dd><p>Normal direction for the slice: x, y or z, a pair of different axes such as xz (normal (1, 0, 1)), or a signed pair such as x-z (normal (1, 0, -1)).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">z</span></code></p>
+</dd>
+<dt><kbd>--grid_offset</kbd></dt>
+<dd><p>Amount to offset center to avoid grid alignment vis issues.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">0.0</span></code></p>
+</dd>
+<dt><kbd>--min</kbd></dt>
+<dd><p>Position of the first slice along the normal. For a diagonal normal, the distance from the origin along the unit normal. (required)</p>
+</dd>
+<dt><kbd>--max</kbd></dt>
+<dd><p>Position of the last slice along the normal. For a diagonal normal, the distance from the origin along the unit normal. (required)</p>
+</dd>
+<dt><kbd>--num_slices</kbd></dt>
+<dd><p>Number of slices to extract in normal direction. (required)</p>
+</dd>
+<dt><kbd>--gradient</kbd></dt>
+<dd><p>Possible choices: x, y, z, magnitude</p>
+<p>Choice to extract the gradient of the input field.</p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_slices">Extracts slices from plot files and saves.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_slices.cut_plane">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_slices.</span></span><span class="sig-name descname"><span class="pre">cut_plane</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">across</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">up_vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distance</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_slices.html#cut_plane"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_slices.cut_plane" title="Link to this definition">¶</a></dt>
+<dd><p>Cut the plane normal . r = distance and make a fixed resolution image of it.</p>
+<p>The image covers the part of the plane inside the domain, with one pixel per
+finest cell, <code class="docutils literal notranslate"><span class="pre">across</span></code> to the right and <code class="docutils literal notranslate"><span class="pre">up_vec</span></code> up. Returns the cutting
+plane, the image and what places it: the unit normal, across and up vectors,
+the image center and its bounds (across_min, across_max, up_min, up_max) as
+positions along across and up, in code_length. Those positions are the same for
+every slice with this normal, so the slices line up when plotted.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_slices.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_slices.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_slices.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_slices.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_slices.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_slices.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_slices.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_slices.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_slices.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_slices.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_slices.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_slices.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_slices.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_slices.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_slices.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_slices.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="data-extraction-extract-threshold-module">
+<h2>data_extraction.extract_threshold module<a class="headerlink" href="#data-extraction-extract-threshold-module" title="Link to this heading">¶</a></h2>
+<div class="highlight-default notranslate" id="extract_threshold"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">extract_threshold</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">datapath</span> <span class="n">DATAPATH</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">outpath</span> <span class="n">OUTPATH</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">pname</span> <span class="n">PNAME</span> <span class="p">[</span><span class="n">PNAME</span> <span class="o">...</span><span class="p">]]</span> <span class="p">[</span><span class="o">--</span><span class="n">field</span> <span class="n">FIELD</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">SI</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">verbose</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">no_mpi</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">nprocs</span> <span class="n">NPROCS</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">nskip</span> <span class="n">NSKIP</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">ifile</span> <span class="n">IFILE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="nb">max</span> <span class="n">MAX</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="nb">format</span> <span class="p">{</span><span class="n">pkl</span><span class="p">,</span><span class="n">hdf5</span><span class="p">,</span><span class="n">xdmf</span><span class="p">}]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">extra_fields</span> <span class="n">EXTRA_FIELDS</span> <span class="p">[</span><span class="n">EXTRA_FIELDS</span> <span class="o">...</span><span class="p">]]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">bounds</span> <span class="n">BOUNDS</span> <span class="p">[</span><span class="n">BOUNDS</span> <span class="o">...</span><span class="p">]]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">gradient</span> <span class="p">{</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">magnitude</span><span class="p">}]</span> <span class="p">[</span><span class="o">--</span><span class="n">yt</span><span class="p">]</span>
+                         <span class="p">[</span><span class="o">--</span><span class="n">value</span> <span class="n">VALUE</span> <span class="o">|</span> <span class="o">--</span><span class="n">vfunction</span> <span class="n">VFUNCTION</span> <span class="p">[</span><span class="n">VFUNCTION</span> <span class="o">...</span><span class="p">]]</span>
+</pre></div>
+</div>
+<section id="extract_threshold-named-arguments">
+<span id="data_extraction.extract_threshold-get_base_parser-named-arguments"></span><h3>Named Arguments<a class="headerlink" href="#extract_threshold-named-arguments" title="Link to this heading">¶</a></h3>
+<dl class="option-list">
+<dt><kbd>--datapath</kbd></dt>
+<dd><p>Path to the folder holding the data files. (required)</p>
+</dd>
+<dt><kbd>--outpath</kbd></dt>
+<dd><p>Path to the output directory.</p>
+</dd>
+<dt><kbd>--pname</kbd></dt>
+<dd><p>Plotfile names or quoted patterns inside –datapath, e.g. plt01000 or “pltReact*”. Any name works. Without it, every plotfile named plt&lt;digits&gt; is used.</p>
+</dd>
+<dt><kbd>--field</kbd></dt>
+<dd><p>Name of the field for visualization.</p>
+</dd>
+<dt><kbd>--SI</kbd></dt>
+<dd><p>Flag to set the units to SI (default is cgs).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--verbose</kbd></dt>
+<dd><p>Flag to turn on various statements.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--no_mpi</kbd></dt>
+<dd><p>Never start MPI, even when launched with mpirun or srun. MPI is only used when launched that way.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--nprocs</kbd></dt>
+<dd><p>Number of processors to devote to each file when operating inparallel mode</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">1</span></code></p>
+</dd>
+<dt><kbd>--nskip</kbd></dt>
+<dd><p>Skip every “nskip” entries in “pname” list.</p>
+</dd>
+<dt><kbd>--ifile</kbd></dt>
+<dd><p>Path to the input file for configuring plots.</p>
+</dd>
+<dt><kbd>--max</kbd></dt>
+<dd><p>Only keep the cells where the field is also below this value.</p>
+</dd>
+<dt><kbd>--format</kbd></dt>
+<dd><p>Possible choices: pkl, hdf5, xdmf</p>
+<p>Output format: a pickled pandas DataFrame (pkl), or hdf5 with an xdmf wrapper (xdmf) for viewing the cells as points in ParaView.</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">'pkl'</span></code></p>
+</dd>
+<dt><kbd>--extra_fields</kbd></dt>
+<dd><p>Other fields to save in the kept cells, e.g. temp Y(OH).</p>
+</dd>
+<dt><kbd>--bounds</kbd></dt>
+<dd><p>Physical box (xlo ylo zlo xhi yhi zhi) to keep cells inside of, by the cell centers.</p>
+</dd>
+<dt><kbd>--gradient</kbd></dt>
+<dd><p>Possible choices: x, y, z, magnitude</p>
+<p>Choice to threshold on the gradient of the input field.</p>
+</dd>
+<dt><kbd>--yt</kbd></dt>
+<dd><p>Flag to use the yt cut_region instead of the faster, custom routine (yt version is not parallelized).</p>
+<p>Default: <code class="docutils literal notranslate"><span class="pre">False</span></code></p>
+</dd>
+<dt><kbd>--value</kbd></dt>
+<dd><p>Keep the cells where the field is above this value.</p>
+</dd>
+<dt><kbd>--vfunction</kbd></dt>
+<dd><p>Threshold value as a function of time (start_time; start_value; end_time; end_value).</p>
+</dd>
+</dl>
+</section>
+<p id="module-data_extraction.extract_threshold">Extracts the cells above a threshold value from plot files and saves.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.cells_to_dataframe">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">cells_to_dataframe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#cells_to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.cells_to_dataframe" title="Link to this definition">¶</a></dt>
+<dd><p>Put the kept cells into a table with one row per cell.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.concatenate_cells">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">concatenate_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cell_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">columns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#concatenate_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.concatenate_cells" title="Link to this definition">¶</a></dt>
+<dd><p>Join a list of cell dicts into one, in the order of the list.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.do_threshold_extraction">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">do_threshold_extraction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dregion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_attributes</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outformat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outpath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rank</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">do_yt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#do_threshold_extraction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.do_threshold_extraction" title="Link to this definition">¶</a></dt>
+<dd><p>Do the threshold extraction according to the input parameters.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.empty_cells">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">empty_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">columns</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#empty_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.empty_cells" title="Link to this definition">¶</a></dt>
+<dd><p>Return a cell dict with no cells in it.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.get_args">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">get_args</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parser</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cli_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#get_args"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.get_args" title="Link to this definition">¶</a></dt>
+<dd><p>Get the arguments from the parser (cli_args defaults to sys.argv).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.get_base_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">get_base_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#get_base_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.get_base_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the base level parser primarily for documentation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.get_parser">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">get_parser</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#get_parser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.get_parser" title="Link to this definition">¶</a></dt>
+<dd><p>Get the parser.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.get_units">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">get_units</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_unit</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#get_units"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.get_units" title="Link to this definition">¶</a></dt>
+<dd><p>Return the units of each column, read from a data object.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.main" title="Link to this definition">¶</a></dt>
+<dd><p>Main function for extracting the cells above a threshold.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.threshold_mask">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">threshold_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">child_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coords</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#threshold_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.threshold_mask" title="Link to this definition">¶</a></dt>
+<dd><p>Return the mask of the finest-level cells within the threshold.</p>
+<p><code class="docutils literal notranslate"><span class="pre">child_mask</span></code> is False where a finer grid covers the cell, so each location is
+only kept once. <code class="docutils literal notranslate"><span class="pre">coords</span></code> holds the (x, y, z) cell centers, and is only needed
+with <code class="docutils literal notranslate"><span class="pre">bounds</span></code> (xlo, ylo, zlo, xhi, yhi, zhi).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.threshold_value">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">threshold_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vfunction</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#threshold_value"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.threshold_value" title="Link to this definition">¶</a></dt>
+<dd><p>Return the threshold at a time, from (start_time, start_value, end_time,
+end_value), held constant outside of the start and end times.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.write_hdf5">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">write_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attrs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#write_hdf5"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.write_hdf5" title="Link to this definition">¶</a></dt>
+<dd><p>Write the HDF5 file based on the kept cells.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.write_xdmf">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">write_xdmf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fbase</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fhdf5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coord_shape</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#write_xdmf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.write_xdmf" title="Link to this definition">¶</a></dt>
+<dd><p>Write the XDMF wrapper based on the hdf5 data.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.extract_threshold.yt_threshold_cells">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.extract_threshold.</span></span><span class="sig-name descname"><span class="pre">yt_threshold_cells</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dregion</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length_unit</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extra_fields</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction/extract_threshold.html#yt_threshold_cells"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.extract_threshold.yt_threshold_cells" title="Link to this definition">¶</a></dt>
+<dd><p>Return the kept cells and their units using the yt cut_region.</p>
+</dd></dl>
+
+</section>
+<section id="module-data_extraction">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-data_extraction" title="Link to this heading">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="data_extraction.ListScriptsAction">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">data_extraction.</span></span><span class="sig-name descname"><span class="pre">ListScriptsAction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">option_strings</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dest</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nargs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">const</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">choices</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">required</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">help</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metavar</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction.html#ListScriptsAction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.ListScriptsAction" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Action</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.list_scripts">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.</span></span><span class="sig-name descname"><span class="pre">list_scripts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction.html#list_scripts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.list_scripts" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="data_extraction.main">
+<span class="sig-prename descclassname"><span class="pre">data_extraction.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/data_extraction.html#main"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_extraction.main" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="quick_vis.html" class="btn btn-neutral float-left" title="quick_vis package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="plot_data.html" class="btn btn-neutral float-right" title="plot_data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,875 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ytscripts.utilities &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">ytscripts.utilities</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for ytscripts.utilities</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Utility routines used throughout ytscripts."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tomllib</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic.v1.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">deep_update</span>
+
+
+<div class="viewcode-block" id="is_notebook">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_notebook">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_notebook</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Check if the script is running in a Jupyter notebook."""</span>
+    <span class="k">return</span> <span class="s2">"ipykernel"</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">modules</span></div>
+
+
+
+<div class="viewcode-block" id="is_latex_available">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_latex_available">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_latex_available</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Check if latex is available on the PATH.</span>
+
+<span class="sd">    Only looks up the executable. Running a bare ``latex`` starts its interactive</span>
+<span class="sd">    prompt and blocks waiting for input.</span>
+<span class="sd">    """</span>
+    <span class="k">return</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">"latex"</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+
+<span class="c1"># Environment variables in which MPI launchers tell each process they start how</span>
+<span class="c1"># many processes there are and which one it is: MPICH and Intel MPI (mpirun and</span>
+<span class="c1"># mpiexec), Open MPI, MVAPICH, and Slurm's srun</span>
+<span class="n">MPI_LAUNCH_VARS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="p">(</span><span class="s2">"PMI_SIZE"</span><span class="p">,</span> <span class="s2">"PMI_RANK"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"OMPI_COMM_WORLD_SIZE"</span><span class="p">,</span> <span class="s2">"OMPI_COMM_WORLD_RANK"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"MV2_COMM_WORLD_SIZE"</span><span class="p">,</span> <span class="s2">"MV2_COMM_WORLD_RANK"</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">"SLURM_STEP_NUM_TASKS"</span><span class="p">,</span> <span class="s2">"SLURM_PROCID"</span><span class="p">),</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="mpi_launch_size">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.mpi_launch_size">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mpi_launch_size</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Return how many processes an MPI launcher started, and this one's rank.</span>
+
+<span class="sd">    Reads the environment the launcher sets, without starting MPI. A plain</span>
+<span class="sd">    ``python script.py`` run has none of it and gives (1, 0).</span>
+<span class="sd">    """</span>
+    <span class="k">for</span> <span class="n">size_var</span><span class="p">,</span> <span class="n">rank_var</span> <span class="ow">in</span> <span class="n">MPI_LAUNCH_VARS</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">size_var</span><span class="p">])</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">KeyError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rank</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">rank_var</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="n">rank</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">size</span><span class="p">,</span> <span class="n">rank</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="get_mpi_comm">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_mpi_comm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mpi_comm</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the MPI communicator if this run was launched as several processes.</span>
+
+<span class="sd">    Returns None for a plain single-process run, without importing mpi4py, so</span>
+<span class="sd">    MPI is never started and mpi4py need not be installed. Also returns None</span>
+<span class="sd">    with no_mpi, where every process does all the work.</span>
+<span class="sd">    """</span>
+    <span class="n">size</span><span class="p">,</span> <span class="n">rank</span> <span class="o">=</span> <span class="n">mpi_launch_size</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="n">no_mpi</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"--no_mpi was given, so each of the </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> processes "</span>
+                <span class="s2">"will do all the work."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">mpi4py</span><span class="w"> </span><span class="kn">import</span> <span class="n">MPI</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="c1"># Stop rather than have every process repeat all the work</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"This run was launched as </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> MPI processes, but mpi4py "</span>
+                <span class="sa">f</span><span class="s2">"could not be loaded (</span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">). Install it with "</span>
+                <span class="s1">'"pip install mpi4py" after loading the MPI you launch with, '</span>
+                <span class="s2">"run without mpirun or srun, or pass --no_mpi."</span>
+            <span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span>
+    <span class="k">if</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Warning: this run was launched as </span><span class="si">{</span><span class="n">size</span><span class="si">}</span><span class="s2"> MPI processes, but "</span>
+                <span class="s2">"MPI sees only one. mpi4py was probably built with a different "</span>
+                <span class="s2">"MPI than the one launching it (check your loaded modules). "</span>
+                <span class="s2">"Each process will do all the work."</span>
+            <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="n">comm</span></div>
+
+
+
+<div class="viewcode-block" id="enable_parallelism">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.enable_parallelism">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">enable_parallelism</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Share yt's work over MPI if this run was launched as several processes.</span>
+
+<span class="sd">    A plain single-process run never starts MPI. Returns True if yt runs in</span>
+<span class="sd">    parallel.</span>
+<span class="sd">    """</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">get_mpi_comm</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="n">no_mpi</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">enable_parallelism</span><span class="p">(</span><span class="n">communicator</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="SerialComm">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.SerialComm">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SerialComm</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Stand-in for an MPI communicator in a single-process run."""</span>
+
+<div class="viewcode-block" id="SerialComm.Get_rank">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.SerialComm.Get_rank">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Get_rank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="SerialComm.Get_size">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.SerialComm.Get_size">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">Get_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="SerialComm.barrier">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.SerialComm.barrier">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">barrier</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+    <span class="n">Barrier</span> <span class="o">=</span> <span class="n">barrier</span>
+
+<div class="viewcode-block" id="SerialComm.gather">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.SerialComm.gather">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">gather</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">obj</span><span class="p">]</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="get_configs">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_configs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_configs</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Parse the configuration options from toml file."""</span>
+    <span class="n">cpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">".."</span><span class="p">))</span>
+
+    <span class="c1"># Read the default configs</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpath</span><span class="p">,</span> <span class="s2">"config.toml"</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+    <span class="c1"># Read any updates to the configs</span>
+    <span class="k">if</span> <span class="s2">"config_user.toml"</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">cpath</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cpath</span><span class="p">,</span> <span class="s2">"config_user.toml"</span><span class="p">),</span> <span class="s2">"rb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">user_configs</span> <span class="o">=</span> <span class="n">tomllib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># Update the configuration dictionary</span>
+        <span class="n">configs</span> <span class="o">=</span> <span class="n">deep_update</span><span class="p">(</span><span class="n">configs</span><span class="p">,</span> <span class="n">user_configs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">configs</span></div>
+
+
+
+<div class="viewcode-block" id="is_plotfile">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_plotfile">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_plotfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return True if path is an AMReX plotfile, a folder holding a Header file."""</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">"Header"</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="split_plotfile_name">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.split_plotfile_name">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">split_plotfile_name</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Split a plotfile name into its prefix and the number at its end.</span>
+
+<span class="sd">    "pltReact01264" gives ("pltReact", 1264); a name with no number at the end</span>
+<span class="sd">    gives (name, None).</span>
+<span class="sd">    """</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">"(.*?)(\d+)"</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">name</span><span class="p">,</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="plotfile_sort_key">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.plotfile_sort_key">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plotfile_sort_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Sort plotfiles by prefix, then by the number at the end of the name.</span>
+
+<span class="sd">    This puts plt99999 before plt100000, which sorting by name alone does not.</span>
+<span class="sd">    """</span>
+    <span class="n">prefix</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">split_plotfile_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">number</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">number</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_index_dict">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.create_index_dict">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_index_dict</span><span class="p">(</span><span class="n">names</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Number each plotfile by its place among those named the same way.</span>
+
+<span class="sd">    Plotfiles that share a prefix and end in a number (plt00100, plt00200, ...) are</span>
+<span class="sd">    numbered 0, 1, 2, ... in order of that number, so images made from them get</span>
+<span class="sd">    consecutive frame numbers whichever of them are plotted. Names with no number at</span>
+<span class="sd">    the end are numbered among themselves.</span>
+<span class="sd">    """</span>
+    <span class="n">families</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">plotfile_sort_key</span><span class="p">):</span>
+        <span class="n">prefix</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">split_plotfile_name</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">families</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">prefix</span> <span class="k">if</span> <span class="n">number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[])</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">family</span> <span class="ow">in</span> <span class="n">families</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">family</span><span class="p">)}</span></div>
+
+
+
+<div class="viewcode-block" id="find_plotfiles">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.find_plotfiles">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_plotfiles</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nskip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Find the plotfiles to load and number them for output names.</span>
+
+<span class="sd">    Without ``pname``, every plotfile named plt&lt;digits&gt; in ``datapath`` is used, so</span>
+<span class="sd">    other plotfiles a run writes alongside (such as pltU00100 or plt00100.old.1234)</span>
+<span class="sd">    are left out. With ``pname``, every plotfile matching those names or patterns is</span>
+<span class="sd">    used, whatever it is called. ``nskip`` keeps every (nskip + 1)th file.</span>
+
+<span class="sd">    Returns the paths to load, in order, and a dict numbering every plotfile in</span>
+<span class="sd">    ``datapath`` (see create_index_dict).</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">datapath</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"--datapath is needed: the folder that holds the plotfiles."</span><span class="p">)</span>
+    <span class="n">datapath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">expanduser</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">datapath</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--datapath </span><span class="si">{</span><span class="n">datapath</span><span class="si">}</span><span class="s2"> is not a folder."</span><span class="p">)</span>
+
+    <span class="n">all_names</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">datapath</span><span class="p">)</span> <span class="k">if</span> <span class="n">is_plotfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">n</span><span class="p">))),</span>
+        <span class="n">key</span><span class="o">=</span><span class="n">plotfile_sort_key</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">nskip</span> <span class="o">+</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">nskip</span> <span class="k">else</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">pname</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">all_names</span> <span class="k">if</span> <span class="n">re</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="sa">r</span><span class="s2">"plt\d+"</span><span class="p">,</span> <span class="n">n</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">names</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"No plotfiles named plt&lt;digits&gt; in </span><span class="si">{</span><span class="n">datapath</span><span class="si">}</span><span class="s2">."</span>
+            <span class="k">if</span> <span class="n">all_names</span><span class="p">:</span>
+                <span class="n">prefix</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">split_plotfile_name</span><span class="p">(</span><span class="n">all_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">hint</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">*"</span> <span class="k">if</span> <span class="n">number</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">all_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">message</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">" Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">all_names</span><span class="p">)</span><span class="si">}</span><span class="s2"> other plotfiles, like </span><span class="si">{</span><span class="n">all_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:"</span>
+                    <span class="sa">f</span><span class="s1">' use them with --pname "</span><span class="si">{</span><span class="n">hint</span><span class="si">}</span><span class="s1">".'</span>
+                <span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="n">names</span><span class="p">[::</span><span class="n">step</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pattern</span> <span class="ow">in</span> <span class="n">pname</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">"/"</span> <span class="ow">in</span> <span class="n">pattern</span> <span class="ow">or</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span> <span class="ow">in</span> <span class="n">pattern</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">"--pname takes plotfile names or patterns inside --datapath, not "</span>
+                    <span class="sa">f</span><span class="s2">"paths. To use the plotfiles in </span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2">, pass --datapath "</span>
+                    <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s2"> instead."</span>
+                <span class="p">)</span>
+            <span class="n">matched</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pattern</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="n">is_plotfile</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                <span class="p">),</span>
+                <span class="n">key</span><span class="o">=</span><span class="n">plotfile_sort_key</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">matched</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">'No plotfiles in </span><span class="si">{</span><span class="n">datapath</span><span class="si">}</span><span class="s1"> match --pname "</span><span class="si">{</span><span class="n">pattern</span><span class="si">}</span><span class="s1">".'</span>
+                <span class="p">)</span>
+            <span class="n">names</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">matched</span><span class="p">[::</span><span class="n">step</span><span class="p">]</span> <span class="k">if</span> <span class="n">n</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">names</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">],</span> <span class="n">create_index_dict</span><span class="p">(</span><span class="n">all_names</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="load_dataseries">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.load_dataseries">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">load_dataseries</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pname</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units_override</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nprocs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">nskip</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Load a series of datasets from files in a given directory.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    - datapath (str): The path to the directory containing the dataset files.</span>
+<span class="sd">    - pname (list, optional): Plotfile names or glob patterns inside datapath. When</span>
+<span class="sd">    left out, every plotfile named plt&lt;digits&gt; is loaded. See find_plotfiles.</span>
+<span class="sd">    - units_override (dict, optional): A dictionary specifying unit overrides for the</span>
+<span class="sd">    loaded datasets. Default is None.</span>
+<span class="sd">    - nprocs (int, optional): The number of processes to use for parallel loading.</span>
+<span class="sd">    - nskip (int, optional): The number of files to skip between loaded datasets.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    - ts (yt.DatasetSeries): A series of loaded datasets.</span>
+<span class="sd">    - index_dict (dict): Maps each plotfile name to its frame number among the</span>
+<span class="sd">    plotfiles named the same way.</span>
+<span class="sd">    """</span>
+    <span class="n">load_list</span><span class="p">,</span> <span class="n">index_dict</span> <span class="o">=</span> <span class="n">find_plotfiles</span><span class="p">(</span><span class="n">datapath</span><span class="p">,</span> <span class="n">pname</span><span class="o">=</span><span class="n">pname</span><span class="p">,</span> <span class="n">nskip</span><span class="o">=</span><span class="n">nskip</span><span class="p">)</span>
+
+    <span class="n">ts</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">DatasetSeries</span><span class="p">(</span>
+        <span class="n">load_list</span><span class="p">,</span>
+        <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span><span class="p">,</span>
+        <span class="n">parallel</span><span class="o">=</span><span class="n">nprocs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ts</span><span class="p">,</span> <span class="n">index_dict</span></div>
+
+
+
+<div class="viewcode-block" id="get_attributes">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_attributes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Gets commonly used attributes from the dataset and stores in dict."""</span>
+    <span class="c1"># Get base attributes</span>
+    <span class="n">ds_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"field_list"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">field_list</span><span class="p">,</span>
+        <span class="s2">"derived_field_list"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">derived_field_list</span><span class="p">,</span>
+        <span class="s2">"time"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">,</span>
+        <span class="s2">"dimensions"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_dimensions</span><span class="p">,</span>
+        <span class="s2">"left_edge"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_left_edge</span><span class="p">,</span>
+        <span class="s2">"right_edge"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_right_edge</span><span class="p">,</span>
+        <span class="s2">"max_level"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">max_level</span><span class="p">,</span>
+        <span class="s2">"length_unit"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">length_unit</span><span class="p">,</span>
+        <span class="s2">"time_unit"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">time_unit</span><span class="p">,</span>
+        <span class="s2">"width"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_width</span><span class="p">,</span>
+        <span class="s2">"center"</span><span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_center</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Make commonly used attributes</span>
+    <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">)</span> <span class="o">=</span> <span class="p">(</span><span class="n">ds_dict</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">]</span> <span class="o">-</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">])</span> <span class="o">/</span> <span class="n">ds_dict</span><span class="p">[</span>
+        <span class="s2">"dimensions"</span>
+    <span class="p">]</span>
+    <span class="p">(</span><span class="n">x_res</span><span class="p">,</span> <span class="n">y_res</span><span class="p">,</span> <span class="n">z_res</span><span class="p">)</span> <span class="o">=</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">ds_dict</span><span class="p">[</span><span class="s2">"max_level"</span><span class="p">]</span>
+
+    <span class="c1"># Update dictionary values</span>
+    <span class="n">ds_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">"dxyz"</span><span class="p">:</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">),</span>
+            <span class="s2">"resolution"</span><span class="p">:</span> <span class="p">(</span><span class="n">x_res</span><span class="p">,</span> <span class="n">y_res</span><span class="p">,</span> <span class="n">z_res</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">ds_dict</span></div>
+
+
+
+<span class="n">AXIS_VECTORS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">"x"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+    <span class="s2">"y"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]),</span>
+    <span class="s2">"z"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]),</span>
+<span class="p">}</span>
+
+<span class="c1"># One axis (x), an axis pair (xz, or x+z) or a signed pair (x-z)</span>
+<span class="n">NORMAL_PATTERN</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">"([xyz])(?:([+-]?)([xyz]))?"</span><span class="p">)</span>
+
+<span class="n">NORMAL_FORMS</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="s2">"x, y or z, a pair of different axes such as xz (normal (1, 0, 1)), "</span>
+    <span class="s2">"or a signed pair such as x-z (normal (1, 0, -1))"</span>
+<span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_match_normal</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the regex match for a --normal value, or raise ValueError."""</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">NORMAL_PATTERN</span><span class="o">.</span><span class="n">fullmatch</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The normal must be </span><span class="si">{</span><span class="n">NORMAL_FORMS</span><span class="si">}</span><span class="s2">, not </span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">match</span>
+
+
+<div class="viewcode-block" id="canonical_normal">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.canonical_normal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">canonical_normal</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a --normal value in its standard form: x+z and zx become xz.</span>
+
+<span class="sd">    An unsigned pair names the same normal in either order, so its axes are sorted.</span>
+<span class="sd">    A signed pair keeps its order, since z-x points the other way from x-z.</span>
+<span class="sd">    """</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_match_normal</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"-"</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="s2">""</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span></div>
+
+
+
+<div class="viewcode-block" id="parse_normal">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.parse_normal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_normal</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the unit normal vector named by a --normal value."""</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">_match_normal</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">AXIS_VECTORS</span><span class="p">[</span><span class="n">match</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span> <span class="k">if</span> <span class="n">match</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"-"</span> <span class="k">else</span> <span class="mf">1.0</span>
+        <span class="n">normal</span> <span class="o">+=</span> <span class="n">sign</span> <span class="o">*</span> <span class="n">AXIS_VECTORS</span><span class="p">[</span><span class="n">match</span><span class="p">[</span><span class="mi">3</span><span class="p">]]</span>
+    <span class="k">return</span> <span class="n">normal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="is_axis_normal">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.is_axis_normal">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_axis_normal</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return whether a --normal value is one of the coordinate axes."""</span>
+    <span class="k">return</span> <span class="n">canonical_normal</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">AXIS_VECTORS</span></div>
+
+
+
+<div class="viewcode-block" id="default_up">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.default_up">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">default_up</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the axis drawn up a slice image by default.</span>
+
+<span class="sd">    z for normal x and y, y for normal z, and the axis left out of a pair, so y for</span>
+<span class="sd">    xz and x-z.</span>
+<span class="sd">    """</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">canonical_normal</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">AXIS_VECTORS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="s2">"z"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">:</span> <span class="s2">"z"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">:</span> <span class="s2">"y"</span><span class="p">}[</span><span class="n">name</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">next</span><span class="p">(</span><span class="n">axis</span> <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="s2">"xyz"</span> <span class="k">if</span> <span class="n">axis</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="slice_basis">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.slice_basis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">slice_basis</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the unit normal and the unit vectors across and up a slice image.</span>
+
+<span class="sd">    ``up`` names the axis to draw up the image (default from default_up()). An</span>
+<span class="sd">    axis that is not in the plane is tilted into it, so for normal xz, up x points</span>
+<span class="sd">    along (x - z)/sqrt(2). Across is up x normal, as in yt's off-axis slices, so</span>
+<span class="sd">    across, up and the normal form a right-handed set.</span>
+<span class="sd">    """</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">parse_normal</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">up</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">up</span> <span class="o">=</span> <span class="n">default_up</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">up</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AXIS_VECTORS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Up must be x, y or z, not </span><span class="si">{</span><span class="n">up</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">up_vec</span> <span class="o">=</span> <span class="n">AXIS_VECTORS</span><span class="p">[</span><span class="n">up</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">AXIS_VECTORS</span><span class="p">[</span><span class="n">up</span><span class="p">],</span> <span class="n">normal</span><span class="p">)</span> <span class="o">*</span> <span class="n">normal</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">up_vec</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1e-8</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Up </span><span class="si">{</span><span class="n">up</span><span class="si">}</span><span class="s2"> points along the normal </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">up_vec</span> <span class="o">/=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">up_vec</span><span class="p">)</span>
+    <span class="n">across</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">up_vec</span><span class="p">,</span> <span class="n">normal</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">normal</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span></div>
+
+
+
+<div class="viewcode-block" id="direction_label">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.direction_label">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">direction_label</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a math-text label for a direction, such as (x - z)/\\sqrt{2}."""</span>
+    <span class="n">vector</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="s2">"xyz"</span><span class="p">,</span> <span class="n">vector</span><span class="p">)</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">terms</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">axis</span> <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"-</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"</span>
+
+    <span class="n">magnitudes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">])</span>
+    <span class="n">equal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">allclose</span><span class="p">(</span><span class="n">magnitudes</span><span class="p">,</span> <span class="n">magnitudes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">prefix</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">if</span> <span class="n">equal</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">value</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">):</span>
+            <span class="c1"># -(x + z) reads better than (-x - z)</span>
+            <span class="n">prefix</span> <span class="o">=</span> <span class="s2">"-"</span>
+            <span class="n">terms</span> <span class="o">=</span> <span class="p">[(</span><span class="n">axis</span><span class="p">,</span> <span class="o">-</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">axis</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Lead with a positive term: (z - y) rather than (-y + z)</span>
+            <span class="n">terms</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">term</span><span class="p">:</span> <span class="n">term</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s2">""</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">terms</span><span class="p">):</span>
+        <span class="n">coeff</span> <span class="o">=</span> <span class="s2">""</span> <span class="k">if</span> <span class="n">equal</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">abs</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="s2">"-"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">""</span><span class="si">}{</span><span class="n">coeff</span><span class="si">}{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"""</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">""" </span><span class="si">{</span><span class="s2">"-"</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s2">"+"</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">coeff</span><span class="si">}{</span><span class="n">axis</span><span class="si">}</span><span class="s2">"""</span>
+    <span class="k">if</span> <span class="n">equal</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">magnitudes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">scale</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">"</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">scale</span><span class="p">))</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">scale</span><span class="si">:</span><span class="s2">.3g</span><span class="si">}</span><span class="s2">"</span>
+        <span class="k">return</span> <span class="sa">rf</span><span class="s2">"</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s2">(</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">)/\sqrt</span><span class="se">{{</span><span class="si">{</span><span class="n">root</span><span class="si">}</span><span class="se">}}</span><span class="s2">"</span>
+    <span class="k">return</span> <span class="n">label</span></div>
+
+
+
+<div class="viewcode-block" id="code_length_values">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.code_length_values">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a position or length as plain floats in code_length."""</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="s2">"units"</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">arr</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">d</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">units</span><span class="p">))</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">"code_length"</span><span class="p">)</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="box_corners">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.box_corners">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">box_corners</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the 8 corners of a box as an (8, 3) array."""</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">right_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="p">[(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)[</span><span class="n">j</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)[</span><span class="n">k</span><span class="p">][</span><span class="mi">2</span><span class="p">]]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plane_box_points">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.plane_box_points">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_box_points</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the corners of the polygon where a plane cuts a box.</span>
+
+<span class="sd">    The plane holds ``point`` and has the unit ``normal``. Raises ValueError if it</span>
+<span class="sd">    misses the box.</span>
+<span class="sd">    """</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">corners</span> <span class="o">=</span> <span class="n">box_corners</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">)</span>
+    <span class="n">dist</span> <span class="o">=</span> <span class="n">corners</span> <span class="o">@</span> <span class="n">normal</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">normal</span><span class="p">)</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-12</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">corners</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">corner</span> <span class="k">for</span> <span class="n">corner</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">corners</span><span class="p">,</span> <span class="n">dist</span><span class="p">)</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">tol</span><span class="p">]</span>
+    <span class="c1"># The edges of the box join corners that differ in one coordinate</span>
+    <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">8</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">bin</span><span class="p">(</span><span class="n">a</span> <span class="o">^</span> <span class="n">b</span><span class="p">)</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s2">"1"</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">dist</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">tol</span> <span class="ow">and</span> <span class="n">dist</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">tol</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">dist</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">tol</span> <span class="ow">and</span> <span class="n">dist</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">tol</span><span class="p">):</span>
+                <span class="n">frac</span> <span class="o">=</span> <span class="n">dist</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">dist</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">-</span> <span class="n">dist</span><span class="p">[</span><span class="n">b</span><span class="p">])</span>
+                <span class="n">points</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="n">a</span><span class="p">]</span> <span class="o">+</span> <span class="n">frac</span> <span class="o">*</span> <span class="p">(</span><span class="n">corners</span><span class="p">[</span><span class="n">b</span><span class="p">]</span> <span class="o">-</span> <span class="n">corners</span><span class="p">[</span><span class="n">a</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">points</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"The slice plane does not cut the domain"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">points</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plane_window">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.plane_window">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_window</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the part of a slice plane inside the domain, around its center.</span>
+
+<span class="sd">    The plane goes through ``center`` with the unit ``normal``. Returns</span>
+<span class="sd">    ((across_min, across_max), (up_min, up_max)), as offsets from ``center`` along</span>
+<span class="sd">    the unit vectors ``across`` and ``up``.</span>
+<span class="sd">    """</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">center</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">offsets</span> <span class="o">=</span> <span class="n">plane_box_points</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">center</span><span class="p">)</span> <span class="o">-</span> <span class="n">center</span>
+    <span class="n">along_across</span> <span class="o">=</span> <span class="n">offsets</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">across</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">along_up</span> <span class="o">=</span> <span class="n">offsets</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">up</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">along_across</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">along_across</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+        <span class="p">(</span><span class="n">along_up</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">along_up</span><span class="o">.</span><span class="n">max</span><span class="p">()),</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="plane_center">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.plane_center">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plane_center</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">distance</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the point of the plane normal . r = distance nearest the domain center.</span>
+
+<span class="sd">    Raises ValueError unless the plane cuts through the domain. A plane at either end</span>
+<span class="sd">    of the domain's span only touches an edge or a corner, which leaves no area to</span>
+<span class="sd">    draw, so it is refused too.</span>
+<span class="sd">    """</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">right_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">reach</span> <span class="o">=</span> <span class="n">box_corners</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="o">@</span> <span class="n">normal</span>
+    <span class="n">near</span><span class="p">,</span> <span class="n">far</span> <span class="o">=</span> <span class="n">reach</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">reach</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-9</span> <span class="o">*</span> <span class="p">(</span><span class="n">far</span> <span class="o">-</span> <span class="n">near</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">near</span> <span class="o">+</span> <span class="n">tol</span> <span class="o">&lt;</span> <span class="n">distance</span> <span class="o">&lt;</span> <span class="n">far</span> <span class="o">-</span> <span class="n">tol</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">near</span> <span class="o">-</span> <span class="n">tol</span> <span class="o">&lt;=</span> <span class="n">distance</span> <span class="o">&lt;=</span> <span class="n">far</span> <span class="o">+</span> <span class="n">tol</span><span class="p">:</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="s2">"only touches the edge of"</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">where</span> <span class="o">=</span> <span class="s2">"misses"</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"The plane at distance </span><span class="si">{</span><span class="n">distance</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2"> along the normal </span><span class="si">{</span><span class="n">where</span><span class="si">}</span><span class="s2"> the "</span>
+            <span class="sa">f</span><span class="s2">"domain; it must lie strictly between </span><span class="si">{</span><span class="n">near</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="n">far</span><span class="si">:</span><span class="s2">.6g</span><span class="si">}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="n">domain_center</span> <span class="o">=</span> <span class="p">(</span><span class="n">lo</span> <span class="o">+</span> <span class="n">hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+    <span class="k">return</span> <span class="n">domain_center</span> <span class="o">+</span> <span class="p">(</span><span class="n">distance</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">domain_center</span><span class="p">,</span> <span class="n">normal</span><span class="p">))</span> <span class="o">*</span> <span class="n">normal</span></div>
+
+
+
+<div class="viewcode-block" id="pixels_along">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.pixels_along">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">pixels_along</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">finest_dxyz</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return how many pixels give one per finest cell over a length along a direction.</span>
+
+<span class="sd">    The pixel is the size of the smallest finest cell along the axes the direction</span>
+<span class="sd">    has a part along.</span>
+<span class="sd">    """</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">sizes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span> <span class="k">for</span> <span class="n">dx</span><span class="p">,</span> <span class="n">part</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">finest_dxyz</span><span class="p">,</span> <span class="n">direction</span><span class="p">)</span> <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">part</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">1e-8</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">length</span> <span class="o">/</span> <span class="nb">min</span><span class="p">(</span><span class="n">sizes</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1e-6</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="get_fig_aspect_ratio">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_fig_aspect_ratio">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_fig_aspect_ratio</span><span class="p">(</span><span class="n">xlen</span><span class="p">,</span> <span class="n">ylen</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="mi">5</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the aspect ratio to fit the data."""</span>
+
+    <span class="n">aspect_ratio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">ylen</span> <span class="o">/</span> <span class="n">xlen</span><span class="p">)</span>
+    <span class="n">fx</span> <span class="o">=</span> <span class="n">base</span> <span class="o">*</span> <span class="p">(</span><span class="mf">0.5</span> <span class="o">+</span> <span class="n">aspect_ratio</span><span class="p">)</span>
+    <span class="n">fy</span> <span class="o">=</span> <span class="n">base</span>
+
+    <span class="k">return</span> <span class="n">fx</span><span class="p">,</span> <span class="n">fy</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_velocity_x</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"velocityx"</span><span class="p">],</span> <span class="s2">"m/s"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_velocity_y</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"velocityy"</span><span class="p">],</span> <span class="s2">"m/s"</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_velocity_z</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">yt</span><span class="o">.</span><span class="n">YTArray</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">"velocityz"</span><span class="p">],</span> <span class="s2">"m/s"</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="define_velocity_fields">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.define_velocity_fields">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">define_velocity_fields</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Add some velocity fields."""</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"velocity_x"</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_x</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">"cell"</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">"m/s"</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">"u"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"velocity_y"</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_y</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">"cell"</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">"m/s"</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">"v"</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_field</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"velocity_z"</span><span class="p">),</span>
+        <span class="n">function</span><span class="o">=</span><span class="n">_velocity_z</span><span class="p">,</span>
+        <span class="n">sampling_type</span><span class="o">=</span><span class="s2">"cell"</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="s2">"m/s"</span><span class="p">,</span>
+        <span class="n">display_name</span><span class="o">=</span><span class="s2">"w"</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_gradient_field">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.get_gradient_field">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_gradient_field</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">grad_type</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Add the gradient field and return new field name."""</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">force_periodicity</span><span class="p">()</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">add_gradient_fields</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">_gradient_</span><span class="si">{</span><span class="n">grad_type</span><span class="si">}</span><span class="s2">"</span></div>
+
+
+
+<div class="viewcode-block" id="compute_elem_mass_fraction">
+<a class="viewcode-back" href="../../ytscripts.html#ytscripts.utilities.compute_elem_mass_fraction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_elem_mass_fraction</span><span class="p">(</span><span class="n">attributes</span><span class="p">,</span> <span class="n">keys</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute the elem mass fraction for streams."""</span>
+
+    <span class="c1"># define atomic masses dict</span>
+    <span class="n">atomic_masses</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"C"</span><span class="p">:</span> <span class="mf">12.01</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">:</span> <span class="mf">1.00</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">:</span> <span class="mf">16.00</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mf">14.01</span><span class="p">}</span>
+
+    <span class="n">spec_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># loop over all fields</span>
+    <span class="k">for</span> <span class="n">fname</span> <span class="ow">in</span> <span class="n">attributes</span><span class="p">[</span><span class="s2">"field_list"</span><span class="p">]:</span>
+        <span class="c1"># Only look at species (contain Y)</span>
+        <span class="k">if</span> <span class="s2">"Y("</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">cut_name</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">cut_name</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"NC"</span><span class="p">:</span>
+                <span class="n">cut_name</span> <span class="o">=</span> <span class="n">cut_name</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+            <span class="n">elem_dict</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="sa">r</span><span class="s2">"([A-Z][a-z]?)(\d*)"</span><span class="p">,</span> <span class="n">cut_name</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">keys</span> <span class="ow">and</span> <span class="n">cut_name</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+                <span class="c1"># add entry to the species dict</span>
+                <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"C"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+                <span class="c1"># print(elem_dict{"C"})</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elem_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"C"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"C"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"H"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"H"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"O"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"O"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"N"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"N"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">keys</span><span class="p">:</span>
+                <span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
+
+                <span class="c1"># add entry to the species dict</span>
+                <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"C"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"H"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"O"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">"N"</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+
+                <span class="c1"># print(elem_dict{"C"})</span>
+                <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">elem_dict</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s2">""</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+                    <span class="k">if</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"C"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"C"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"H"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"H"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"O"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"O"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+                    <span class="k">elif</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"N"</span><span class="p">:</span>
+                        <span class="n">spec_dict</span><span class="p">[</span><span class="n">cut_name</span><span class="p">][</span><span class="s2">"N"</span><span class="p">]</span> <span class="o">+=</span> <span class="n">num</span>
+
+    <span class="c1"># Mass of each element in each species, as a fraction of the species' mass</span>
+    <span class="n">elem_mass_frac_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">spec</span><span class="p">,</span> <span class="n">counts</span> <span class="ow">in</span> <span class="n">spec_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">masses</span> <span class="o">=</span> <span class="p">{</span><span class="n">elem</span><span class="p">:</span> <span class="n">counts</span><span class="p">[</span><span class="n">elem</span><span class="p">]</span> <span class="o">*</span> <span class="n">mass</span> <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="n">atomic_masses</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+        <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">masses</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="c1"># A species with none of these elements (e.g. AR) has no fractions to give</span>
+        <span class="n">elem_mass_frac_dict</span><span class="p">[</span><span class="n">spec</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">elem</span><span class="p">:</span> <span class="p">(</span><span class="n">mass</span> <span class="o">/</span> <span class="n">total_mass</span> <span class="k">if</span> <span class="n">total_mass</span> <span class="k">else</span> <span class="mf">0.0</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">elem</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="n">masses</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">elem_mass_frac_dict</span><span class="p">,</span> <span class="n">atomic_masses</span><span class="p">,</span> <span class="n">fields</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

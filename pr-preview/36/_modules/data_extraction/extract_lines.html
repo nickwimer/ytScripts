@@ -1,0 +1,350 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_extraction.extract_lines &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../data_extraction.html">data_extraction</a></li>
+      <li class="breadcrumb-item active">data_extraction.extract_lines</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for data_extraction.extract_lines</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Extracts lines of data along an axis or a diagonal from plot files and saves them."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yt</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.ytargs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the parser."""</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytExtractArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments for the extract lines</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">line_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.get_base_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the base level parser primarily for documentation."""</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.get_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">cli_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the arguments from the parser (cli_args defaults to sys.argv)."""</span>
+    <span class="c1"># Parse the command line, merged with the input file if one is given</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_args</span><span class="p">(</span><span class="n">cli_args</span><span class="p">)</span>
+
+    <span class="c1"># A line along an axis is fixed by its position in the other two directions, a</span>
+    <span class="c1"># diagonal line by a point on it</span>
+    <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]):</span>
+        <span class="n">ncoords</span><span class="p">,</span> <span class="n">what</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">"two values"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ncoords</span><span class="p">,</span> <span class="n">what</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">"three values, a point (x, y, z) on the line,"</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">],</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">])</span> <span class="o">!=</span> <span class="n">ncoords</span><span class="p">:</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""--coords needs </span><span class="si">{</span><span class="n">what</span><span class="si">}</span><span class="s2"> for --normal </span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="line_ends">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.line_ends">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">line_ends</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">right_edge</span><span class="p">,</span> <span class="n">direction</span><span class="p">,</span> <span class="n">point</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return where the line through point along direction enters and leaves a box.</span>
+
+<span class="sd">    Raises ValueError if the line misses the box.</span>
+<span class="sd">    """</span>
+    <span class="n">lo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">left_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">hi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">right_edge</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">direction</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">point</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">direction</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">1e-12</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">lo</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">point</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+                <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">continue</span>
+        <span class="n">t1</span><span class="p">,</span> <span class="n">t2</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+            <span class="p">((</span><span class="n">lo</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">point</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">direction</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">(</span><span class="n">hi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">point</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">/</span> <span class="n">direction</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="p">)</span>
+        <span class="n">t_in</span><span class="p">,</span> <span class="n">t_out</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">t_in</span><span class="p">,</span> <span class="n">t1</span><span class="p">),</span> <span class="nb">min</span><span class="p">(</span><span class="n">t_out</span><span class="p">,</span> <span class="n">t2</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">t_in</span> <span class="o">&lt;</span> <span class="n">t_out</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The line through </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">point</span><span class="p">)</span><span class="si">}</span><span class="s2"> misses the domain"</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">point</span> <span class="o">+</span> <span class="n">t_in</span> <span class="o">*</span> <span class="n">direction</span><span class="p">,</span> <span class="n">point</span> <span class="o">+</span> <span class="n">t_out</span> <span class="o">*</span> <span class="n">direction</span></div>
+
+
+
+<div class="viewcode-block" id="take_line">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.take_line">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">take_line</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">coords</span><span class="p">,</span> <span class="n">data_source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the positions along a line and the cells it passes through.</span>
+
+<span class="sd">    Along an axis the positions are that coordinate of the cells. Along a diagonal</span>
+<span class="sd">    they are the distance from the origin along the unit direction of the middle of</span>
+<span class="sd">    each cell's stretch of the line, so normal . r for points on the line.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">normal</span><span class="p">):</span>
+        <span class="n">ray</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">ortho_ray</span><span class="p">(</span>
+            <span class="n">axis</span><span class="o">=</span><span class="s2">"xyz"</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">normal</span><span class="p">),</span> <span class="n">coords</span><span class="o">=</span><span class="n">coords</span><span class="p">,</span> <span class="n">data_source</span><span class="o">=</span><span class="n">data_source</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ray</span><span class="p">[</span><span class="n">normal</span><span class="p">],</span> <span class="n">ray</span>
+
+    <span class="n">direction</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">parse_normal</span><span class="p">(</span><span class="n">normal</span><span class="p">)</span>
+    <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">line_ends</span><span class="p">(</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_left_edge</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">domain_right_edge</span><span class="p">),</span>
+        <span class="n">direction</span><span class="p">,</span>
+        <span class="n">coords</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ray</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">ray</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">data_source</span><span class="o">=</span><span class="n">data_source</span><span class="p">)</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">middle</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ray</span><span class="p">[</span><span class="s2">"t"</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">ray</span><span class="p">[</span><span class="s2">"dts"</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">length</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">arr</span><span class="p">(</span><span class="n">start</span> <span class="o">@</span> <span class="n">direction</span> <span class="o">+</span> <span class="n">middle</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">ray</span><span class="p">[</span><span class="s2">"x"</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">positions</span><span class="p">,</span> <span class="n">ray</span></div>
+
+
+
+<div class="viewcode-block" id="lines_to_dataframe">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.lines_to_dataframe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lines_to_dataframe</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">normal</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Combine the line from each time into one table.</span>
+
+<span class="sd">    ``lines`` maps each time to ``(positions, values, ...)``. With AMR the cells</span>
+<span class="sd">    along the line can change from one time to the next, so each line keeps its own</span>
+<span class="sd">    positions. The table is indexed by every position seen at any time, sorted, with</span>
+<span class="sd">    one column per time and NaN where that time has no cell at that position.</span>
+<span class="sd">    """</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">itime</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lines</span><span class="p">):</span>
+        <span class="n">positions</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">lines</span><span class="p">[</span><span class="n">itime</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">positions</span><span class="p">))</span>
+        <span class="c1"># Guard against repeated positions, which would break the alignment</span>
+        <span class="n">columns</span><span class="p">[</span><span class="n">itime</span><span class="p">]</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">normal</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">"time"</span>
+
+    <span class="k">return</span> <span class="n">df</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_lines.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Extract a line of data along an axis for each plot file."""</span>
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Create the output directory</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../outdata"</span><span class="p">,</span> <span class="s2">"lines"</span><span class="p">))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Override the units if needed</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"SI"</span><span class="p">]:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"length_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">),</span>
+            <span class="s2">"time_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"s"</span><span class="p">),</span>
+            <span class="s2">"mass_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"kg"</span><span class="p">),</span>
+            <span class="s2">"velocity_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m/s"</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">eb_var_name</span> <span class="o">=</span> <span class="s2">"volFrac"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">eb_var_name</span> <span class="o">=</span> <span class="s2">"vfrac"</span>
+
+    <span class="c1"># start timer</span>
+    <span class="k">if</span> <span class="n">yt</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="c1"># Load data files into dataset series</span>
+    <span class="n">ts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_dataseries</span><span class="p">(</span>
+        <span class="n">datapath</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">],</span>
+        <span class="n">pname</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"pname"</span><span class="p">],</span>
+        <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span><span class="p">,</span>
+        <span class="n">nprocs</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"nprocs"</span><span class="p">],</span>
+        <span class="n">nskip</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"nskip"</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">base_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"verbose"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""The fields in this dataset are: </span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">"field_list"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""The derived fields in this dataset are: """</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">"derived_field_list"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span>
+        <span class="p">)</span>
+
+    <span class="c1"># A diagonal line must pass through the domain</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">line_ends</span><span class="p">(</span>
+                <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">]</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+                <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">]</span><span class="o">.</span><span class="n">d</span><span class="p">,</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">parse_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]),</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">parser</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">err</span><span class="p">))</span>
+
+    <span class="c1"># Loop over the dataseries</span>
+    <span class="c1"># Share the plotfiles over MPI only when launched with mpirun or srun</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">enable_parallelism</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"no_mpi"</span><span class="p">])</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">sto</span><span class="p">,</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">piter</span><span class="p">(</span><span class="n">storage</span><span class="o">=</span><span class="n">lines</span><span class="p">,</span> <span class="n">dynamic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">sto</span><span class="o">.</span><span class="n">result_id</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">)</span>
+
+        <span class="c1"># Filter out the EB regions</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"rm_eb"</span><span class="p">]:</span>
+            <span class="n">data_source</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">cut_region</span><span class="p">(</span>
+                <span class="n">ds</span><span class="o">.</span><span class="n">all_data</span><span class="p">(),</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"obj[('boxlib', '</span><span class="si">{</span><span class="n">eb_var_name</span><span class="si">}</span><span class="s2">')] &gt; 0.5"</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data_source</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Take a line of the data through the finest cells</span>
+        <span class="n">positions</span><span class="p">,</span> <span class="n">ray</span> <span class="o">=</span> <span class="n">take_line</span><span class="p">(</span>
+            <span class="n">ds</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">],</span> <span class="n">data_source</span><span class="o">=</span><span class="n">data_source</span>
+        <span class="p">)</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="n">ray</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]]</span>
+
+        <span class="c1"># Send the units with the data, since under MPI the root does no work</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"position"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">positions</span><span class="o">.</span><span class="n">units</span><span class="p">),</span> <span class="s2">"field"</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">units</span><span class="p">)}</span>
+        <span class="n">sto</span><span class="o">.</span><span class="n">result</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">positions</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">values</span><span class="p">),</span> <span class="n">units</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">yt</span><span class="o">.</span><span class="n">is_root</span><span class="p">():</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">lines_to_dataframe</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+
+        <span class="c1"># Keep what the table holds with the data</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"coords"</span><span class="p">]</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"units"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">lines</span><span class="o">.</span><span class="n">values</span><span class="p">()))[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="c1"># Save the data for later</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">to_pickle</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"name"</span><span class="p">]</span><span class="si">}</span><span class="s2">.pkl"""</span><span class="p">))</span>
+
+        <span class="c1"># print total time</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Total elapsed time = </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">}</span><span class="s2"> seconds"</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

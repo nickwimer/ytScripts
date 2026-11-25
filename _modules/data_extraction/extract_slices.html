@@ -1,0 +1,348 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_extraction.extract_slices &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../data_extraction.html">data_extraction</a></li>
+      <li class="breadcrumb-item active">data_extraction.extract_slices</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for data_extraction.extract_slices</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Extracts slices from plot files and saves."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.ytargs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_slices.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the parser."""</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytExtractArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments for the extract slices</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">orientation_args</span><span class="p">()</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">slice_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_slices.get_base_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the base level parser primarily for documentation."""</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_slices.get_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the arguments from the parser."""</span>
+    <span class="c1"># Parse the command line, merged with the input file if one is given</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_args</span><span class="p">()</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="cut_plane">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_slices.cut_plane">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">cut_plane</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span><span class="p">,</span> <span class="n">distance</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Cut the plane normal . r = distance and make a fixed resolution image of it.</span>
+
+<span class="sd">    The image covers the part of the plane inside the domain, with one pixel per</span>
+<span class="sd">    finest cell, ``across`` to the right and ``up_vec`` up. Returns the cutting</span>
+<span class="sd">    plane, the image and what places it: the unit normal, across and up vectors,</span>
+<span class="sd">    the image center and its bounds (across_min, across_max, up_min, up_max) as</span>
+<span class="sd">    positions along across and up, in code_length. Those positions are the same for</span>
+<span class="sd">    every slice with this normal, so the slices line up when plotted.</span>
+<span class="sd">    """</span>
+    <span class="n">left</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">])</span>
+    <span class="n">right</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">])</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">plane_center</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">across_lo</span><span class="p">,</span> <span class="n">across_hi</span><span class="p">),</span> <span class="p">(</span><span class="n">up_lo</span><span class="p">,</span> <span class="n">up_hi</span><span class="p">)</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">plane_window</span><span class="p">(</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span>
+    <span class="p">)</span>
+    <span class="c1"># Center the image on the part of the plane inside the domain</span>
+    <span class="n">center</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">center</span> <span class="o">+</span> <span class="p">(</span><span class="n">across_lo</span> <span class="o">+</span> <span class="n">across_hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">across</span> <span class="o">+</span> <span class="p">(</span><span class="n">up_lo</span> <span class="o">+</span> <span class="n">up_hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">up_vec</span>
+    <span class="p">)</span>
+    <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="n">across_hi</span> <span class="o">-</span> <span class="n">across_lo</span><span class="p">,</span> <span class="n">up_hi</span> <span class="o">-</span> <span class="n">up_lo</span>
+
+    <span class="n">finest</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+    <span class="p">)</span>
+    <span class="n">resolution</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">pixels_along</span><span class="p">(</span><span class="n">across</span><span class="p">,</span> <span class="n">finest</span><span class="p">,</span> <span class="n">width</span><span class="p">),</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">pixels_along</span><span class="p">(</span><span class="n">up_vec</span><span class="p">,</span> <span class="n">finest</span><span class="p">,</span> <span class="n">height</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">slc</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">cutting</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">north_vector</span><span class="o">=</span><span class="n">up_vec</span><span class="p">)</span>
+    <span class="n">frb</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">to_frb</span><span class="p">(</span>
+        <span class="n">width</span><span class="o">=</span><span class="n">ds</span><span class="o">.</span><span class="n">quan</span><span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">),</span>
+        <span class="n">height</span><span class="o">=</span><span class="n">ds</span><span class="o">.</span><span class="n">quan</span><span class="p">(</span><span class="n">height</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">),</span>
+        <span class="n">resolution</span><span class="o">=</span><span class="n">resolution</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plane</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"normal_vector"</span><span class="p">:</span> <span class="n">normal</span><span class="p">,</span>
+        <span class="s2">"across"</span><span class="p">:</span> <span class="n">across</span><span class="p">,</span>
+        <span class="s2">"up"</span><span class="p">:</span> <span class="n">up_vec</span><span class="p">,</span>
+        <span class="s2">"center"</span><span class="p">:</span> <span class="n">center</span><span class="p">,</span>
+        <span class="s2">"bounds"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span>
+                <span class="n">center</span> <span class="o">@</span> <span class="n">across</span> <span class="o">-</span> <span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">center</span> <span class="o">@</span> <span class="n">across</span> <span class="o">+</span> <span class="n">width</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">center</span> <span class="o">@</span> <span class="n">up_vec</span> <span class="o">-</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">center</span> <span class="o">@</span> <span class="n">up_vec</span> <span class="o">+</span> <span class="n">height</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="p">]</span>
+        <span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">slc</span><span class="p">,</span> <span class="n">frb</span><span class="p">,</span> <span class="n">plane</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_slices.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Create the output directory</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">outpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../outdata/"</span><span class="p">,</span> <span class="s2">"slices"</span><span class="p">))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Override the units if needed</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"SI"</span><span class="p">]:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"length_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">),</span>
+            <span class="s2">"time_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"s"</span><span class="p">),</span>
+            <span class="s2">"mass_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"kg"</span><span class="p">),</span>
+            <span class="s2">"velocity_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m/s"</span><span class="p">),</span>
+        <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Load the plt files</span>
+    <span class="n">ts</span><span class="p">,</span> <span class="n">index_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_dataseries</span><span class="p">(</span>
+        <span class="n">datapath</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">],</span> <span class="n">pname</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"pname"</span><span class="p">],</span> <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Create the slice array and find indices closest to value</span>
+    <span class="n">islice</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"min"</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"max"</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"num_slices"</span><span class="p">])</span>
+    <span class="p">)</span>
+
+    <span class="c1"># A diagonal normal gives cutting planes, at a distance along the unit normal</span>
+    <span class="n">oblique</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="n">normal</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">slice_basis</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">utils</span><span class="o">.</span><span class="n">direction_label</span><span class="p">(</span><span class="n">across</span><span class="p">),</span> <span class="n">utils</span><span class="o">.</span><span class="n">direction_label</span><span class="p">(</span><span class="n">up_vec</span><span class="p">)]</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Every plane must cut through the domain; check before reading any plotfile</span>
+        <span class="n">ds0</span> <span class="o">=</span> <span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">left</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds0</span><span class="p">,</span> <span class="n">ds0</span><span class="o">.</span><span class="n">domain_left_edge</span><span class="p">)</span>
+        <span class="n">right</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds0</span><span class="p">,</span> <span class="n">ds0</span><span class="o">.</span><span class="n">domain_right_edge</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">distance</span> <span class="ow">in</span> <span class="n">islice</span> <span class="o">+</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grid_offset"</span><span class="p">]:</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">plane_center</span><span class="p">(</span><span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">distance</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">parser</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">"--min/--max: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Loop over the plt files in the data directory</span>
+    <span class="c1"># Share the plotfiles over MPI only when launched with mpirun or srun</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">enable_parallelism</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"no_mpi"</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">piter</span><span class="p">(</span><span class="n">dynamic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Visualize the gradient field, if requested</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_gradient_field</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span>
+
+        <span class="c1"># Get updated attributes for current plt file</span>
+        <span class="n">ds_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">)</span>
+
+        <span class="c1"># Set index according to dict</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">ds</span><span class="p">)]</span>
+
+        <span class="c1"># for xind in xindices:</span>
+        <span class="k">for</span> <span class="n">iloc</span> <span class="ow">in</span> <span class="n">islice</span><span class="p">:</span>
+            <span class="c1"># Do a grid offset if requested</span>
+            <span class="n">iloc</span> <span class="o">+=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grid_offset"</span><span class="p">]</span>
+            <span class="c1"># Create slice and fixed resolution close to the location</span>
+            <span class="n">plane</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+                <span class="n">slc</span><span class="p">,</span> <span class="n">frb</span><span class="p">,</span> <span class="n">plane</span> <span class="o">=</span> <span class="n">cut_plane</span><span class="p">(</span>
+                    <span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">,</span> <span class="n">normal</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span><span class="p">,</span> <span class="n">iloc</span>
+                <span class="p">)</span>
+                <span class="n">plane</span><span class="p">[</span><span class="s2">"labels"</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels</span>
+            <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"x"</span><span class="p">:</span>
+                <span class="n">slc</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">r</span><span class="p">[</span><span class="n">iloc</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">frb</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">to_frb</span><span class="p">(</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">height</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">resolution</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"y"</span><span class="p">:</span>
+                <span class="n">slc</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">r</span><span class="p">[:,</span> <span class="n">iloc</span><span class="p">,</span> <span class="p">:]</span>
+                <span class="n">frb</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">to_frb</span><span class="p">(</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">height</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="n">resolution</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"z"</span><span class="p">:</span>
+                <span class="n">slc</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">r</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">iloc</span><span class="p">]</span>
+                <span class="n">frb</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">to_frb</span><span class="p">(</span>
+                    <span class="n">width</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                    <span class="n">height</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="n">resolution</span><span class="o">=</span><span class="p">(</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                        <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="p">),</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""Normal </span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span><span class="si">}</span><span class="s2"> not in: [x, y, z]"""</span><span class="p">)</span>
+
+            <span class="c1"># Extract the variable requested</span>
+            <span class="n">slices</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">slices</span><span class="p">[</span><span class="n">vis_field</span><span class="p">]</span> <span class="o">=</span> <span class="n">frb</span><span class="p">[</span><span class="n">vis_field</span><span class="p">]</span>
+            <span class="n">fields</span> <span class="o">=</span> <span class="n">vis_field</span>
+
+            <span class="c1"># Save the slice to the output directory</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                    <span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">vis_field</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span><span class="si">}{</span><span class="n">iloc</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">.npz"""</span>
+                <span class="p">),</span>
+                <span class="n">fcoords</span><span class="o">=</span><span class="n">slc</span><span class="o">.</span><span class="n">fcoords</span><span class="p">,</span>
+                <span class="n">normal</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">],</span>
+                <span class="n">iloc</span><span class="o">=</span><span class="n">iloc</span><span class="p">,</span>
+                <span class="n">fields</span><span class="o">=</span><span class="n">fields</span><span class="p">,</span>
+                <span class="n">slices</span><span class="o">=</span><span class="n">slices</span><span class="p">,</span>
+                <span class="n">ds_attributes</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">plane</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,694 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_extraction.extract_isosurfaces &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../data_extraction.html">data_extraction</a></li>
+      <li class="breadcrumb-item active">data_extraction.extract_isosurfaces</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for data_extraction.extract_isosurfaces</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""Extracts iso-surfaces from plot files and saves."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">h5py</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.ndimage</span><span class="w"> </span><span class="kn">import</span> <span class="n">gaussian_filter</span><span class="p">,</span> <span class="n">map_coordinates</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">marching_cubes</span>
+
+<span class="c1"># from skimage.measure import mesh_surface_area</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.ytargs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the parser."""</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytExtractArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments for the extract isosurfaces</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">isosurface_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.get_base_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the base level parser primarily for documentation."""</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.get_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">,</span> <span class="n">cli_args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the arguments from the parser (cli_args defaults to sys.argv)."""</span>
+    <span class="c1"># Parse the command line, merged with the input file if one is given</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_args</span><span class="p">(</span><span class="n">cli_args</span><span class="p">)</span>
+
+    <span class="c1"># Only the hdf5/xdmf output has somewhere to store other fields</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"extra_fields"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">args</span><span class="p">[</span><span class="s2">"format"</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">"hdf5"</span><span class="p">,</span> <span class="s2">"xdmf"</span><span class="p">):</span>
+        <span class="n">parser</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">"--extra_fields needs --format hdf5 or xdmf"</span><span class="p">)</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="sample_at_vertices">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.sample_at_vertices">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sample_at_vertices</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">verts</span><span class="p">,</span> <span class="n">spacing</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Interpolate a cell-centered field to isosurface vertices.</span>
+
+<span class="sd">    ``verts`` are the positions marching_cubes returned for an array the same shape</span>
+<span class="sd">    as ``volume`` with the given ``spacing`` (before any offset), so dividing by the</span>
+<span class="sd">    spacing gives fractional cell indices. Trilinear interpolation matches the linear</span>
+<span class="sd">    interpolation marching cubes uses along each cell edge.</span>
+<span class="sd">    """</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">verts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">spacing</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">map_coordinates</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">indices</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"nearest"</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="write_xdmf">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.write_xdmf">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_xdmf</span><span class="p">(</span>
+    <span class="n">fbase</span><span class="p">,</span>
+    <span class="n">fhdf5</span><span class="p">,</span>
+    <span class="n">field</span><span class="p">,</span>
+    <span class="n">ftype</span><span class="p">,</span>
+    <span class="n">ctype</span><span class="p">,</span>
+    <span class="n">value</span><span class="p">,</span>
+    <span class="n">time</span><span class="p">,</span>
+    <span class="n">conn_shape</span><span class="p">,</span>
+    <span class="n">coord_shape</span><span class="p">,</span>
+    <span class="n">field_shape</span><span class="p">,</span>
+    <span class="n">extra_fields</span><span class="o">=</span><span class="p">(),</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Write the XDMF wrapper based on the hdf5 data."""</span>
+    <span class="c1"># Create the XDMF file for writing</span>
+    <span class="n">xdmf_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fbase</span><span class="si">}</span><span class="s2">.xmf"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span>
+    <span class="c1"># Form the header of the xdmf file</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+<span class="w">        </span><span class="sd">"""&lt;?xml version="1.0"?&gt;\n"""</span>
+<span class="w">        </span><span class="sd">"""&lt;Xdmf Version="3.0" xmlns:xi="http://www.w3.org/2001/XInclude"&gt;\n"""</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Form the Domain block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">&lt;Domain&gt;</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Form the Grid block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t</span><span class="s2">&lt;Grid Name="isoSurface" GridType="Uniform"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t</span><span class="s2">&lt;Information Name="Variable" Value="</span><span class="si">{</span><span class="n">field</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t</span><span class="s2">&lt;Information Name="IsoValue" Value="</span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t</span><span class="s2">&lt;Time Value="</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s2">"/&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Form the Topology block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;Topology TopologyType="Triangle" NumberOfElements="""</span>
+        <span class="sa">f</span><span class="s2">""""</span><span class="si">{</span><span class="n">conn_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">conn_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;DataItem Name="Conn" Format="HDF" DataType="Int" """</span>
+        <span class="sa">f</span><span class="s2">"""Precision="4" Dimensions="</span><span class="si">{</span><span class="n">conn_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">conn_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t\t</span><span class="si">{</span><span class="n">fhdf5</span><span class="si">}</span><span class="s2">.hdf5:/Conn</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;/DataItem&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;/Topology&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Form the Geometry block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;Geometry GeometryType="XYZ" NumberOfElements="""</span>
+        <span class="sa">f</span><span class="s2">""""</span><span class="si">{</span><span class="n">coord_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">coord_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;DataItem Name="Coord" Format="HDF" DataType="Float" """</span>
+        <span class="sa">f</span><span class="s2">"""Precision="8" Dimensions="</span><span class="si">{</span><span class="n">coord_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">coord_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t\t</span><span class="si">{</span><span class="n">fhdf5</span><span class="si">}</span><span class="s2">.hdf5:/Coord</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;/DataItem&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;/Geometry&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Form an Attribute block for the isosurface field and any extra fields, which</span>
+    <span class="c1"># all have one value per sample point</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="n">field</span><span class="p">,</span> <span class="o">*</span><span class="n">extra_fields</span><span class="p">]:</span>
+        <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;Attribute Name="</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="s2">" AttributeType="</span><span class="si">{</span><span class="n">ftype</span><span class="si">}</span><span class="s2">" """</span>
+            <span class="sa">f</span><span class="s2">"""Center="</span><span class="si">{</span><span class="n">ctype</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;DataItem Format="HDF" DataType="Float" Precision="8" """</span>
+            <span class="sa">f</span><span class="s2">"""Dimensions="</span><span class="si">{</span><span class="n">field_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">"&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t\t</span><span class="si">{</span><span class="n">fhdf5</span><span class="si">}</span><span class="s2">.hdf5:/</span><span class="si">{</span><span class="n">attr</span><span class="si">}</span><span class="se">\n</span><span class="s2">"""</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t\t</span><span class="s2">&lt;/DataItem&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="se">\t\t\t</span><span class="s2">&lt;/Attribute&gt;</span><span class="se">\n</span><span class="s2">"""</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Ending of the Grid block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="se">\t\t</span><span class="s2">&lt;/Grid&gt;</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Ending of the Domain block</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"</span><span class="se">\t</span><span class="s2">&lt;/Domain&gt;</span><span class="se">\n</span><span class="s2">"</span><span class="p">)</span>
+
+    <span class="c1"># Ending of the XDFM file</span>
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">"&lt;/Xdmf&gt;"</span><span class="p">)</span>
+
+    <span class="n">xdmf_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="write_hdf5">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.write_hdf5">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_hdf5</span><span class="p">(</span><span class="n">verts</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="n">extra_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Write the HDF5 file based on the extracted isosurface."""</span>
+    <span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">"Conn"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">faces</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">"Coord"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">verts</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">samples</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="p">(</span><span class="n">extra_samples</span> <span class="ow">or</span> <span class="p">{})</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">faces</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">verts</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="do_isosurface_extraction">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.do_isosurface_extraction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">do_isosurface_extraction</span><span class="p">(</span>
+    <span class="n">dregion</span><span class="p">,</span>
+    <span class="n">ds_attributes</span><span class="p">,</span>
+    <span class="n">outformat</span><span class="p">,</span>
+    <span class="n">field</span><span class="p">,</span>
+    <span class="n">value</span><span class="p">,</span>
+    <span class="n">outpath</span><span class="p">,</span>
+    <span class="n">fname</span><span class="p">,</span>
+    <span class="n">comm</span><span class="p">,</span>
+    <span class="n">rank</span><span class="p">,</span>
+    <span class="n">size</span><span class="p">,</span>
+    <span class="n">do_ghost</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">do_yt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">smooth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">iso_edge</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">do_gradient</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">extra_fields</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Do the isosurface extraction according to the input parameters."""</span>
+    <span class="c1"># Other fields to store on the surface, skipping repeats and the field itself</span>
+    <span class="n">extra_fields</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">dict</span><span class="o">.</span><span class="n">fromkeys</span><span class="p">(</span><span class="n">extra_fields</span> <span class="ow">or</span> <span class="p">[])</span> <span class="k">if</span> <span class="n">f</span> <span class="o">!=</span> <span class="n">field</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">outformat</span> <span class="o">==</span> <span class="s2">"ply"</span><span class="p">:</span>
+        <span class="c1"># Create iso-surface</span>
+        <span class="n">surf</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">surface</span><span class="p">(</span>
+            <span class="n">data_source</span><span class="o">=</span><span class="n">dregion</span><span class="p">,</span>
+            <span class="n">surface_field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+            <span class="n">field_value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">surf</span><span class="o">.</span><span class="n">export_ply</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.ply"</span><span class="p">),</span>
+            <span class="n">bounds</span><span class="o">=</span><span class="p">[(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)],</span>
+            <span class="n">no_ghost</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">outformat</span> <span class="o">==</span> <span class="s2">"obj"</span><span class="p">:</span>
+        <span class="n">dregion</span><span class="o">.</span><span class="n">extract_isocontours</span><span class="p">(</span>
+            <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">filename</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.obj"</span><span class="p">),</span>
+            <span class="n">rescale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">outformat</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"hdf5"</span><span class="p">,</span> <span class="s2">"xdmf"</span><span class="p">]:</span>
+        <span class="c1"># xdmf or hdf5 will write the hdf5 file and the xdmf wrapper file</span>
+
+        <span class="k">if</span> <span class="n">do_yt</span><span class="p">:</span>
+            <span class="n">verts</span><span class="p">,</span> <span class="n">samples</span> <span class="o">=</span> <span class="n">dregion</span><span class="o">.</span><span class="n">extract_isocontours</span><span class="p">(</span>
+                <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                <span class="n">rescale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">sample_values</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">all_verts_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span>
+            <span class="c1"># Get the shape of the vertices for the connection array</span>
+            <span class="n">len_verts</span><span class="p">,</span> <span class="n">dep_verts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">verts</span><span class="p">)</span>
+
+            <span class="c1"># Make faces connection array taking the vertices in groups of three</span>
+            <span class="n">faces_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">len_verts</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">all_faces_np</span> <span class="o">=</span> <span class="n">faces_np</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dep_verts</span><span class="p">))</span>
+            <span class="n">all_samples_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+
+            <span class="c1"># yt builds the same surface each time, so sample each extra field</span>
+            <span class="c1"># the same way as the isosurface field</span>
+            <span class="n">all_extra_np</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">extra_fields</span><span class="p">:</span>
+                <span class="n">_</span><span class="p">,</span> <span class="n">extra_samples</span> <span class="o">=</span> <span class="n">dregion</span><span class="o">.</span><span class="n">extract_isocontours</span><span class="p">(</span>
+                    <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+                    <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                    <span class="n">rescale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">sample_values</span><span class="o">=</span><span class="n">efield</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">all_extra_np</span><span class="p">[</span><span class="n">efield</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">extra_samples</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">verts_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">faces_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+            <span class="n">samples_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">extra_np</span> <span class="o">=</span> <span class="p">{</span><span class="n">efield</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">))</span> <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">extra_fields</span><span class="p">}</span>
+
+            <span class="n">num_grids</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dregion</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">grids</span><span class="p">)</span>
+
+            <span class="n">comm</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">dregion</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">grids</span><span class="p">[</span><span class="n">rank</span><span class="p">:</span><span class="n">num_grids</span><span class="p">:</span><span class="n">size</span><span class="p">]:</span>
+
+                <span class="k">if</span> <span class="n">do_ghost</span><span class="p">:</span>
+                    <span class="n">g</span><span class="p">,</span> <span class="n">child_mask</span> <span class="o">=</span> <span class="n">retrieve_ghost_zones</span><span class="p">(</span>
+                        <span class="n">cube</span><span class="o">=</span><span class="n">g</span><span class="p">,</span>
+                        <span class="n">n_zones</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">ds_left_edge</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">],</span>
+                        <span class="n">ds_right_edge</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">],</span>
+                        <span class="n">do_gradient</span><span class="o">=</span><span class="n">do_gradient</span><span class="p">,</span>
+                    <span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">child_mask</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">child_mask</span>
+                <span class="c1"># Get the physical cell spacing of the grid</span>
+                <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">dds</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">iso_edge</span><span class="p">:</span>
+                    <span class="n">child_mask</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">child_mask</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)])</span> <span class="o">&gt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">)])</span> <span class="o">&lt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="n">child_mask</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">child_mask</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)])</span> <span class="o">&gt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)])</span> <span class="o">&lt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+                    <span class="p">)</span>
+                    <span class="n">child_mask</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">child_mask</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)])</span> <span class="o">&gt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">)])</span> <span class="o">&lt;=</span> <span class="n">iso_edge</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># perform smoothing before marching cubes</span>
+                <span class="k">if</span> <span class="n">smooth</span><span class="p">:</span>
+                    <span class="n">cube</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">sigma</span><span class="o">=</span><span class="n">smooth</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">cube</span> <span class="o">=</span> <span class="n">g</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">verts</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">normals</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="n">marching_cubes</span><span class="p">(</span>
+                        <span class="n">volume</span><span class="o">=</span><span class="n">cube</span><span class="p">,</span>
+                        <span class="n">level</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                        <span class="n">allow_degenerate</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">step_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">gradient_direction</span><span class="o">=</span><span class="s2">"ascent"</span><span class="p">,</span>
+                        <span class="n">spacing</span><span class="o">=</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">),</span>
+                        <span class="n">method</span><span class="o">=</span><span class="s2">"lewiner"</span><span class="p">,</span>
+                        <span class="n">mask</span><span class="o">=</span><span class="n">child_mask</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                    <span class="c1"># area = mesh_surface_area(verts, faces)</span>
+
+                    <span class="c1"># Store the field's own value at each vertex: the "values" that</span>
+                    <span class="c1"># marching_cubes returns are only a local measure for coloring</span>
+                    <span class="n">values</span> <span class="o">=</span> <span class="n">sample_at_vertices</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">field</span><span class="p">],</span> <span class="n">verts</span><span class="p">,</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">))</span>
+
+                    <span class="c1"># Sample the extra fields at the vertices before they are moved</span>
+                    <span class="c1"># to physical positions</span>
+                    <span class="n">grid_extra</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="n">efield</span><span class="p">:</span> <span class="n">sample_at_vertices</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="n">efield</span><span class="p">],</span> <span class="n">verts</span><span class="p">,</span> <span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">,</span> <span class="n">dz</span><span class="p">))</span>
+                        <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">extra_fields</span>
+                    <span class="p">}</span>
+
+                    <span class="c1"># offset the physical location</span>
+                    <span class="n">verts</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">fcoords</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+
+                    <span class="c1"># offset the face indices by the current length of the array</span>
+                    <span class="n">len_verts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">verts_np</span><span class="p">)</span>
+                    <span class="n">faces</span> <span class="o">+=</span> <span class="n">len_verts</span>
+
+                    <span class="n">verts_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">verts_np</span><span class="p">,</span> <span class="n">verts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">faces_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">faces_np</span><span class="p">,</span> <span class="n">faces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">samples_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">samples_np</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">efield</span><span class="p">,</span> <span class="n">esamples</span> <span class="ow">in</span> <span class="n">grid_extra</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">extra_np</span><span class="p">[</span><span class="n">efield</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extra_np</span><span class="p">[</span><span class="n">efield</span><span class="p">],</span> <span class="n">esamples</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                    <span class="c1"># Skip the regions that do not have values for the isosurface</span>
+                    <span class="k">pass</span>
+
+                <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
+                    <span class="c1"># Skip the regions that are fully masked</span>
+                    <span class="k">pass</span>
+
+                <span class="c1"># clear the data to reduce memory constraints</span>
+                <span class="n">g</span><span class="o">.</span><span class="n">clear_data</span><span class="p">()</span>
+
+            <span class="c1"># Explicitly cast the arrays as necessary types</span>
+            <span class="n">verts_np</span> <span class="o">=</span> <span class="n">verts_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+            <span class="n">faces_np</span> <span class="o">=</span> <span class="n">faces_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">samples_np</span> <span class="o">=</span> <span class="n">samples_np</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+            <span class="n">comm</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+            <span class="c1"># gather and combine</span>
+            <span class="n">all_verts</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">verts_np</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">all_faces</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">faces_np</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">all_samples</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">samples_np</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">all_extra</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">extra_np</span><span class="p">,</span> <span class="n">root</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Barrier before writing</span>
+            <span class="n">comm</span><span class="o">.</span><span class="n">barrier</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">all_verts_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                <span class="n">all_faces_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+                <span class="n">all_samples_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="mi">0</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">):</span>
+                    <span class="c1"># offset the face indices by the current length of the array</span>
+                    <span class="n">len_verts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">all_verts_np</span><span class="p">)</span>
+                    <span class="n">all_faces</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">len_verts</span>
+
+                    <span class="n">all_verts_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_verts_np</span><span class="p">,</span> <span class="n">all_verts</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">all_faces_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_faces_np</span><span class="p">,</span> <span class="n">all_faces</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">all_samples_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">all_samples_np</span><span class="p">,</span> <span class="n">all_samples</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+                <span class="c1"># Combine the extra fields in the same rank order as the vertices</span>
+                <span class="n">all_extra_np</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="n">efield</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span>
+                        <span class="p">[</span><span class="n">all_extra</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">efield</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">size</span><span class="p">)]</span>
+                    <span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">efield</span> <span class="ow">in</span> <span class="n">extra_fields</span>
+                <span class="p">}</span>
+
+        <span class="c1"># Write out the hdf5 and the xdmf file</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">conn_shape</span><span class="p">,</span> <span class="n">coord_shape</span><span class="p">,</span> <span class="n">field_shape</span> <span class="o">=</span> <span class="n">write_hdf5</span><span class="p">(</span>
+                <span class="n">verts</span><span class="o">=</span><span class="n">all_verts_np</span><span class="p">,</span>
+                <span class="n">samples</span><span class="o">=</span><span class="n">all_samples_np</span><span class="p">,</span>
+                <span class="n">faces</span><span class="o">=</span><span class="n">all_faces_np</span><span class="p">,</span>
+                <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+                <span class="n">fname</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">fname</span><span class="si">}</span><span class="s2">.hdf5"</span><span class="p">),</span>
+                <span class="n">extra_samples</span><span class="o">=</span><span class="n">all_extra_np</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">write_xdmf</span><span class="p">(</span>
+                <span class="n">fbase</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">fname</span><span class="p">),</span>
+                <span class="n">fhdf5</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
+                <span class="n">field</span><span class="o">=</span><span class="n">field</span><span class="p">,</span>
+                <span class="n">ftype</span><span class="o">=</span><span class="s2">"Scalar"</span><span class="p">,</span>
+                <span class="n">ctype</span><span class="o">=</span><span class="s2">"Node"</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">do_yt</span> <span class="k">else</span> <span class="s2">"Cell"</span><span class="p">,</span>
+                <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+                <span class="n">time</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"time"</span><span class="p">],</span>
+                <span class="n">conn_shape</span><span class="o">=</span><span class="n">conn_shape</span><span class="p">,</span>
+                <span class="n">coord_shape</span><span class="o">=</span><span class="n">coord_shape</span><span class="p">,</span>
+                <span class="n">field_shape</span><span class="o">=</span><span class="n">field_shape</span><span class="p">,</span>
+                <span class="n">extra_fields</span><span class="o">=</span><span class="n">extra_fields</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Format </span><span class="si">{</span><span class="n">outformat</span><span class="si">}</span><span class="s2"> not in [ply, obj, hdf5, xdmf]"</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ghost_padding">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.ghost_padding">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">ghost_padding</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">act_dims</span><span class="p">,</span> <span class="n">level_dims</span><span class="p">,</span> <span class="n">n_zones</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return how many ghost cells fit below and above a grid in each direction.</span>
+
+<span class="sd">    Ghost cells are only added where they stay inside the domain, which is</span>
+<span class="sd">    ``level_dims`` cells across at the grid's level.</span>
+<span class="sd">    """</span>
+    <span class="n">start_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">start_idx</span><span class="p">)</span>
+    <span class="n">act_dims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">act_dims</span><span class="p">)</span>
+    <span class="n">pad_low</span> <span class="o">=</span> <span class="n">n_zones</span> <span class="o">*</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">-</span> <span class="n">n_zones</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">pad_high</span> <span class="o">=</span> <span class="n">n_zones</span> <span class="o">*</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">+</span> <span class="n">act_dims</span> <span class="o">+</span> <span class="n">n_zones</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">level_dims</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pad_low</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="n">pad_high</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="retrieve_ghost_zones">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.retrieve_ghost_zones">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">retrieve_ghost_zones</span><span class="p">(</span><span class="n">cube</span><span class="p">,</span> <span class="n">n_zones</span><span class="p">,</span> <span class="n">ds_left_edge</span><span class="p">,</span> <span class="n">ds_right_edge</span><span class="p">,</span> <span class="n">do_gradient</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return a grid grown by ghost cells, and its child mask padded to match.</span>
+
+<span class="sd">    The ghost cells come from a covering grid at the grid's own level, so the grown</span>
+<span class="sd">    grid keeps the original cell size and lines up with the original cells.</span>
+
+<span class="sd">    The padded mask is False in the ghost cells. marching_cubes only processes a cell</span>
+<span class="sd">    when the mask is True at the cell's upper corner, so the ghost layer below a grid</span>
+<span class="sd">    fills the gap to its lower neighbor (closing the crack between them) and the layer</span>
+<span class="sd">    above it is never used. Each gap is therefore filled once, by the grid above it.</span>
+<span class="sd">    """</span>
+    <span class="n">dds</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">dds</span>
+    <span class="n">start_idx</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">get_global_startindex</span><span class="p">()</span>
+    <span class="n">act_dims</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">ActiveDimensions</span>
+
+    <span class="c1"># Number of cells across the domain at this grid's level</span>
+    <span class="n">level_dims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rint</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">((</span><span class="n">ds_right_edge</span> <span class="o">-</span> <span class="n">ds_left_edge</span><span class="p">)</span> <span class="o">/</span> <span class="n">dds</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">pad_low</span><span class="p">,</span> <span class="n">pad_high</span> <span class="o">=</span> <span class="n">ghost_padding</span><span class="p">(</span><span class="n">start_idx</span><span class="p">,</span> <span class="n">act_dims</span><span class="p">,</span> <span class="n">level_dims</span><span class="p">,</span> <span class="n">n_zones</span><span class="p">)</span>
+
+    <span class="n">child_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+        <span class="n">cube</span><span class="o">.</span><span class="n">child_mask</span><span class="p">,</span>
+        <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">pad_low</span><span class="p">,</span> <span class="n">pad_high</span><span class="p">)),</span>
+        <span class="n">mode</span><span class="o">=</span><span class="s2">"constant"</span><span class="p">,</span>
+        <span class="n">constant_values</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Build the grown grid at the same level as the original one</span>
+    <span class="n">ghost_cube</span> <span class="o">=</span> <span class="n">cube</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">covering_grid</span><span class="p">(</span>
+        <span class="n">level</span><span class="o">=</span><span class="n">cube</span><span class="o">.</span><span class="n">Level</span><span class="p">,</span>
+        <span class="n">left_edge</span><span class="o">=</span><span class="n">ds_left_edge</span> <span class="o">+</span> <span class="p">(</span><span class="n">start_idx</span> <span class="o">-</span> <span class="n">pad_low</span><span class="p">)</span> <span class="o">*</span> <span class="n">dds</span><span class="p">,</span>
+        <span class="n">dims</span><span class="o">=</span><span class="n">act_dims</span> <span class="o">+</span> <span class="n">pad_low</span> <span class="o">+</span> <span class="n">pad_high</span><span class="p">,</span>
+        <span class="n">num_ghost_zones</span><span class="o">=</span><span class="n">n_zones</span> <span class="k">if</span> <span class="n">do_gradient</span> <span class="k">else</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ghost_cube</span><span class="p">,</span> <span class="n">child_mask</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../data_extraction.html#data_extraction.extract_isosurfaces.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Main function for extracting isosurfaces."""</span>
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Share the grids over MPI only when launched with mpirun or srun</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_mpi_comm</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"no_mpi"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">comm</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">SerialComm</span><span class="p">()</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"single_level"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">"Note: --single_level no longer changes anything; ghost cells are "</span>
+            <span class="s2">"always built at each grid's own level."</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Create the output directory</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]:</span>
+            <span class="n">outpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../outdata"</span><span class="p">,</span> <span class="s2">"isosurfaces"</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">outpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Load the plt files</span>
+    <span class="n">ts</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_dataseries</span><span class="p">(</span>
+        <span class="n">datapath</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">],</span>
+        <span class="n">pname</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"pname"</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">base_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"verbose"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""The fields in this dataset are: </span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">"field_list"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+
+    <span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="c1"># Loop over the plt files in the data directory</span>
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+        <span class="c1"># Barrier at the start of each ds iteration</span>
+        <span class="n">comm</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+        <span class="c1"># Visualize the gradient field, if requested</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_gradient_field</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span>
+
+        <span class="c1"># Force periodicity for the yt surface extraction routines...</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"format"</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"ply"</span><span class="p">,</span> <span class="s2">"obj"</span><span class="p">]</span> <span class="ow">or</span> <span class="n">args</span><span class="p">[</span><span class="s2">"yt"</span><span class="p">]:</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">force_periodicity</span><span class="p">()</span>
+
+        <span class="c1"># Get the updated attributes for the current plt file</span>
+        <span class="n">ds_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">)</span>
+
+        <span class="c1"># Create box region the encompasses the domain</span>
+        <span class="n">dregion</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">all_data</span><span class="p">()</span>
+
+        <span class="c1"># Export the isosurfaces in specified format</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""isosurface_</span><span class="si">{</span><span class="n">vis_field</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">basename</span><span class="si">}</span><span class="s2">"""</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"value"</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"vfunction"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">vstime</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"vfunction"</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">vetime</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"vfunction"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">vsval</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"vfunction"</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">veval</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"vfunction"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span>
+            <span class="n">ds_time</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"time"</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">ds_time</span> <span class="o">&gt;=</span> <span class="n">vetime</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">veval</span>
+            <span class="k">elif</span> <span class="n">ds_time</span> <span class="o">&lt;=</span> <span class="n">vstime</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">vsval</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="n">vsval</span> <span class="o">+</span> <span class="p">(</span><span class="n">veval</span> <span class="o">-</span> <span class="n">vsval</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="p">(</span><span class="n">ds_time</span> <span class="o">-</span> <span class="n">vstime</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">vetime</span> <span class="o">-</span> <span class="n">vstime</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"isosurface_</span><span class="si">{</span><span class="n">vis_field</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">basename</span><span class="si">}</span><span class="s2">_vfunction_</span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.2e</span><span class="si">}</span><span class="s2">"</span>
+            <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""The value at time = </span><span class="si">{</span><span class="n">ds_time</span><span class="si">}</span><span class="s2"> is </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">."""</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s2">"must have either value or vfunction defined!"</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"yt"</span><span class="p">]:</span>
+            <span class="n">fname</span> <span class="o">+=</span> <span class="s2">"_yt"</span>
+
+        <span class="n">do_isosurface_extraction</span><span class="p">(</span>
+            <span class="n">dregion</span><span class="o">=</span><span class="n">dregion</span><span class="p">,</span>
+            <span class="n">ds_attributes</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">,</span>
+            <span class="n">outformat</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"format"</span><span class="p">],</span>
+            <span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+            <span class="n">outpath</span><span class="o">=</span><span class="n">outpath</span> <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">fname</span><span class="o">=</span><span class="n">fname</span><span class="p">,</span>
+            <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span>
+            <span class="n">rank</span><span class="o">=</span><span class="n">rank</span><span class="p">,</span>
+            <span class="n">size</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">do_ghost</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"do_ghost"</span><span class="p">],</span>
+            <span class="n">do_yt</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"yt"</span><span class="p">],</span>
+            <span class="n">smooth</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"smooth"</span><span class="p">],</span>
+            <span class="n">ds</span><span class="o">=</span><span class="n">ds</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"format"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"ply"</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">iso_edge</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"iso_edge"</span><span class="p">],</span>
+            <span class="n">do_gradient</span><span class="o">=</span><span class="kc">True</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="n">extra_fields</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"extra_fields"</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Time to do isosurface extract = </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">}</span><span class="s2"> seconds."</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">rank</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Elapsed time = </span><span class="si">{</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">start_time</span><span class="si">}</span><span class="s2"> seconds."</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

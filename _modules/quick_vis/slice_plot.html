@@ -1,0 +1,732 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>quick_vis.slice_plot &mdash; ytScripts  documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            ytScripts
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_vis.html">quick_vis package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_extraction.html">data_extraction package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../plot_data.html">plot_data package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ytscripts.html">ytscripts package</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../udfs.html">udfs package</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">ytScripts</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+          <li class="breadcrumb-item"><a href="../quick_vis.html">quick_vis</a></li>
+      <li class="breadcrumb-item active">quick_vis.slice_plot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for quick_vis.slice_plot</h1><div class="highlight"><pre>
+<span></span><span class="sd">"""2D slice down the middle of the domain."""</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">importlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pickle</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pl</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">inspect</span><span class="w"> </span><span class="kn">import</span> <span class="n">getmembers</span><span class="p">,</span> <span class="n">isfunction</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">yt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">skimage.measure</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_contours</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">yt.units.yt_array</span><span class="w"> </span><span class="kn">import</span> <span class="n">YTArray</span>
+
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">)))</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>  <span class="c1"># noqa: E402</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.utilities</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">utils</span>  <span class="c1"># noqa: E402</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">ytscripts.ytargs</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ytargs</span>  <span class="c1"># noqa: E402</span>
+
+
+<div class="viewcode-block" id="configure_tex">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.configure_tex">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">configure_tex</span><span class="p">(</span><span class="n">use_tex</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Render plot text with LaTeX, only when asked for and LaTeX is installed.</span>
+
+<span class="sd">    LaTeX rendering is opt-in: it is slower, and a broken TeX install can make</span>
+<span class="sd">    matplotlib wait forever on its luatex helper. Returns whether it is on.</span>
+<span class="sd">    """</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_tex</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_latex_available</span><span class="p">():</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"--use_tex was given but LaTeX was not found; using standard fonts."</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s2">"text"</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">True</span></div>
+
+
+
+<div class="viewcode-block" id="get_parser">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.get_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the parser."""</span>
+    <span class="n">ytparse</span> <span class="o">=</span> <span class="n">ytargs</span><span class="o">.</span><span class="n">ytVisArgs</span><span class="p">()</span>
+    <span class="c1"># Add in the arguments needed for SlicePlot</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">orientation_args</span><span class="p">(</span><span class="n">up</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">vis_2d_args</span><span class="p">()</span>
+    <span class="n">ytparse</span><span class="o">.</span><span class="n">slice_args</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">ytparse</span></div>
+
+
+
+<div class="viewcode-block" id="get_base_parser">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.get_base_parser">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_base_parser</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">"""Get the base level parser primarily for documentation."""</span>
+    <span class="k">return</span> <span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_args">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.get_args">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Get the arguments from the parser."""</span>
+    <span class="c1"># Parse the command line, merged with the input file if one is given</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">get_args</span><span class="p">()</span>
+
+    <span class="c1"># Return the parsed arguments as a dict</span>
+    <span class="k">return</span> <span class="n">args</span></div>
+
+
+
+<div class="viewcode-block" id="image_axes">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.image_axes">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">image_axes</span><span class="p">(</span><span class="n">normal</span><span class="p">,</span> <span class="n">up</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the axes drawn across and up the slice image, and whether yt swaps them.</span>
+
+<span class="sd">    yt draws (y, z) for normal x, (z, x) for normal y and (x, y) for normal z, and</span>
+<span class="sd">    its swap_axes() exchanges the two. ``up`` names the axis to draw up the image.</span>
+<span class="sd">    Without it, this script keeps yt's choice, except that it swaps the axes for</span>
+<span class="sd">    normal y so that z points up there too.</span>
+<span class="sd">    """</span>
+    <span class="n">yt_axes</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"x"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"y"</span><span class="p">,</span> <span class="s2">"z"</span><span class="p">),</span> <span class="s2">"y"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"z"</span><span class="p">,</span> <span class="s2">"x"</span><span class="p">),</span> <span class="s2">"z"</span><span class="p">:</span> <span class="p">(</span><span class="s2">"x"</span><span class="p">,</span> <span class="s2">"y"</span><span class="p">)}</span>
+    <span class="k">if</span> <span class="n">normal</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">yt_axes</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">"The normal must be x, y or z, not </span><span class="si">{</span><span class="n">normal</span><span class="si">!r}</span><span class="s2">"</span><span class="p">)</span>
+    <span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span> <span class="o">=</span> <span class="n">yt_axes</span><span class="p">[</span><span class="n">normal</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">up</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">swap</span> <span class="o">=</span> <span class="n">normal</span> <span class="o">==</span> <span class="s2">"y"</span>
+    <span class="k">elif</span> <span class="n">up</span> <span class="ow">in</span> <span class="p">(</span><span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span><span class="p">):</span>
+        <span class="n">swap</span> <span class="o">=</span> <span class="n">up</span> <span class="o">==</span> <span class="n">horizontal</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"Up must be </span><span class="si">{</span><span class="n">horizontal</span><span class="si">}</span><span class="s2"> or </span><span class="si">{</span><span class="n">vertical</span><span class="si">}</span><span class="s2"> for normal </span><span class="si">{</span><span class="n">normal</span><span class="si">}</span><span class="s2">, not </span><span class="si">{</span><span class="n">up</span><span class="si">!r}</span><span class="s2">"</span>
+        <span class="p">)</span>
+    <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+        <span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span> <span class="o">=</span> <span class="n">vertical</span><span class="p">,</span> <span class="n">horizontal</span>
+    <span class="k">return</span> <span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span><span class="p">,</span> <span class="n">swap</span></div>
+
+
+
+<div class="viewcode-block" id="contour_lines">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.contour_lines">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">contour_lines</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">extent</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Return the contour lines of an image in plot coordinates.</span>
+
+<span class="sd">    ``image`` is indexed [row, column] with row 0 at the bottom, and ``extent`` is</span>
+<span class="sd">    (left, right, bottom, top) of the whole image, as matplotlib's imshow uses. Each</span>
+<span class="sd">    line is an (N, 2) array of horizontal and vertical positions, measured from the</span>
+<span class="sd">    pixel centers.</span>
+<span class="sd">    """</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="n">nrows</span><span class="p">,</span> <span class="n">ncols</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="n">extent</span>
+    <span class="n">dh</span> <span class="o">=</span> <span class="p">(</span><span class="n">right</span> <span class="o">-</span> <span class="n">left</span><span class="p">)</span> <span class="o">/</span> <span class="n">ncols</span>
+    <span class="n">dv</span> <span class="o">=</span> <span class="p">(</span><span class="n">top</span> <span class="o">-</span> <span class="n">bottom</span><span class="p">)</span> <span class="o">/</span> <span class="n">nrows</span>
+
+    <span class="c1"># Pixels off the domain of an off-axis slice hold NaN; keep contours out of them</span>
+    <span class="n">finite</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">finite</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="k">else</span> <span class="n">finite</span>
+
+    <span class="k">return</span> <span class="p">[</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="p">(</span><span class="n">line</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dh</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">+</span> <span class="p">(</span><span class="n">line</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="n">dv</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">find_contours</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">level</span><span class="p">),</span> <span class="n">mask</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+    <span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="create_slice_plot">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.create_slice_plot">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_slice_plot</span><span class="p">(</span>
+    <span class="n">ds</span><span class="p">,</span>
+    <span class="n">args</span><span class="p">,</span>
+    <span class="n">configs</span><span class="p">,</span>
+    <span class="n">slc_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">vis_field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">axes_unit</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pbox_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">pbox_center</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">udf_funcs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">eb_var_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="c1"># Get updated attributes for each plt file</span>
+    <span class="n">ds_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">)</span>
+
+    <span class="c1"># get number of cells in the level 0 non-EB grid</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">]:</span>
+        <span class="n">dx0</span><span class="p">,</span> <span class="n">dy0</span><span class="p">,</span> <span class="n">dz0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"dxyz"</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="n">eb_var_name</span><span class="p">)</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">field_list</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">covering_grid</span><span class="p">(</span>
+                <span class="n">level</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">left_edge</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">],</span>
+                <span class="n">dims</span><span class="o">=</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">],</span>
+                <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">num_cells_0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">data</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="n">eb_var_name</span><span class="p">)]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># No EB in this dataset, so every level 0 cell is fluid</span>
+            <span class="n">num_cells_0</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"dimensions"</span><span class="p">]))</span>
+        <span class="n">domain_volume</span> <span class="o">=</span> <span class="n">dx0</span> <span class="o">*</span> <span class="n">dy0</span> <span class="o">*</span> <span class="n">dz0</span> <span class="o">*</span> <span class="n">num_cells_0</span>
+
+    <span class="c1"># The axes drawn across and up the image. A diagonal normal gives an off-axis</span>
+    <span class="c1"># slice, turned by north_vector rather than swapped.</span>
+    <span class="n">oblique</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="n">normal</span><span class="p">,</span> <span class="n">across</span><span class="p">,</span> <span class="n">up_vec</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">slice_basis</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"up"</span><span class="p">])</span>
+        <span class="n">horizontal</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">direction_label</span><span class="p">(</span><span class="n">across</span><span class="p">)</span>
+        <span class="n">vertical</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">direction_label</span><span class="p">(</span><span class="n">up_vec</span><span class="p">)</span>
+        <span class="n">swap</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># The part of the plane inside the domain, as offsets from the slice center</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">slc_center</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">across_lo</span><span class="p">,</span> <span class="n">across_hi</span><span class="p">),</span> <span class="p">(</span><span class="n">up_lo</span><span class="p">,</span> <span class="n">up_hi</span><span class="p">)</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">plane_window</span><span class="p">(</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">]),</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">]),</span>
+            <span class="n">normal</span><span class="p">,</span>
+            <span class="n">center</span><span class="p">,</span>
+            <span class="n">across</span><span class="p">,</span>
+            <span class="n">up_vec</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># yt measures the image from the slice center. The axes show positions along</span>
+        <span class="c1"># across and up instead, such as (x - z)/sqrt(2) and y, which are these</span>
+        <span class="c1"># offsets plus where the center sits along each direction.</span>
+        <span class="n">center_along</span> <span class="o">=</span> <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">center</span> <span class="o">@</span> <span class="n">across</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">center</span> <span class="o">@</span> <span class="n">up_vec</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span><span class="p">,</span> <span class="n">swap</span> <span class="o">=</span> <span class="n">image_axes</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"up"</span><span class="p">])</span>
+
+    <span class="c1"># Image resolution: one pixel per finest cell, unless --buff gives it</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"buff"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">buff_size</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"buff"</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="n">finest</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"width"</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span>
+            <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+        <span class="p">)</span>
+        <span class="n">buff_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">pixels_along</span><span class="p">(</span><span class="n">across</span><span class="p">,</span> <span class="n">finest</span><span class="p">,</span> <span class="n">across_hi</span> <span class="o">-</span> <span class="n">across_lo</span><span class="p">),</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">pixels_along</span><span class="p">(</span><span class="n">up_vec</span><span class="p">,</span> <span class="n">finest</span><span class="p">,</span> <span class="n">up_hi</span> <span class="o">-</span> <span class="n">up_lo</span><span class="p">),</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">resolution</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="s2">"xyz"</span><span class="p">,</span> <span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"resolution"</span><span class="p">]))</span>
+        <span class="n">buff_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">resolution</span><span class="p">[</span><span class="n">horizontal</span><span class="p">],</span> <span class="n">resolution</span><span class="p">[</span><span class="n">vertical</span><span class="p">])</span>
+    <span class="c1"># yt 4.3 draws only part of the image when it swaps the axes of a buffer that is</span>
+    <span class="c1"># not square</span>
+    <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+        <span class="n">buff_size</span> <span class="o">=</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">buff_size</span><span class="p">),)</span> <span class="o">*</span> <span class="mi">2</span>
+
+    <span class="c1"># Plot the field</span>
+    <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="n">slc</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">SlicePlot</span><span class="p">(</span>
+            <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+            <span class="n">normal</span><span class="o">=</span><span class="n">normal</span><span class="p">,</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">center</span><span class="o">=</span><span class="n">slc_center</span><span class="p">,</span>
+            <span class="n">north_vector</span><span class="o">=</span><span class="n">up_vec</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">across_hi</span> <span class="o">-</span> <span class="n">across_lo</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">up_hi</span> <span class="o">-</span> <span class="n">up_lo</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">),</span>
+            <span class="p">),</span>
+            <span class="n">buff_size</span><span class="o">=</span><span class="n">buff_size</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Off-axis images are measured from the slice center; move the window onto</span>
+        <span class="c1"># the domain</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_center</span><span class="p">(((</span><span class="n">across_lo</span> <span class="o">+</span> <span class="n">across_hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span> <span class="p">(</span><span class="n">up_lo</span> <span class="o">+</span> <span class="n">up_hi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">slc</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">SlicePlot</span><span class="p">(</span>
+            <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+            <span class="n">normal</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">],</span>
+            <span class="n">fields</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">center</span><span class="o">=</span><span class="n">slc_center</span><span class="p">,</span>
+            <span class="n">buff_size</span><span class="o">=</span><span class="n">buff_size</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+            <span class="n">slc</span><span class="o">.</span><span class="n">swap_axes</span><span class="p">()</span>
+    <span class="n">slc</span><span class="o">.</span><span class="n">set_axes_unit</span><span class="p">(</span><span class="n">axes_unit</span><span class="p">)</span>
+    <span class="c1"># Off-axis, native measures the image from the slice center rather than from the</span>
+    <span class="c1"># middle of the window</span>
+    <span class="n">slc</span><span class="o">.</span><span class="n">set_origin</span><span class="p">(</span><span class="s2">"native"</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># --pbox is given across then up the image, but yt sets the window in its</span>
+        <span class="c1"># own order, from before the swap. Off-axis, yt takes the window center as</span>
+        <span class="c1"># an offset from the slice center.</span>
+        <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+            <span class="n">pbox_width</span><span class="p">,</span> <span class="n">pbox_center</span> <span class="o">=</span> <span class="n">pbox_width</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">pbox_center</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+            <span class="n">pbox_center</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="o">-</span> <span class="n">along</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">along</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">pbox_center</span><span class="p">,</span> <span class="n">center_along</span><span class="p">)]</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_width</span><span class="p">(</span><span class="n">pbox_width</span><span class="p">)</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_center</span><span class="p">(</span><span class="n">pbox_center</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_zlim</span><span class="p">(</span><span class="n">vis_field</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"fbounds"</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="p">[</span><span class="s2">"no_time"</span><span class="p">]:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">annotate_timestamp</span><span class="p">(</span><span class="n">draw_inset_box</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"--grids is not available for diagonal slices; skipping it."</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">slc</span><span class="o">.</span><span class="n">annotate_grids</span><span class="p">(</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+                <span class="n">min_level</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+                <span class="n">max_level</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grids"</span><span class="p">][</span><span class="mi">3</span><span class="p">],</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">slc</span><span class="o">.</span><span class="n">annotate_grids</span><span class="p">()</span>
+
+    <span class="c1"># annotate the cell edges of the mesh. On an off-axis slice yt draws each cell as</span>
+    <span class="c1"># a box of its x and y widths, which is not the shape the plane cuts through it.</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]</span> <span class="ow">and</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"--cells is not available for diagonal slices; skipping it."</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">args</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">]:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">annotate_cell_edges</span><span class="p">(</span>
+            <span class="n">line_width</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">1</span><span class="p">]),</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"cells"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""Plotting </span><span class="si">{</span><span class="n">vis_field</span><span class="si">}</span><span class="s2"> for index </span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">..."""</span><span class="p">)</span>
+    <span class="n">slc</span><span class="o">.</span><span class="n">set_log</span><span class="p">(</span><span class="n">vis_field</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"plot_log"</span><span class="p">])</span>
+    <span class="n">slc</span><span class="o">.</span><span class="n">set_cmap</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"cmap"</span><span class="p">])</span>
+
+    <span class="c1"># Set the colorbar label for gradient fields (too long)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"magnitude"</span><span class="p">:</span>
+            <span class="n">new_label</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">"""|$\nabla$ </span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span><span class="si">}</span><span class="s2">|"""</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">new_label</span> <span class="o">=</span> <span class="sa">rf</span><span class="s2">"""$\nabla_</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]</span><span class="si">}</span><span class="s2">$ </span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span>
+
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_colorbar_label</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">new_label</span><span class="p">)</span>
+
+    <span class="c1"># Remove the units</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"no_units"</span><span class="p">]:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_colorbar_label</span><span class="p">(</span>
+            <span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="p">(</span>
+                <span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">][</span><span class="n">vis_field</span><span class="p">][</span><span class="s2">"label"</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">vis_field</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">]</span>
+                <span class="k">else</span> <span class="n">vis_field</span>
+            <span class="p">),</span>
+        <span class="p">)</span>
+        <span class="c1"># yt labels its own axes from before the swap, then swaps the labels too</span>
+        <span class="n">xlabel</span><span class="p">,</span> <span class="n">ylabel</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertical</span><span class="p">,</span> <span class="n">horizontal</span><span class="p">)</span> <span class="k">if</span> <span class="n">swap</span> <span class="k">else</span> <span class="p">(</span><span class="n">horizontal</span><span class="p">,</span> <span class="n">vertical</span><span class="p">)</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="n">xlabel</span><span class="si">}</span><span class="s2">$"</span><span class="p">)</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="n">ylabel</span><span class="si">}</span><span class="s2">$"</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="c1"># yt would call these "Image x" and "Image y"</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="n">horizontal</span><span class="si">}</span><span class="s2">$ (</span><span class="si">{</span><span class="n">axes_unit</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="s2">"$</span><span class="si">{</span><span class="n">vertical</span><span class="si">}</span><span class="s2">$ (</span><span class="si">{</span><span class="n">axes_unit</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
+
+    <span class="c1"># Override the colorbar label</span>
+    <span class="k">if</span> <span class="n">vis_field</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">args</span><span class="p">[</span><span class="s2">"no_units"</span><span class="p">]:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_colorbar_label</span><span class="p">(</span>
+            <span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">][</span><span class="n">vis_field</span><span class="p">][</span><span class="s2">"label"</span><span class="p">],</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Remove the colorbar label if plotting on top</span>
+    <span class="k">if</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"label"</span><span class="p">][</span><span class="s2">"loc"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"top"</span><span class="p">:</span>
+        <span class="n">slc</span><span class="o">.</span><span class="n">set_colorbar_label</span><span class="p">(</span><span class="n">field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span>
+
+    <span class="n">slc</span><span class="o">.</span><span class="n">set_font_size</span><span class="p">(</span><span class="n">configs</span><span class="p">[</span><span class="s2">"plot_attrs"</span><span class="p">][</span><span class="s2">"base"</span><span class="p">][</span><span class="s2">"fontsize"</span><span class="p">])</span>
+
+    <span class="c1"># Convert the slice to matplotlib figure</span>
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">export_to_mpl_figure</span><span class="p">(</span>
+        <span class="n">nrows_ncols</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">cbar_pad</span><span class="o">=</span><span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"base"</span><span class="p">][</span><span class="s2">"pad"</span><span class="p">],</span>
+        <span class="n">cbar_location</span><span class="o">=</span><span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"base"</span><span class="p">][</span><span class="s2">"loc"</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get the axes from the figure handle</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="c1"># Off-axis, move the image from offsets to positions along across and up, so the</span>
+    <span class="c1"># ticks read like the labels say</span>
+    <span class="k">if</span> <span class="n">oblique</span><span class="p">:</span>
+        <span class="n">shift_h</span><span class="p">,</span> <span class="n">shift_v</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">quan</span><span class="p">(</span><span class="n">along</span><span class="p">,</span> <span class="s2">"code_length"</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">axes_unit</span><span class="p">))</span> <span class="k">for</span> <span class="n">along</span> <span class="ow">in</span> <span class="n">center_along</span>
+        <span class="p">)</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_images</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">left</span><span class="p">,</span> <span class="n">right</span><span class="p">,</span> <span class="n">bottom</span><span class="p">,</span> <span class="n">top</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">get_extent</span><span class="p">()</span>
+        <span class="n">image</span><span class="o">.</span><span class="n">set_extent</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">shift_h</span><span class="p">,</span> <span class="n">right</span> <span class="o">+</span> <span class="n">shift_h</span><span class="p">,</span> <span class="n">bottom</span> <span class="o">+</span> <span class="n">shift_v</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">shift_v</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="n">left</span> <span class="o">+</span> <span class="n">shift_h</span><span class="p">,</span> <span class="n">right</span> <span class="o">+</span> <span class="n">shift_h</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">bottom</span> <span class="o">+</span> <span class="n">shift_v</span><span class="p">,</span> <span class="n">top</span> <span class="o">+</span> <span class="n">shift_v</span><span class="p">)</span>
+
+    <span class="n">axlabel_size</span> <span class="o">=</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"plot_attrs"</span><span class="p">][</span><span class="s2">"axes"</span><span class="p">][</span><span class="s2">"labelsize"</span><span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">axlabel_size</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">axlabel_size</span><span class="p">)</span>
+
+    <span class="n">axc</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">axc</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"x"</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">axlabel_size</span><span class="p">)</span>
+    <span class="n">axc</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">labelsize</span><span class="o">=</span><span class="n">axlabel_size</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"label"</span><span class="p">][</span><span class="s2">"loc"</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"top"</span><span class="p">:</span>
+        <span class="n">axc</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+            <span class="p">(</span>
+                <span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">][</span><span class="n">vis_field</span><span class="p">][</span><span class="s2">"label"</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">vis_field</span> <span class="ow">in</span> <span class="n">configs</span><span class="p">[</span><span class="s2">"vis_field_attrs"</span><span class="p">]</span>
+                <span class="k">else</span> <span class="n">vis_field</span>
+            <span class="p">),</span>
+            <span class="n">fontsize</span><span class="o">=</span><span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"base"</span><span class="p">][</span><span class="s2">"fontsize"</span><span class="p">],</span>
+            <span class="n">pad</span><span class="o">=</span><span class="n">configs</span><span class="p">[</span><span class="s2">"cbar_attrs"</span><span class="p">][</span><span class="s2">"title"</span><span class="p">][</span><span class="s2">"pad"</span><span class="p">],</span>
+        <span class="p">)</span>
+    <span class="n">axc</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">""</span><span class="p">)</span>
+
+    <span class="c1"># The slice image as drawn: its extent covers whatever region --center, --pbox</span>
+    <span class="c1"># and --buff selected, in the axes units. Contours and the EB cover go on it.</span>
+    <span class="n">extent</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_images</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_extent</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># contour must be a multiple of three arguments</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">])</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span>
+                <span class="s2">"Contour argument must be a multiple of 3! [FIELD, VALUE, COLOR] "</span>
+                <span class="sa">f</span><span class="s2">"but got </span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s1">'contour'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">num_contours</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">])</span> <span class="o">//</span> <span class="mi">3</span>
+
+        <span class="c1"># Compute and plot the contours</span>
+        <span class="k">for</span> <span class="n">icnt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_contours</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"clw"</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">linewidth</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">linewidth</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"clw"</span><span class="p">][</span><span class="n">icnt</span><span class="p">]</span>
+
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">icnt</span> <span class="o">*</span> <span class="mi">3</span>
+            <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">slc</span><span class="o">.</span><span class="n">frb</span><span class="p">[</span><span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">][</span><span class="n">idx</span><span class="p">]])</span>
+            <span class="c1"># The buffer keeps yt's own axes; the plot transposes it when they are</span>
+            <span class="c1"># swapped</span>
+            <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+                <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">T</span>
+
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">contour_lines</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">][</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">],</span> <span class="n">extent</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+                    <span class="n">line</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                    <span class="n">line</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"contour"</span><span class="p">][</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">2</span><span class="p">],</span>
+                    <span class="n">zorder</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                    <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+                <span class="p">)</span>
+
+    <span class="c1"># Add grid information to the slice plot</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">]:</span>
+        <span class="n">dx0</span><span class="p">,</span> <span class="n">dy0</span><span class="p">,</span> <span class="n">dz0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds_attributes</span><span class="p">[</span><span class="s2">"dxyz"</span><span class="p">])</span>
+
+        <span class="n">level_data</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">level_stats</span><span class="p">[</span><span class="mi">0</span> <span class="p">:</span> <span class="n">ds</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">max_level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">total_cells</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cell_vol_percents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">level_data</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">ilev</span><span class="p">,</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">level_data</span><span class="p">):</span>
+            <span class="n">dx</span> <span class="o">=</span> <span class="n">dx0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">ilev</span><span class="p">)</span>
+            <span class="n">dy</span> <span class="o">=</span> <span class="n">dy0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">ilev</span><span class="p">)</span>
+            <span class="n">dz</span> <span class="o">=</span> <span class="n">dz0</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">ilev</span><span class="p">)</span>
+            <span class="n">total_cells</span> <span class="o">+=</span> <span class="n">lev</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">cell_vol_percents</span><span class="p">[</span><span class="n">ilev</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+                <span class="n">lev</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">dx</span> <span class="o">*</span> <span class="n">dy</span> <span class="o">*</span> <span class="n">dz</span> <span class="o">/</span> <span class="n">domain_volume</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">100</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Define text with grid info (LaTeX treats a bare % as a comment)</span>
+        <span class="n">pct</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">"\%"</span> <span class="k">if</span> <span class="n">plt</span><span class="o">.</span><span class="n">rcParams</span><span class="p">[</span><span class="s2">"text.usetex"</span><span class="p">]</span> <span class="k">else</span> <span class="s2">"%"</span>
+        <span class="n">text_string</span> <span class="o">=</span> <span class="s2">""</span>
+        <span class="k">for</span> <span class="n">ilev</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">text_string</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"Level </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">ilev</span><span class="p">)</span><span class="si">}</span><span class="s2"> vol: </span><span class="si">{</span><span class="n">cell_vol_percents</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">ilev</span><span class="p">)]</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}{</span><span class="n">pct</span><span class="si">}</span><span class="se">\n</span><span class="s2">"</span>
+            <span class="p">)</span>
+        <span class="n">text_string</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">total_cells</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">3</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mf">1e6</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">M  DOF"</span>
+
+        <span class="c1"># Add text</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"grid_info"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">s</span><span class="o">=</span><span class="n">text_string</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span>
+            <span class="n">bbox</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">"white"</span><span class="p">,</span> <span class="n">boxstyle</span><span class="o">=</span><span class="s2">"round"</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Remove the EB boundary defined by vfrac &lt; 0.5 (rm_eb is the fill color, and</span>
+    <span class="c1"># 0 is a valid choice)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"rm_eb"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">udf_funcs</span> <span class="ow">and</span> <span class="s2">"rm_eb"</span> <span class="ow">in</span> <span class="n">udf_funcs</span><span class="p">:</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">udf_funcs</span><span class="p">[</span><span class="s2">"rm_eb"</span><span class="p">](</span><span class="n">ax</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vfrac</span> <span class="o">=</span> <span class="n">slc</span><span class="o">.</span><span class="n">frb</span><span class="p">[(</span><span class="s2">"boxlib"</span><span class="p">,</span> <span class="n">eb_var_name</span><span class="p">)]</span><span class="o">.</span><span class="n">to_ndarray</span><span class="p">()</span>
+            <span class="c1"># Lay the cover out like the slice image</span>
+            <span class="k">if</span> <span class="n">swap</span><span class="p">:</span>
+                <span class="n">vfrac</span> <span class="o">=</span> <span class="n">vfrac</span><span class="o">.</span><span class="n">T</span>
+            <span class="c1"># Cover non-fluid cells, but not the area off the domain (NaN)</span>
+            <span class="n">m_vfrac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ma</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="n">args</span><span class="p">[</span><span class="s2">"rm_eb"</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">vfrac</span><span class="p">)),</span>
+                <span class="n">mask</span><span class="o">=</span><span class="p">(</span><span class="n">vfrac</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">|</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">vfrac</span><span class="p">),</span>
+                <span class="n">fill_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+                <span class="n">m_vfrac</span><span class="p">,</span>
+                <span class="n">origin</span><span class="o">=</span><span class="s2">"lower"</span><span class="p">,</span>
+                <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span>
+                <span class="n">aspect</span><span class="o">=</span><span class="s2">"equal"</span><span class="p">,</span>
+                <span class="n">cmap</span><span class="o">=</span><span class="s2">"binary"</span><span class="p">,</span>
+                <span class="n">vmin</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="n">vmax</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">fig</span></div>
+
+
+
+<div class="viewcode-block" id="main">
+<a class="viewcode-back" href="../../quick_vis.html#quick_vis.slice_plot.main">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+    <span class="c1"># Parse the input arguments</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">get_parser</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">get_args</span><span class="p">(</span><span class="n">parser</span><span class="p">)</span>
+
+    <span class="c1"># Parse the configuration options</span>
+    <span class="n">configs</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_configs</span><span class="p">()</span>
+
+    <span class="c1"># Import UDFs</span>
+    <span class="n">udf_funcs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"add_udf"</span><span class="p">]:</span>
+        <span class="n">udf_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../"</span><span class="p">,</span> <span class="s2">"udfs"</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">udf_path</span><span class="p">)</span>
+        <span class="n">udf_mod</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s2">"udfs"</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">""".</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"add_udf"</span><span class="p">][:</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+
+        <span class="n">udf_tups</span> <span class="o">=</span> <span class="n">getmembers</span><span class="p">(</span><span class="n">udf_mod</span><span class="p">,</span> <span class="n">isfunction</span><span class="p">)</span>
+
+        <span class="c1"># Convert the tuples to dict</span>
+        <span class="k">for</span> <span class="n">iname</span><span class="p">,</span> <span class="n">ifunc</span> <span class="ow">in</span> <span class="n">udf_tups</span><span class="p">:</span>
+            <span class="n">udf_funcs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">iname</span><span class="p">:</span> <span class="n">ifunc</span><span class="p">})</span>
+
+    <span class="c1"># Render text with LaTeX only when asked for</span>
+    <span class="n">configure_tex</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"use_tex"</span><span class="p">])</span>
+
+    <span class="c1"># Make the output directory for images</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]:</span>
+        <span class="n">imgpath</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"outpath"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">imgpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">"../../outdata/"</span><span class="p">,</span> <span class="s2">"images"</span><span class="p">))</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">imgpath</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Override the units if needed</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"SI"</span><span class="p">]:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">"length_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m"</span><span class="p">),</span>
+            <span class="s2">"time_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"s"</span><span class="p">),</span>
+            <span class="s2">"mass_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"kg"</span><span class="p">),</span>
+            <span class="s2">"velocity_unit"</span><span class="p">:</span> <span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="s2">"m/s"</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">axes_unit</span> <span class="o">=</span> <span class="s2">"m"</span>
+        <span class="n">eb_var_name</span> <span class="o">=</span> <span class="s2">"volFrac"</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">units_override</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">axes_unit</span> <span class="o">=</span> <span class="s2">"cm"</span>
+        <span class="n">eb_var_name</span> <span class="o">=</span> <span class="s2">"vfrac"</span>
+
+    <span class="c1"># Load data files into dataset series</span>
+    <span class="n">ts</span><span class="p">,</span> <span class="n">index_dict</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">load_dataseries</span><span class="p">(</span>
+        <span class="n">datapath</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"datapath"</span><span class="p">],</span>
+        <span class="n">pname</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"pname"</span><span class="p">],</span>
+        <span class="n">units_override</span><span class="o">=</span><span class="n">units_override</span><span class="p">,</span>
+        <span class="n">nskip</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"nskip"</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Get base attributes</span>
+    <span class="n">base_attributes</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_attributes</span><span class="p">(</span><span class="n">ds</span><span class="o">=</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"verbose"</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"""The fields in this dataset are: </span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">"field_list"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">"""The derived fields in this dataset are: """</span>
+            <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">base_attributes</span><span class="p">[</span><span class="s2">"derived_field_list"</span><span class="p">]</span><span class="si">}</span><span class="s2">"""</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Set the center of the plot for loading the data</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"center"</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">slc_center</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"center"</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Set the center based on the plt data</span>
+        <span class="n">slc_center</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">]</span> <span class="o">+</span> <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">]</span>
+        <span class="p">)</span> <span class="o">/</span> <span class="mf">2.0</span>
+        <span class="c1"># provide slight offset to avoid grid alignment vis issues</span>
+        <span class="n">slc_center</span> <span class="o">+=</span> <span class="n">YTArray</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"grid_offset"</span><span class="p">],</span> <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"length_unit"</span><span class="p">])</span>
+
+    <span class="c1"># A diagonal slice through the center must cut through the domain; check before</span>
+    <span class="c1"># reading the plotfiles</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">utils</span><span class="o">.</span><span class="n">is_axis_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]):</span>
+        <span class="n">normal</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">parse_normal</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">])</span>
+        <span class="n">center</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">slc_center</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">plane_center</span><span class="p">(</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"left_edge"</span><span class="p">]),</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">code_length_values</span><span class="p">(</span><span class="n">ts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">base_attributes</span><span class="p">[</span><span class="s2">"right_edge"</span><span class="p">]),</span>
+                <span class="n">normal</span><span class="p">,</span>
+                <span class="nb">float</span><span class="p">(</span><span class="n">center</span> <span class="o">@</span> <span class="n">normal</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">parser</span><span class="o">.</span><span class="n">get_parser</span><span class="p">()</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">"The slice through the center </span><span class="si">{</span><span class="nb">tuple</span><span class="p">(</span><span class="n">center</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">"</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Compute the center of the image for plotting</span>
+    <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]:</span>
+        <span class="c1"># Set the center based on the pbox</span>
+        <span class="n">pbox_center</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="mf">2.0</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="c1"># Set the width based on the pbox</span>
+        <span class="n">pbox_width</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">axes_unit</span><span class="p">),</span>
+            <span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">axes_unit</span><span class="p">),</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Loop over all datasets in the time series</span>
+    <span class="c1"># Share the plotfiles over MPI only when launched with mpirun or srun</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">enable_parallelism</span><span class="p">(</span><span class="n">no_mpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"no_mpi"</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">ts</span><span class="o">.</span><span class="n">piter</span><span class="p">(</span><span class="n">dynamic</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">hasattr</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">boxlib</span><span class="p">,</span> <span class="s2">"velocityx"</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">boxlib</span><span class="p">,</span> <span class="s2">"velocityy"</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">boxlib</span><span class="p">,</span> <span class="s2">"velocityz"</span><span class="p">)</span>
+        <span class="p">):</span>
+            <span class="n">utils</span><span class="o">.</span><span class="n">define_velocity_fields</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+        <span class="c1"># Visualize the gradient field, if requested</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">]:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_gradient_field</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="s2">"gradient"</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vis_field</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="s2">"field"</span><span class="p">]</span>
+
+        <span class="c1"># Set index according to dict</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">index_dict</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">ds</span><span class="p">)]</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">create_slice_plot</span><span class="p">(</span>
+            <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span>
+            <span class="n">configs</span><span class="o">=</span><span class="n">configs</span><span class="p">,</span>
+            <span class="n">slc_center</span><span class="o">=</span><span class="n">slc_center</span><span class="p">,</span>
+            <span class="n">vis_field</span><span class="o">=</span><span class="n">vis_field</span><span class="p">,</span>
+            <span class="n">axes_unit</span><span class="o">=</span><span class="n">axes_unit</span><span class="p">,</span>
+            <span class="n">pbox_width</span><span class="o">=</span><span class="n">pbox_width</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">pbox_center</span><span class="o">=</span><span class="n">pbox_center</span> <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pbox"</span><span class="p">]</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+            <span class="n">udf_funcs</span><span class="o">=</span><span class="n">udf_funcs</span><span class="p">,</span>
+            <span class="n">eb_var_name</span><span class="o">=</span><span class="n">eb_var_name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">plt_fname</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">"""</span><span class="si">{</span><span class="n">vis_field</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">args</span><span class="p">[</span><span class="s2">"normal"</span><span class="p">]</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">index</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="si">}</span><span class="s2">"""</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">imgpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">plt_fname</span><span class="si">}</span><span class="s2">.png"</span><span class="p">),</span>
+            <span class="n">dpi</span><span class="o">=</span><span class="n">args</span><span class="p">[</span><span class="s2">"dpi"</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Dump the figure handle as pickle for later modifications</span>
+        <span class="k">if</span> <span class="n">args</span><span class="p">[</span><span class="s2">"pickle"</span><span class="p">]:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">imgpath</span><span class="p">,</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">plt_fname</span><span class="si">}</span><span class="s2">.pickle"</span><span class="p">),</span> <span class="s2">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">pl</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span></div>
+
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">"__main__"</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Alliance for Sustainable Energy.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
