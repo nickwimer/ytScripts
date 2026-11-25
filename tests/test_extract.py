@@ -1,7 +1,10 @@
-"""Tests for the slice, average, line and isosurface extraction helpers."""
+"""Tests for the slice, average, line, isosurface and threshold extraction helpers
+and the plots of what they extract."""
 
+import h5py
 import matplotlib
 import numpy as np
+import pandas as pd
 import pytest
 import yt
 from skimage.measure import marching_cubes
@@ -10,7 +13,9 @@ import data_extraction.extract_averages as averages
 import data_extraction.extract_isosurfaces as iso
 import data_extraction.extract_lines as lines
 import data_extraction.extract_slices as extract_slices
+import data_extraction.extract_threshold as threshold
 import plot_data.plot_slices as plot_slices
+import plot_data.plot_threshold as plot_threshold
 import ytscripts.utilities as utils
 
 # Every script needs --datapath; the parser only checks that it is set
@@ -320,3 +325,243 @@ def test_plot_a_diagonal_slice(position_ds, tmp_path, monkeypatch):
     )
     plot_slices.main()
     assert (outpath / "pos_y_xz1.4142_0.png").exists()
+
+
+def test_threshold_mask_keeps_finest_cells_inside_the_band():
+    values = np.array([0.5, 2.0, 3.0, 5.0, 2.5])
+    child_mask = np.array([True, True, False, True, True])
+    x = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
+    coords = (x, np.zeros(5), np.zeros(5))
+
+    mask = threshold.threshold_mask(values, child_mask, 1.0)
+    assert list(mask) == [False, True, False, True, True]
+
+    mask = threshold.threshold_mask(values, child_mask, 1.0, vmax=4.0)
+    assert list(mask) == [False, True, False, False, True]
+
+    bounds = (0.5, -1.0, -1.0, 3.5, 1.0, 1.0)
+    mask = threshold.threshold_mask(
+        values, child_mask, 1.0, coords=coords, bounds=bounds
+    )
+    assert list(mask) == [False, True, False, True, False]
+
+
+def test_threshold_value_follows_the_function():
+    vfunction = (1.0, 10.0, 3.0, 30.0)
+    assert threshold.threshold_value(vfunction, 0.0) == 10.0
+    assert threshold.threshold_value(vfunction, 2.0) == pytest.approx(20.0)
+    assert threshold.threshold_value(vfunction, 4.0) == 30.0
+
+
+@pytest.mark.parametrize(
+    "extra, message",
+    [
+        (["--value", "1", "--max", "1"], "--max must be larger than --value"),
+        (["--vfunction", "0", "1", "2"], "--vfunction needs four values"),
+        (["--value", "1", "--bounds", "0", "0", "0", "1"], "--bounds needs six"),
+        (
+            ["--value", "1", "--bounds", "0", "0", "0", "1", "-1", "1"],
+            "--bounds needs each low value below its high",
+        ),
+        (["--value", "1"], "--field"),
+        (["--field", "temp"], "--value or --vfunction"),
+    ],
+)
+def test_threshold_args_are_checked(capsys, extra, message):
+    if "--field" not in extra and message != "--field":
+        extra = ["--field", "temp", *extra]
+    with pytest.raises(SystemExit):
+        threshold.get_args(threshold.get_parser(), [*DATA, *extra])
+    assert message in capsys.readouterr().err
+
+
+@pytest.fixture(scope="module")
+def amr_ds():
+    """Return a two level dataset with heat = x + y + z on every level."""
+    grids = []
+    for level, left, right, n in [(0, 0.0, 1.0, 8), (1, 0.25, 0.75, 8)]:
+        centers = left + (np.arange(n) + 0.5) * (right - left) / n
+        x, y, z = np.meshgrid(centers, centers, centers, indexing="ij")
+        grids.append(
+            {
+                "level": level,
+                "left_edge": [left] * 3,
+                "right_edge": [right] * 3,
+                "dimensions": [n] * 3,
+                "heat": (x + y + z, ""),
+                "temp": (2.0 * x, ""),
+            }
+        )
+    return yt.load_amr_grids(
+        grids, [8, 8, 8], length_unit="cm", bbox=np.array([[0.0, 1.0]] * 3)
+    )
+
+
+@pytest.mark.parametrize("do_yt", [False, True])
+def test_threshold_extraction_keeps_each_location_once(amr_ds, tmp_path, do_yt):
+    ds_attributes = utils.get_attributes(amr_ds)
+    comm = utils.SerialComm()
+    ncells = threshold.do_threshold_extraction(
+        dregion=amr_ds.all_data(),
+        ds_attributes=ds_attributes,
+        outformat="pkl",
+        field="heat",
+        value=1.5,
+        outpath=str(tmp_path),
+        fname="cells",
+        comm=comm,
+        rank=0,
+        size=1,
+        vmax=2.0,
+        do_yt=do_yt,
+        ds=amr_ds,
+        extra_fields=["temp", "heat"],
+    )
+
+    df = pd.read_pickle(tmp_path / "cells.pkl")
+    assert len(df) == ncells > 0
+    assert list(df.columns) == [*threshold.CELL_COLUMNS, "heat", "temp"]
+    assert df.attrs["field"] == "heat" and df.attrs["threshold"] == 1.5
+    assert df.attrs["units"]["x"] == "cm"
+
+    np.testing.assert_allclose(df["heat"], df["x"] + df["y"] + df["z"])
+    np.testing.assert_allclose(df["temp"], 2.0 * df["x"])
+    assert (df["heat"] > 1.5).all() and (df["heat"] < 2.0).all()
+    assert set(df["level"]) == {0, 1}
+    np.testing.assert_allclose(df["dx"], np.where(df["level"] == 0, 1 / 8, 1 / 16))
+
+    # No coarse cell under the fine grid is kept
+    coarse = df[df["level"] == 0]
+    inside = np.all([(coarse[a] > 0.25) & (coarse[a] < 0.75) for a in "xyz"], axis=0)
+    assert not inside.any()
+
+    # The kept cells are every cell in the band, counted by brute force
+    fine = (np.arange(8) + 0.5) / 16 + 0.25
+    coarse_c = (np.arange(8) + 0.5) / 8
+    fx, fy, fz = np.meshgrid(fine, fine, fine, indexing="ij")
+    cx, cy, cz = np.meshgrid(coarse_c, coarse_c, coarse_c, indexing="ij")
+    uncovered = ~np.all([(c > 0.25) & (c < 0.75) for c in (cx, cy, cz)], axis=0)
+    fheat, cheat = fx + fy + fz, cx + cy + cz
+    expected = np.count_nonzero((fheat > 1.5) & (fheat < 2.0)) + np.count_nonzero(
+        uncovered & (cheat > 1.5) & (cheat < 2.0)
+    )
+    assert ncells == expected
+
+
+def test_threshold_hdf5_and_xdmf_output(amr_ds, tmp_path):
+    bounds = [0.0, 0.0, 0.0, 0.5, 1.0, 1.0]
+    threshold.do_threshold_extraction(
+        dregion=amr_ds.all_data(),
+        ds_attributes=utils.get_attributes(amr_ds),
+        outformat="xdmf",
+        field="heat",
+        value=1.0,
+        outpath=str(tmp_path),
+        fname="cells",
+        comm=utils.SerialComm(),
+        rank=0,
+        size=1,
+        bounds=bounds,
+        extra_fields=["temp"],
+    )
+
+    with h5py.File(tmp_path / "cells.hdf5", "r") as f:
+        coords = f["Coord"][()]
+        assert coords.shape[1] == 3 and len(coords) > 0
+        assert f["dds"].shape == coords.shape
+        assert len(f["Level"]) == len(f["heat"]) == len(f["temp"]) == len(coords)
+        assert (coords[:, 0] <= 0.5).all()
+        assert (f["heat"][()] > 1.0).all()
+        assert f.attrs["field"] == "heat" and f.attrs["threshold"] == 1.0
+        np.testing.assert_allclose(f.attrs["bounds"], bounds)
+
+    xmf = (tmp_path / "cells.xmf").read_text()
+    assert 'TopologyType="Polyvertex"' in xmf
+    assert f'NumberOfElements="{len(coords)}"' in xmf
+    for name in ("Coord", "dds", "Level", "heat", "temp"):
+        assert f"cells.hdf5:/{name}" in xmf
+
+
+@pytest.mark.parametrize(
+    "extra, message",
+    [
+        (["--fbounds", "1"], "--fbounds needs two values"),
+        (["--view", "10"], "--view needs two values"),
+        (["--bounds", "0", "0", "0", "1"], "--bounds needs six"),
+        (["--bounds", "0", "0", "0", "1", "-1", "1"], "each low value below"),
+        (["--max_points", "0"], "--max_points must be at least 1"),
+    ],
+)
+def test_plot_threshold_args_are_checked(capsys, extra, message):
+    with pytest.raises(SystemExit):
+        plot_threshold.get_args(plot_threshold.get_parser(), [*DATA, *extra])
+    assert message in capsys.readouterr().err
+
+
+def test_plot_threshold_cells_and_axes():
+    df = pd.DataFrame(
+        {
+            "x": [0.0, 1.0, 2.0, 3.0],
+            "y": [0.0, 0.0, 1.0, 1.0],
+            "z": [0.0, 0.0, 0.0, 2.0],
+            "dx": [0.5, 0.25, 0.25, 0.5],
+            "dy": [0.5, 0.25, 0.25, 0.5],
+            "dz": [0.5, 0.25, 0.25, 0.5],
+        }
+    )
+    inside = plot_threshold.select_cells(df, bounds=(0.5, -1, -1, 2.5, 2, 2))
+    assert list(inside["x"]) == [1.0, 2.0]
+    assert len(plot_threshold.select_cells(df, max_points=3)) == 3
+
+    np.testing.assert_allclose(plot_threshold.marker_sizes(df, 2.0), [8, 2, 2, 8])
+    limits = plot_threshold.axis_limits(df)
+    np.testing.assert_allclose(limits, [(-0.25, 3.25), (-0.25, 1.25), (-0.25, 2.25)])
+    assert plot_threshold.axis_limits(df, (0, 1, 2, 3, 4, 5)) == [
+        (0, 3),
+        (1, 4),
+        (2, 5),
+    ]
+
+
+def test_plot_threshold_from_extracted_cells(amr_ds, tmp_path, monkeypatch, capsys):
+    datapath = tmp_path / "threshold"
+    datapath.mkdir()
+    threshold.do_threshold_extraction(
+        dregion=amr_ds.all_data(),
+        ds_attributes=utils.get_attributes(amr_ds),
+        outformat="pkl",
+        field="heat",
+        value=1.5,
+        outpath=str(datapath),
+        fname="threshold_heat_1.5_test",
+        comm=utils.SerialComm(),
+        rank=0,
+        size=1,
+        extra_fields=["temp"],
+    )
+
+    matplotlib.use("Agg")
+    outpath = tmp_path / "images"
+    for extra in ([], ["--field", "temp", "--plot_log", "--up", "y"]):
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "plot_threshold.py",
+                *("--datapath", str(datapath), "--outpath", str(outpath)),
+                *("--dpi", "50", "--max_points", "100"),
+                *extra,
+            ],
+        )
+        plot_threshold.main()
+
+    assert sorted(p.name for p in outpath.iterdir()) == [
+        "threshold_heat_1.5_test_heat_3d.png",
+        "threshold_heat_1.5_test_temp_3d.png",
+    ]
+    assert "Plotting 100 of the" in capsys.readouterr().out
+
+    monkeypatch.setattr(
+        "sys.argv", ["plot_threshold.py", "--datapath", str(tmp_path / "images")]
+    )
+    with pytest.raises(SystemExit, match="No threshold_"):
+        plot_threshold.main()

@@ -135,6 +135,24 @@ With the `hdf5`/`xdmf` formats, `--extra_fields` stores other fields on the surf
 
 `python data_extraction/extract_isosurfaces.py --help` for full list of arguments.
 
+## extract_threshold.py
+
+Extracts every cell where a field is above a threshold value and saves the cells for later analysis and visualization.
+
+Ex: `python data_extraction/extract_threshold.py --datapath DATADIR/ --pname plt00001 --field HeatRelease --value 1e9 --extra_fields temp "Y(OH)"`
+
+Only the finest cell at each location is kept, so no location is counted twice. Each cell is saved with its center (`x`, `y`, `z`), size (`dx`, `dy`, `dz`), `level`, the field and any `--extra_fields`; the cell size gives the cell volume for integrating over the kept cells.
+
+Output formats are `pkl` (default), a pickle file of a Pandas DataFrame with one row per cell and the field, threshold, time and units in `df.attrs`, or `hdf5`/`xdmf`, which also write an XDMF wrapper so ParaView shows the cells as points.
+
+Files are saved under `outdata/threshold` (or `--outpath`), one per plot file. `plot_data/plot_threshold.py` plots the `pkl` files in 3D.
+
+`--max` also keeps only the cells below a value, `--bounds xlo ylo zlo xhi yhi zhi` keeps only the cells with centers inside a box, `--vfunction` changes the threshold with time as for `extract_isosurfaces.py`, and `--gradient` thresholds the gradient of the field.
+
+Can be run in parallel with `mpirun` or `srun` (needs `mpi4py`). Can use `--yt` to compare with yt's `cut_region`, which is not parallelized.
+
+`python data_extraction/extract_threshold.py --help` for full list of arguments.
+
 ## extract_grid_info.py
 
 Extracts grid information at each level and saves to file.
@@ -190,6 +208,18 @@ Plots will be saved under `outdata/images/`
 Load grid info data from pickled Pandas DataFrame and make simple plot as an example.
 
 `python plot_data/plot_grid_info.py --datapath DATADIR/ --outpath OUTDIR/ --fname FILENAME`
+
+## plot_threshold.py
+
+Load the cells saved by `extract_threshold.py` (`pkl` format) and plot them in 3D as points colored by a field.
+
+Ex: `python plot_data/plot_threshold.py --datapath outdata/threshold/ --field temp --up y`
+
+Plots every `threshold_*.pkl` file in `--datapath`, or only those named with `--fname`, and saves the images under `outdata/images/` (or `--outpath`). Without `--field` the points are colored by the thresholded field.
+
+`--up` picks the axis drawn up and `--view ELEV AZIM` the camera angle. `--bounds xlo ylo zlo xhi yhi zhi` plots only the cells inside a box. `--fbounds`, `--plot_log` and `--cmap` set the colors. The axes are drawn to the same scale, and coarser cells are drawn as larger points than the finest ones (`--psize`). Files with more than `--max_points` cells (default 500000) are randomly thinned to that many so the plot stays quick.
+
+`python plot_data/plot_threshold.py --help` for full list of arguments.
 
 # Scripts for Visualization
 
